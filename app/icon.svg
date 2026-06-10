@@ -1,10 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="32" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#818CF8"/>
+      <stop offset="50%"  stop-color="#C084FC"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+  </defs>
   <!-- Dark background -->
   <rect width="32" height="32" rx="7" fill="#0F172A"/>
   <!-- Area fill under the line -->
-  <polygon points="3,26 8,20 13,22 18,13 24,9 29,5 29,26" fill="#10B981" opacity="0.15"/>
+  <polygon points="3,26 8,20 13,22 18,13 24,9 29,5 29,26" fill="url(#g)" opacity="0.15"/>
   <!-- Chart line -->
-  <polyline points="3,26 8,20 13,22 18,13 24,9 29,5" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="3,26 8,20 13,22 18,13 24,9 29,5" fill="none" stroke="url(#g)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- Highlight dot at peak -->
-  <circle cx="29" cy="5" r="2.2" fill="#10B981"/>
+  <circle cx="29" cy="5" r="2.2" fill="#34D399"/>
 </svg>

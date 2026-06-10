@@ -2,6 +2,9 @@
 
 import { useState, useCallback, useEffect } from "react";
 import StockChart from "./components/StockChart";
+import TopGainers from "./components/TopGainers";
+import DashboardLeaderboard from "./components/DashboardLeaderboard";
+import WolfAnimation from "./components/WolfAnimation";
 
 interface StockData {
   symbol: string;
@@ -33,6 +36,7 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
 
   // Restore cached stock data immediately, then refresh in background
   useEffect(() => {
@@ -45,7 +49,7 @@ export default function Home() {
         refreshStockData(s.symbol).then(({ data, earningsDate }) => ({ ...s, data, earningsDate }))
       )
     )
-      .then(setStocks)
+      .then((results) => { setStocks(results); setLastRefreshed(new Date()); })
       .catch(() => {}); // keep cached data on failure
   }, []);
 
@@ -66,7 +70,7 @@ export default function Home() {
             refreshStockData(s.symbol).then(({ data, earningsDate }) => ({ ...s, data, earningsDate }))
           )
         )
-          .then(setStocks)
+          .then((results) => { setStocks(results); setLastRefreshed(new Date()); })
           .catch(() => {});
         return current;
       });
@@ -102,8 +106,42 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-screen-xl mx-auto">
-        <h1 className="text-3xl font-bold mb-1">Stock Charts</h1>
-        <p className="text-gray-400 mb-6 text-sm">Last 3 months · up to 6 stocks · auto-refresh every 1h</p>
+        <div className="flex items-start gap-6 mb-6">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-1">
+              {/* Mini sparkline */}
+              <svg width="48" height="32" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polyline points="2,26 10,20 18,22 28,10 38,7 46,3" stroke="url(#sparkGrad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <polygon points="2,26 10,20 18,22 28,10 38,7 46,3 46,32 2,32" fill="url(#areaGrad)" opacity="0.3"/>
+                <circle cx="46" cy="3" r="3" fill="#10B981"/>
+                <defs>
+                  <linearGradient id="sparkGrad" x1="0" y1="0" x2="48" y2="0" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#6366F1"/>
+                    <stop offset="100%" stopColor="#10B981"/>
+                  </linearGradient>
+                  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="32" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#10B981"/>
+                    <stop offset="100%" stopColor="#10B981" stopOpacity="0"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">
+                Stock Charts
+              </h1>
+            </div>
+            <p className="text-gray-500 text-sm">
+              Last 3 months · up to 6 stocks · auto-refresh every 1h
+              {lastRefreshed && (
+                <span className="ml-2 text-gray-600">
+                  · last updated {lastRefreshed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </span>
+              )}
+            </p>
+            <WolfAnimation />
+          </div>
+          <DashboardLeaderboard stocks={stocks} />
+          <TopGainers />
+        </div>
 
         <div className="flex gap-2 mb-4">
           <input
