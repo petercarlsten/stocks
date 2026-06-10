@@ -12,10 +12,10 @@ npm run lint     # ESLint
 
 ## Architecture
 
-Next.js App Router app (TypeScript + Tailwind). Two main pieces:
+Next.js App Router app (TypeScript + Tailwind). Key files:
 
-- `app/page.tsx` — client component; manages the list of up to 6 stocks, input, and lays out charts in a responsive CSS grid
+- `app/page.tsx` — client component; manages stocks list, localStorage persistence, and hourly auto-refresh
 - `app/components/StockChart.tsx` — recharts `LineChart` per stock with 3-month close price data
-- `app/api/stocks/route.ts` — API route; calls `yahoo-finance2` to fetch 3-month daily historical prices for a given `?symbol=` query param
+- `app/api/stocks/route.ts` — API route using `yahoo-finance2`; `?noName=1` skips the company name fetch (used during auto-refresh)
 
-Stock data flows: page → `/api/stocks?symbol=X` → yahoo-finance2 → back as `{ symbol, data: [{date, close}] }`.
+Stock data flow: page → `/api/stocks?symbol=X` → yahoo-finance2 → `{ symbol, name, data: [{date, close}] }`.

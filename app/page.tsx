@@ -11,7 +11,7 @@ interface StockData {
 
 const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#EC4899"];
 const MAX_STOCKS = 6;
-const STORAGE_KEY = "saved-stocks";
+const STORAGE_KEY = "saved-stocks-v2";
 
 async function fetchStock(symbol: string): Promise<StockData> {
   const res = await fetch(`/api/stocks?symbol=${encodeURIComponent(symbol)}`);
@@ -20,26 +20,39 @@ async function fetchStock(symbol: string): Promise<StockData> {
   return { symbol: json.symbol, name: json.name, data: json.data };
 }
 
+async function refreshStockData(symbol: string) {
+  const res = await fetch(`/api/stocks?symbol=${encodeURIComponent(symbol)}&noName=1`);
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error ?? "Failed to fetch");
+  return json.data as StockData["data"];
+}
+
 export default function Home() {
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Restore saved tickers on mount
+  // Restore cached stock data immediately, then refresh in background
   useEffect(() => {
-    const saved: string[] = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
-    if (saved.length === 0) return;
-    setLoading(true);
-    Promise.all(saved.map(fetchStock))
-      .then((results) => setStocks(results))
-      .catch(() => {/* ignore partial failures on restore */})
-      .finally(() => setLoading(false));
+    const cached: StockData[] = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
+    if (cached.length === 0) return;
+    setStocks(cached); // show cached charts instantly
+    // Refresh data silently in the background
+    Promise.all(
+      cached.map((s) =>
+        refreshStockData(s.symbol).then((data) => ({ ...s, data }))
+      )
+    )
+      .then(setStocks)
+      .catch(() => {}); // keep cached data on failure
   }, []);
 
-  // Persist ticker list whenever stocks change
+  // Persist full stock data (symbol + name + chart data)
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stocks.map((s) => s.symbol)));
+    if (stocks.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stocks));
+    }
   }, [stocks]);
 
   // Auto-refresh all stocks every hour
@@ -47,9 +60,13 @@ export default function Home() {
     const id = setInterval(() => {
       setStocks((current) => {
         if (current.length === 0) return current;
-        Promise.all(current.map((s) => fetchStock(s.symbol)))
-          .then((results) => setStocks(results))
-          .catch(() => {/* keep stale data on failure */});
+        Promise.all(
+          current.map((s) =>
+            refreshStockData(s.symbol).then((data) => ({ ...s, data }))
+          )
+        )
+          .then(setStocks)
+          .catch(() => {});
         return current;
       });
     }, 60 * 60 * 1000);
@@ -59,18 +76,11 @@ export default function Home() {
   const addStock = useCallback(async () => {
     const symbol = input.trim().toUpperCase();
     if (!symbol) return;
-    if (stocks.length >= MAX_STOCKS) {
-      setError("Maximum 6 stocks reached.");
-      return;
-    }
-    if (stocks.find((s) => s.symbol === symbol)) {
-      setError(`${symbol} is already added.`);
-      return;
-    }
+    if (stocks.length >= MAX_STOCKS) { setError("Maximum 6 stocks reached."); return; }
+    if (stocks.find((s) => s.symbol === symbol)) { setError(`${symbol} is already added.`); return; }
 
     setLoading(true);
     setError("");
-
     try {
       const stock = await fetchStock(symbol);
       setStocks((prev) => [...prev, stock]);
@@ -92,7 +102,7 @@ export default function Home() {
     <main className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-screen-xl mx-auto">
         <h1 className="text-3xl font-bold mb-1">Stock Charts</h1>
-        <p className="text-gray-400 mb-6 text-sm">Last 3 months · up to 6 stocks</p>
+        <p className="text-gray-400 mb-6 text-sm">Last 3 months · up to 6 stocks · auto-refresh every 1h</p>
 
         <div className="flex gap-2 mb-4">
           <input
