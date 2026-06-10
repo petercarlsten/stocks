@@ -33,8 +33,8 @@ export default function TopGainers() {
           {gainers.map((g, i) => (
             <li key={g.symbol} className="flex items-center gap-2 min-w-0">
               <span className="text-gray-600 text-xs w-3 shrink-0">{i + 1}</span>
-              <span className="text-white text-sm font-medium shrink-0">{g.symbol}</span>
-              <span className="text-gray-500 text-xs truncate flex-1">{g.name}</span>
+              <span className="text-white text-sm font-medium truncate flex-1" title={g.name}>{g.name}</span>
+              <span className="text-gray-500 text-xs shrink-0">{g.symbol}</span>
               <span className="text-green-400 text-sm font-medium shrink-0">
                 +{g.gain.toFixed(1)}%
               </span>
