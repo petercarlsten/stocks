@@ -19,14 +19,23 @@ export async function GET(req: NextRequest) {
   start.setMonth(start.getMonth() - 3);
 
   try {
+    // Always fetch quote for earnings date; name lookup is optional
     const [chart, quote] = await Promise.all([
       yf.chart(upper, { period1: start, period2: end, interval: "1d" }),
-      includeName ? yf.quote(upper).catch(() => null) : Promise.resolve(null),
+      yf.quote(upper).catch(() => null),
     ]);
 
     const data = (chart.quotes as Array<{ date: Date; close: number }>)
       .filter((row) => row.close != null)
       .map((row) => ({ date: row.date.toISOString().split("T")[0], close: row.close }));
+
+    // Earnings date — available for equities, not funds
+    let earningsDate: string | null = null;
+    const ts = quote?.earningsTimestampEnd ?? quote?.earningsTimestamp ?? quote?.earningsTimestampStart;
+    if (ts) {
+      const d = ts instanceof Date ? ts : new Date((ts as number) * 1000);
+      if (!isNaN(d.getTime())) earningsDate = d.toISOString().split("T")[0];
+    }
 
     let name: string | null = null;
     if (includeName) {
@@ -42,7 +51,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ symbol: upper, name, data });
+    return NextResponse.json({ symbol: upper, name, earningsDate, data });
   } catch {
     return NextResponse.json(
       { error: `Could not fetch data for "${upper}"` },

@@ -8,6 +8,7 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  ReferenceLine,
 } from "recharts";
 
 interface DataPoint {
@@ -18,12 +19,18 @@ interface DataPoint {
 interface Props {
   symbol: string;
   name: string;
+  earningsDate: string | null;
   data: DataPoint[];
   onRemove: () => void;
   color: string;
 }
 
-export default function StockChart({ symbol, name, data, onRemove, color }: Props) {
+function formatEarningsDate(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color }: Props) {
   const first = data[0]?.close ?? 0;
   const last = data[data.length - 1]?.close ?? 0;
   const change = first ? ((last - first) / first) * 100 : 0;
@@ -33,24 +40,40 @@ export default function StockChart({ symbol, name, data, onRemove, color }: Prop
   const max = Math.max(...data.map((d) => d.close));
   const padding = (max - min) * 0.1 || 1;
 
+  const earningsInRange = earningsDate
+    ? data.some((d) => d.date === earningsDate) ||
+      (data.length > 0 && earningsDate >= data[0].date && earningsDate <= data[data.length - 1].date)
+    : false;
+
+  const today = new Date().toISOString().split("T")[0];
+  const earningsIsFuture = earningsDate ? earningsDate > today : false;
+
   return (
     <div className="bg-gray-900 rounded-xl p-4 flex flex-col gap-2 min-w-0">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
           <div className="flex items-baseline gap-2">
-            <span className="text-white font-bold text-lg">{symbol}</span>
+            <span className="text-white font-bold text-lg truncate">{name}</span>
             <span
-              className={`text-sm font-medium ${positive ? "text-green-400" : "text-red-400"}`}
+              className={`text-sm font-medium shrink-0 ${positive ? "text-green-400" : "text-red-400"}`}
             >
               {positive ? "+" : ""}
               {change.toFixed(2)}%
             </span>
           </div>
-          <div className="text-gray-400 text-xs truncate">{name}</div>
+          <div className="flex items-center gap-3">
+            <span className="text-gray-500 text-xs">{symbol}</span>
+            {earningsDate && (
+              <span className="text-xs text-amber-400">
+                {earningsIsFuture ? "Next earnings call " : "Reported "}
+                {formatEarningsDate(earningsDate)}
+              </span>
+            )}
+          </div>
         </div>
         <button
           onClick={onRemove}
-          className="text-gray-500 hover:text-gray-300 text-lg leading-none"
+          className="text-gray-500 hover:text-gray-300 text-lg leading-none shrink-0"
         >
           ×
         </button>
@@ -77,6 +100,15 @@ export default function StockChart({ symbol, name, data, onRemove, color }: Prop
             itemStyle={{ color }}
             formatter={(v: number) => [`$${v.toFixed(2)}`, "Close"]}
           />
+          {earningsInRange && earningsDate && (
+            <ReferenceLine
+              x={earningsDate}
+              stroke="#F59E0B"
+              strokeDasharray="4 3"
+              strokeWidth={1.5}
+              label={{ value: "E", position: "top", fill: "#F59E0B", fontSize: 10 }}
+            />
+          )}
           <Line
             type="monotone"
             dataKey="close"

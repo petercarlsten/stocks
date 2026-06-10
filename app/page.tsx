@@ -6,6 +6,7 @@ import StockChart from "./components/StockChart";
 interface StockData {
   symbol: string;
   name: string;
+  earningsDate: string | null;
   data: { date: string; close: number }[];
 }
 
@@ -17,14 +18,14 @@ async function fetchStock(symbol: string): Promise<StockData> {
   const res = await fetch(`/api/stocks?symbol=${encodeURIComponent(symbol)}`);
   const json = await res.json();
   if (!res.ok) throw new Error(json.error ?? "Failed to fetch");
-  return { symbol: json.symbol, name: json.name, data: json.data };
+  return { symbol: json.symbol, name: json.name, earningsDate: json.earningsDate ?? null, data: json.data };
 }
 
 async function refreshStockData(symbol: string) {
   const res = await fetch(`/api/stocks?symbol=${encodeURIComponent(symbol)}&noName=1`);
   const json = await res.json();
   if (!res.ok) throw new Error(json.error ?? "Failed to fetch");
-  return json.data as StockData["data"];
+  return { data: json.data as StockData["data"], earningsDate: (json.earningsDate as string | null) ?? null };
 }
 
 export default function Home() {
@@ -41,7 +42,7 @@ export default function Home() {
     // Refresh data silently in the background
     Promise.all(
       cached.map((s) =>
-        refreshStockData(s.symbol).then((data) => ({ ...s, data }))
+        refreshStockData(s.symbol).then(({ data, earningsDate }) => ({ ...s, data, earningsDate }))
       )
     )
       .then(setStocks)
@@ -62,7 +63,7 @@ export default function Home() {
         if (current.length === 0) return current;
         Promise.all(
           current.map((s) =>
-            refreshStockData(s.symbol).then((data) => ({ ...s, data }))
+            refreshStockData(s.symbol).then(({ data, earningsDate }) => ({ ...s, data, earningsDate }))
           )
         )
           .then(setStocks)
@@ -138,6 +139,7 @@ export default function Home() {
                 key={s.symbol}
                 symbol={s.symbol}
                 name={s.name}
+                earningsDate={s.earningsDate}
                 data={s.data}
                 color={COLORS[i % COLORS.length]}
                 onRemove={() => removeStock(s.symbol)}
