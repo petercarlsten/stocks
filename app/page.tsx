@@ -261,23 +261,25 @@ export default function Home() {
 
           let total = 0;
           let total30d = 0;
+          let total3m = 0;
           let has30d = false;
+          let has3m = false;
 
           for (const s of stocks) {
             if (!s.shares || s.shares <= 0) continue;
             const price = s.data[s.data.length - 1]?.close ?? 0;
             total += s.shares * price;
 
-            // Find closest data point at or before 30 days ago
-            const past = s.data.filter((d) => d.date <= cutoffStr);
-            const price30d = past.length > 0 ? past[past.length - 1].close : null;
-            if (price30d !== null) {
-              total30d += s.shares * price30d;
-              has30d = true;
-            }
+            const past30 = s.data.filter((d) => d.date <= cutoffStr);
+            const price30d = past30.length > 0 ? past30[past30.length - 1].close : null;
+            if (price30d !== null) { total30d += s.shares * price30d; has30d = true; }
+
+            const price3m = s.data[0]?.close ?? null;
+            if (price3m !== null) { total3m += s.shares * price3m; has3m = true; }
           }
 
           const change30d = has30d && total30d > 0 ? ((total - total30d) / total30d) * 100 : null;
+          const change3m  = has3m  && total3m  > 0 ? ((total - total3m)  / total3m)  * 100 : null;
 
           return total > 0 ? (
             <div className="flex items-center gap-3 mb-4 bg-gray-900 rounded-xl px-4 py-3">
@@ -288,6 +290,11 @@ export default function Home() {
               {change30d !== null && (
                 <span className={`text-sm font-medium ${change30d >= 0 ? "text-green-400" : "text-red-400"}`}>
                   {change30d >= 0 ? "+" : ""}{change30d.toFixed(2)}% · 30d
+                </span>
+              )}
+              {change3m !== null && (
+                <span className={`text-sm font-medium ${change3m >= 0 ? "text-green-400" : "text-red-400"}`}>
+                  {change3m >= 0 ? "+" : ""}{change3m.toFixed(2)}% · 3m
                 </span>
               )}
             </div>
