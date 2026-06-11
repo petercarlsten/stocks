@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
 import {
   DndContext,
   closestCenter,
@@ -41,6 +42,7 @@ async function refreshStockData(symbol: string) {
 }
 
 export default function Home() {
+  const { data: session } = useSession();
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -150,14 +152,25 @@ export default function Home() {
                 Stock Charts
               </h1>
             </div>
-            <p className="text-gray-500 text-sm">
-              Last 3 months · up to 6 stocks · auto-refresh every 1h
-              {lastRefreshed && (
-                <span className="ml-2 text-gray-600">
-                  · last updated {lastRefreshed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                </span>
+            <div className="flex items-center gap-3">
+              <p className="text-gray-500 text-sm">
+                Last 3 months · up to 6 stocks · auto-refresh every 1h
+              </p>
+              {session?.user?.name && (
+                <span className="text-gray-600 text-xs">· {session.user.name}</span>
               )}
-            </p>
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="text-gray-600 hover:text-gray-400 text-xs transition-colors"
+              >
+                Sign out
+              </button>
+            </div>
+            {lastRefreshed && (
+              <p className="text-gray-600 text-xs mt-0.5">
+                Last updated {lastRefreshed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </p>
+            )}
             <WolfAnimation />
           </div>
           <DashboardLeaderboard stocks={stocks} />
