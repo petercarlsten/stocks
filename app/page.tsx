@@ -15,6 +15,7 @@ import SortableStockChart from "./components/SortableStockChart";
 import TopGainers from "./components/TopGainers";
 import DashboardLeaderboard from "./components/DashboardLeaderboard";
 import WolfAnimation from "./components/WolfAnimation";
+import TickerSearch from "./components/TickerSearch";
 
 interface StockData {
   symbol: string;
@@ -51,7 +52,6 @@ export default function Home() {
   const username = session?.user?.name ?? null;
 
   const [stocks, setStocks] = useState<StockData[]>([]);
-  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
@@ -128,10 +128,8 @@ export default function Home() {
     return () => clearInterval(id);
   }, []);
 
-  const addStock = useCallback(async () => {
-    const symbol = input.trim().toUpperCase();
-    if (!symbol) return;
-    if (stocks.length >= MAX_STOCKS) { setError("Maximum 6 stocks reached."); return; }
+  const addStockBySymbol = useCallback(async (symbol: string) => {
+    if (stocks.length >= MAX_STOCKS) { setError("Maximum 9 stocks reached."); return; }
     if (stocks.find((s) => s.symbol === symbol)) { setError(`${symbol} is already added.`); return; }
 
     setLoading(true);
@@ -139,13 +137,12 @@ export default function Home() {
     try {
       const stock = await fetchStock(symbol);
       setStocks((prev) => [...prev, stock]);
-      setInput("");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
       setLoading(false);
     }
-  }, [input, stocks]);
+  }, [stocks]);
 
   const removeStock = useCallback((symbol: string) => {
     setStocks((prev) => prev.filter((s) => s.symbol !== symbol));
@@ -235,21 +232,11 @@ export default function Home() {
         </div>
 
         <div className="flex gap-2 mb-4">
-          <input
-            className="bg-gray-800 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48"
-            placeholder="Ticker (e.g. AAPL)"
-            value={input}
-            onChange={(e) => { setInput(e.target.value); setError(""); }}
-            onKeyDown={(e) => e.key === "Enter" && addStock()}
-            disabled={loading}
+          <TickerSearch
+            onAdd={(symbol) => { setError(""); addStockBySymbol(symbol); }}
+            disabled={loading || stocks.length >= MAX_STOCKS}
           />
-          <button
-            onClick={addStock}
-            disabled={loading || !input.trim() || stocks.length >= MAX_STOCKS}
-            className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg px-5 py-2 font-medium transition-colors"
-          >
-            {loading ? "Loading…" : "Add"}
-          </button>
+          {loading && <span className="text-gray-500 text-sm self-center">Loading…</span>}
         </div>
 
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
