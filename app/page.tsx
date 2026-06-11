@@ -25,8 +25,8 @@ interface StockData {
   shares?: number;
 }
 
-const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#EC4899", "#14B8A6", "#F97316", "#A855F7"];
-const MAX_STOCKS = 9;
+const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#EC4899", "#14B8A6", "#F97316", "#A855F7", "#EAB308", "#06B6D4", "#84CC16"];
+const MAX_STOCKS = 12;
 const LEGACY_KEY = "saved-stocks-v2";
 
 function cacheKey(username: string) {
@@ -201,7 +201,7 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-3">
               <p className="text-gray-500 text-sm">
-                Last 3 months · up to 9 stocks · auto-refresh every 1h
+                Last 3 months · up to 12 stocks · auto-refresh every 1h
               </p>
               {username && (
                 <span className="text-gray-600 text-xs">· {username}</span>
