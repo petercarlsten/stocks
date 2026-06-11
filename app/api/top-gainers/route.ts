@@ -36,7 +36,7 @@ export async function GET() {
     )
     .map((r) => r.value)
     .sort((a, b) => b.gain - a.gain)
-    .slice(0, 6);
+    .slice(0, 9);
 
   return NextResponse.json(gainers);
 }
