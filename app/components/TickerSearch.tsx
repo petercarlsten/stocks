@@ -17,10 +17,12 @@ export default function TickerSearch({ onAdd, disabled }: Props) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(-1);
+  const composingRef = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const search = useCallback((q: string) => {
+    if (composingRef.current) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!q.trim()) { setSuggestions([]); setOpen(false); return; }
     debounceRef.current = setTimeout(async () => {
@@ -81,6 +83,11 @@ export default function TickerSearch({ onAdd, disabled }: Props) {
         placeholder="Ticker or company name…"
         value={input}
         onChange={(e) => setInput(e.target.value)}
+        onCompositionStart={() => { composingRef.current = true; }}
+        onCompositionEnd={(e) => {
+          composingRef.current = false;
+          search(e.currentTarget.value);
+        }}
         onKeyDown={handleKeyDown}
         onFocus={() => suggestions.length > 0 && setOpen(true)}
         disabled={disabled}
