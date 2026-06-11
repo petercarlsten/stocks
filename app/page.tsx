@@ -255,16 +255,41 @@ export default function Home() {
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
         {(() => {
-          const total = stocks.reduce((sum, s) => {
+          const cutoff = new Date();
+          cutoff.setDate(cutoff.getDate() - 30);
+          const cutoffStr = cutoff.toISOString().split("T")[0];
+
+          let total = 0;
+          let total30d = 0;
+          let has30d = false;
+
+          for (const s of stocks) {
+            if (!s.shares || s.shares <= 0) continue;
             const price = s.data[s.data.length - 1]?.close ?? 0;
-            return sum + (s.shares && s.shares > 0 ? s.shares * price : 0);
-          }, 0);
+            total += s.shares * price;
+
+            // Find closest data point at or before 30 days ago
+            const past = s.data.filter((d) => d.date <= cutoffStr);
+            const price30d = past.length > 0 ? past[past.length - 1].close : null;
+            if (price30d !== null) {
+              total30d += s.shares * price30d;
+              has30d = true;
+            }
+          }
+
+          const change30d = has30d && total30d > 0 ? ((total - total30d) / total30d) * 100 : null;
+
           return total > 0 ? (
             <div className="flex items-center gap-3 mb-4 bg-gray-900 rounded-xl px-4 py-3">
               <span className="text-gray-400 text-sm">Portfolio value</span>
               <span className="text-white text-xl font-bold tracking-tight">
                 {total.toLocaleString("en-US", { style: "currency", currency: "USD" })}
               </span>
+              {change30d !== null && (
+                <span className={`text-sm font-medium ${change30d >= 0 ? "text-green-400" : "text-red-400"}`}>
+                  {change30d >= 0 ? "+" : ""}{change30d.toFixed(2)}% · 30d
+                </span>
+              )}
             </div>
           ) : null;
         })()}
