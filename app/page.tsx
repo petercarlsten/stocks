@@ -21,6 +21,7 @@ interface StockData {
   name: string;
   earningsDate: string | null;
   data: { date: string; close: number }[];
+  shares?: number;
 }
 
 const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#EC4899"];
@@ -150,6 +151,10 @@ export default function Home() {
     setStocks((prev) => prev.filter((s) => s.symbol !== symbol));
   }, []);
 
+  const updateShares = useCallback((symbol: string, shares: number | undefined) => {
+    setStocks((prev) => prev.map((s) => s.symbol === symbol ? { ...s, shares } : s));
+  }, []);
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
@@ -204,12 +209,6 @@ export default function Home() {
               {username && (
                 <span className="text-gray-600 text-xs">· {username}</span>
               )}
-              <button
-                onClick={() => signOut({ callbackUrl: "/login" })}
-                className="text-gray-600 hover:text-gray-400 text-xs transition-colors"
-              >
-                Sign out
-              </button>
             </div>
             {lastRefreshed && (
               <p className="text-gray-600 text-xs mt-0.5">
@@ -220,6 +219,19 @@ export default function Home() {
           </div>
           <DashboardLeaderboard stocks={stocks} />
           <TopGainers />
+          <div className="shrink-0 pt-1">
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-sm font-medium rounded-lg px-3 py-2 transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              Sign out
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-2 mb-4">
@@ -242,6 +254,21 @@ export default function Home() {
 
         {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
+        {(() => {
+          const total = stocks.reduce((sum, s) => {
+            const price = s.data[s.data.length - 1]?.close ?? 0;
+            return sum + (s.shares && s.shares > 0 ? s.shares * price : 0);
+          }, 0);
+          return total > 0 ? (
+            <div className="flex items-center gap-3 mb-4 bg-gray-900 rounded-xl px-4 py-3">
+              <span className="text-gray-400 text-sm">Portfolio value</span>
+              <span className="text-white text-xl font-bold tracking-tight">
+                {total.toLocaleString("en-US", { style: "currency", currency: "USD" })}
+              </span>
+            </div>
+          ) : null;
+        })()}
+
         {stocks.length === 0 ? (
           <p className="text-gray-600 text-center mt-24">
             Add a stock ticker above to get started.
@@ -261,7 +288,9 @@ export default function Home() {
                     earningsDate={s.earningsDate}
                     data={s.data}
                     color={COLORS[i % COLORS.length]}
+                    shares={s.shares}
                     onRemove={() => removeStock(s.symbol)}
+                    onSharesChange={(shares) => updateShares(s.symbol, shares)}
                   />
                 ))}
               </div>

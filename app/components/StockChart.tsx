@@ -23,6 +23,8 @@ interface Props {
   data: DataPoint[];
   onRemove: () => void;
   color: string;
+  shares?: number;
+  onSharesChange: (shares: number | undefined) => void;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
 }
 
@@ -31,7 +33,11 @@ function formatEarningsDate(dateStr: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, dragHandleProps }: Props) {
+function formatUSD(value: number): string {
+  return value.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
+}
+
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, shares, onSharesChange, dragHandleProps }: Props) {
   const first = data[0]?.close ?? 0;
   const last = data[data.length - 1]?.close ?? 0;
   const change = first ? ((last - first) / first) * 100 : 0;
@@ -48,6 +54,8 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
 
   const today = new Date().toISOString().split("T")[0];
   const earningsIsFuture = earningsDate ? earningsDate > today : false;
+
+  const positionValue = shares && shares > 0 ? shares * last : null;
 
   return (
     <div className="bg-gray-900 rounded-xl p-4 flex flex-col gap-2 min-w-0">
@@ -68,11 +76,8 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
             <span className="text-white font-bold text-lg truncate">{name}</span>
-            <span
-              className={`text-sm font-medium shrink-0 ${positive ? "text-green-400" : "text-red-400"}`}
-            >
-              {positive ? "+" : ""}
-              {change.toFixed(2)}%
+            <span className={`text-sm font-medium shrink-0 ${positive ? "text-green-400" : "text-red-400"}`}>
+              {positive ? "+" : ""}{change.toFixed(2)}%
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -93,7 +98,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         </button>
       </div>
       <div className={`text-2xl font-bold tracking-tight ${positive ? "text-green-400" : "text-red-400"}`}>
-        ${last.toFixed(2)}
+        {formatUSD(last)}
       </div>
       <ResponsiveContainer width="100%" height={180}>
         <LineChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
@@ -134,6 +139,26 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           />
         </LineChart>
       </ResponsiveContainer>
+      <div className="flex items-center gap-2 pt-2 border-t border-gray-800">
+        <label className="text-gray-500 text-xs shrink-0">Shares owned</label>
+        <input
+          type="number"
+          min="0"
+          step="any"
+          value={shares ?? ""}
+          onChange={(e) => {
+            const v = e.target.value;
+            onSharesChange(v === "" ? undefined : Math.max(0, parseFloat(v)));
+          }}
+          className="w-24 bg-gray-800 rounded px-2 py-1 text-white text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          placeholder="0"
+        />
+        {positionValue !== null && (
+          <span className="text-gray-300 text-xs font-medium ml-auto">
+            {formatUSD(positionValue)}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

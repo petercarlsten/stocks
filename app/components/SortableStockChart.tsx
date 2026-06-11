@@ -16,6 +16,8 @@ interface Props {
   data: DataPoint[];
   onRemove: () => void;
   color: string;
+  shares?: number;
+  onSharesChange: (shares: number | undefined) => void;
 }
 
 export default function SortableStockChart(props: Props) {
