@@ -98,7 +98,7 @@ export default function TickerSearch({ onAdd, disabled }: Props) {
               }`}
             >
               <span className="text-white font-medium shrink-0 w-16 truncate">{s.symbol}</span>
-              <span className="text-gray-400 truncate">{s.name}</span>
+              <span className="text-gray-400 truncate" title={s.name}>{s.name}</span>
             </li>
           ))}
         </ul>
