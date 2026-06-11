@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import StockChart from "./components/StockChart";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, rectSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import SortableStockChart from "./components/SortableStockChart";
 import TopGainers from "./components/TopGainers";
 import DashboardLeaderboard from "./components/DashboardLeaderboard";
 import WolfAnimation from "./components/WolfAnimation";
@@ -101,6 +110,18 @@ export default function Home() {
     setStocks((prev) => prev.filter((s) => s.symbol !== symbol));
   }, []);
 
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setStocks((prev) => {
+      const oldIndex = prev.findIndex((s) => s.symbol === active.id);
+      const newIndex = prev.findIndex((s) => s.symbol === over.id);
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+  }, []);
+
   const cols = stocks.length <= 2 ? stocks.length || 1 : Math.min(stocks.length, 3);
 
   return (
@@ -168,22 +189,26 @@ export default function Home() {
             Add a stock ticker above to get started.
           </p>
         ) : (
-          <div
-            className="grid gap-4"
-            style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
-          >
-            {stocks.map((s, i) => (
-              <StockChart
-                key={s.symbol}
-                symbol={s.symbol}
-                name={s.name}
-                earningsDate={s.earningsDate}
-                data={s.data}
-                color={COLORS[i % COLORS.length]}
-                onRemove={() => removeStock(s.symbol)}
-              />
-            ))}
-          </div>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={stocks.map((s) => s.symbol)} strategy={rectSortingStrategy}>
+              <div
+                className="grid gap-4"
+                style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+              >
+                {stocks.map((s, i) => (
+                  <SortableStockChart
+                    key={s.symbol}
+                    symbol={s.symbol}
+                    name={s.name}
+                    earningsDate={s.earningsDate}
+                    data={s.data}
+                    color={COLORS[i % COLORS.length]}
+                    onRemove={() => removeStock(s.symbol)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </div>
     </main>

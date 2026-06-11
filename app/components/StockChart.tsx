@@ -23,6 +23,7 @@ interface Props {
   data: DataPoint[];
   onRemove: () => void;
   color: string;
+  dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
 }
 
 function formatEarningsDate(dateStr: string): string {
@@ -30,7 +31,7 @@ function formatEarningsDate(dateStr: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color }: Props) {
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, dragHandleProps }: Props) {
   const first = data[0]?.close ?? 0;
   const last = data[data.length - 1]?.close ?? 0;
   const change = first ? ((last - first) / first) * 100 : 0;
@@ -51,7 +52,20 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   return (
     <div className="bg-gray-900 rounded-xl p-4 flex flex-col gap-2 min-w-0">
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
+        {dragHandleProps && (
+          <div
+            {...dragHandleProps}
+            className="text-gray-600 hover:text-gray-400 cursor-grab active:cursor-grabbing mt-1 shrink-0 select-none"
+            title="Drag to reorder"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+              <circle cx="4" cy="3" r="1.2"/><circle cx="10" cy="3" r="1.2"/>
+              <circle cx="4" cy="7" r="1.2"/><circle cx="10" cy="7" r="1.2"/>
+              <circle cx="4" cy="11" r="1.2"/><circle cx="10" cy="11" r="1.2"/>
+            </svg>
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
             <span className="text-white font-bold text-lg truncate">{name}</span>
             <span
@@ -78,7 +92,9 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           ×
         </button>
       </div>
-      <div className="text-gray-300 text-sm font-medium">${last.toFixed(2)}</div>
+      <div className={`text-2xl font-bold tracking-tight ${positive ? "text-green-400" : "text-red-400"}`}>
+        ${last.toFixed(2)}
+      </div>
       <ResponsiveContainer width="100%" height={180}>
         <LineChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -98,7 +114,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
             contentStyle={{ background: "#1F2937", border: "none", borderRadius: 8 }}
             labelStyle={{ color: "#D1D5DB" }}
             itemStyle={{ color }}
-            formatter={(v: number) => [`$${v.toFixed(2)}`, "Close"]}
+            formatter={(v) => [`$${Number(v).toFixed(2)}`, "Close"]}
           />
           {earningsInRange && earningsDate && (
             <ReferenceLine
