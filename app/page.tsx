@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import {
   DndContext,
@@ -25,7 +25,11 @@ interface StockData {
 
 const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#EC4899"];
 const MAX_STOCKS = 6;
-const STORAGE_KEY = "saved-stocks-v2";
+const LEGACY_KEY = "saved-stocks-v2";
+
+function cacheKey(username: string) {
+  return `stocks-cache-${username}`;
+}
 
 async function fetchStock(symbol: string): Promise<StockData> {
   const res = await fetch(`/api/stocks?symbol=${encodeURIComponent(symbol)}`);
@@ -42,36 +46,70 @@ async function refreshStockData(symbol: string) {
 }
 
 export default function Home() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const username = session?.user?.name ?? null;
+
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const initializedFor = useRef<string | null>(null);
 
-  // Restore cached stock data immediately, then refresh in background
+  // Load stocks from server (with per-user localStorage cache for instant render)
   useEffect(() => {
-    const cached: StockData[] = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
-    if (cached.length === 0) return;
-    setStocks(cached); // show cached charts instantly
-    // Refresh data silently in the background
-    Promise.all(
-      cached.map((s) =>
-        refreshStockData(s.symbol).then(({ data, earningsDate }) => ({ ...s, data, earningsDate }))
-      )
-    )
-      .then((results) => { setStocks(results); setLastRefreshed(new Date()); })
-      .catch(() => {}); // keep cached data on failure
-  }, []);
+    if (!username || initializedFor.current === username) return;
+    initializedFor.current = username;
 
-  // Persist full stock data (symbol + name + chart data)
+    // Show cached data instantly while server loads
+    const cached: StockData[] = JSON.parse(localStorage.getItem(cacheKey(username)) ?? "[]");
+    if (cached.length > 0) setStocks(cached);
+
+    fetch("/api/user/stocks")
+      .then((r) => r.json())
+      .then(async (serverStocks: StockData[]) => {
+        if (serverStocks.length > 0) {
+          // Server has data — use it and refresh prices
+          const refreshed = await Promise.all(
+            serverStocks.map((s) =>
+              refreshStockData(s.symbol)
+                .then(({ data, earningsDate }) => ({ ...s, data, earningsDate }))
+                .catch(() => s)
+            )
+          );
+          setStocks(refreshed);
+          setLastRefreshed(new Date());
+        } else {
+          // Server is empty — migrate legacy localStorage data if any
+          const legacy: StockData[] = JSON.parse(localStorage.getItem(LEGACY_KEY) ?? "[]");
+          if (legacy.length > 0) {
+            await fetch("/api/user/stocks", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(legacy),
+            });
+            setStocks(legacy);
+            localStorage.removeItem(LEGACY_KEY);
+          }
+        }
+      })
+      .catch(() => {});
+  }, [username]);
+
+  // Persist to server + cache on any stocks change (skip initial empty state)
+  const saveRef = useRef(false);
   useEffect(() => {
-    if (stocks.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(stocks));
-    }
-  }, [stocks]);
+    if (!username) return;
+    if (!saveRef.current) { saveRef.current = true; return; } // skip mount
+    localStorage.setItem(cacheKey(username), JSON.stringify(stocks));
+    fetch("/api/user/stocks", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(stocks),
+    }).catch(() => {});
+  }, [stocks, username]);
 
-  // Auto-refresh all stocks every hour
+  // Auto-refresh prices every hour
   useEffect(() => {
     const id = setInterval(() => {
       setStocks((current) => {
@@ -126,13 +164,20 @@ export default function Home() {
 
   const cols = stocks.length <= 2 ? stocks.length || 1 : Math.min(stocks.length, 3);
 
+  if (status === "loading") {
+    return (
+      <main className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <p className="text-gray-600 text-sm">Loading…</p>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gray-950 text-white p-6">
       <div className="max-w-screen-xl mx-auto">
         <div className="flex items-start gap-6 mb-6">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
-              {/* Mini sparkline */}
               <svg width="48" height="32" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <polyline points="2,26 10,20 18,22 28,10 38,7 46,3" stroke="url(#sparkGrad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                 <polygon points="2,26 10,20 18,22 28,10 38,7 46,3 46,32 2,32" fill="url(#areaGrad)" opacity="0.3"/>
@@ -156,8 +201,8 @@ export default function Home() {
               <p className="text-gray-500 text-sm">
                 Last 3 months · up to 6 stocks · auto-refresh every 1h
               </p>
-              {session?.user?.name && (
-                <span className="text-gray-600 text-xs">· {session.user.name}</span>
+              {username && (
+                <span className="text-gray-600 text-xs">· {username}</span>
               )}
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
