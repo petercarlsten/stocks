@@ -16,6 +16,8 @@ import TopGainers from "./components/TopGainers";
 import DashboardLeaderboard from "./components/DashboardLeaderboard";
 import WolfAnimation from "./components/WolfAnimation";
 import TickerSearch from "./components/TickerSearch";
+import AllStocksNews from "./components/AllStocksNews";
+import GeneralNews from "./components/GeneralNews";
 
 interface StockData {
   symbol: string;
@@ -316,6 +318,14 @@ export default function Home() {
             </SortableContext>
           </DndContext>
         )}
+
+        {stocks.length > 0 && (
+          <div className="mt-8">
+            <AllStocksNews stocks={stocks} />
+          </div>
+        )}
+        <GeneralNews />
+
       </div>
     </main>
   );

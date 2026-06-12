@@ -75,7 +75,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         )}
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
-            <span className="text-white font-bold text-lg truncate" title={name}>{name}</span>
+            <span className="text-white font-bold text-sm truncate" title={name}>{name}</span>
             <span className={`text-sm font-medium shrink-0 ${positive ? "text-green-400" : "text-red-400"}`}>
               {positive ? "+" : ""}{change.toFixed(2)}%
             </span>
@@ -97,8 +97,15 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           ×
         </button>
       </div>
-      <div className={`text-2xl font-bold tracking-tight ${positive ? "text-green-400" : "text-red-400"}`}>
-        {formatUSD(last)}
+      <div className="flex items-baseline gap-3">
+        <div className={`text-2xl font-bold tracking-tight ${positive ? "text-green-400" : "text-red-400"}`}>
+          {formatUSD(last)}
+        </div>
+        {positionValue !== null && (
+          <div className="text-gray-300 text-lg font-semibold tracking-tight">
+            {formatUSD(positionValue)}
+          </div>
+        )}
       </div>
       <ResponsiveContainer width="100%" height={180}>
         <LineChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
@@ -153,11 +160,6 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           className="w-24 bg-gray-800 rounded px-2 py-1 text-white text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           placeholder="0"
         />
-        {positionValue !== null && (
-          <span className="text-gray-300 text-xs font-medium ml-auto">
-            {formatUSD(positionValue)}
-          </span>
-        )}
       </div>
     </div>
   );
