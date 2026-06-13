@@ -17,7 +17,6 @@ import DashboardLeaderboard from "./components/DashboardLeaderboard";
 import WolfAnimation from "./components/WolfAnimation";
 import TickerSearch from "./components/TickerSearch";
 import AllStocksNews from "./components/AllStocksNews";
-import GeneralNews from "./components/GeneralNews";
 
 interface StockData {
   symbol: string;
@@ -372,7 +371,6 @@ export default function Home() {
             <AllStocksNews stocks={stocks} />
           </div>
         )}
-        <GeneralNews />
 
       </div>
     </main>

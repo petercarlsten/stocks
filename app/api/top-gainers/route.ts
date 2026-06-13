@@ -20,7 +20,7 @@ export async function GET() {
 
   const results = await Promise.allSettled(
     UNIVERSE.map(async (symbol) => {
-      const chart = await yf.chart(symbol, { period1: start, period2: end, interval: "1mo" });
+      const chart = await yf.chart(symbol, { period1: start, period2: end, interval: "1d" }, { validateResult: false });
       const quotes = (chart.quotes as Array<{ close: number }>).filter((q) => q.close != null);
       if (quotes.length < 2) throw new Error("insufficient data");
       const gain = ((quotes[quotes.length - 1].close - quotes[0].close) / quotes[0].close) * 100;

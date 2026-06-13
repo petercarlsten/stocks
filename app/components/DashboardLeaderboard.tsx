@@ -33,7 +33,6 @@ export default function DashboardLeaderboard({ stocks }: Props) {
           <li key={s.symbol} className="flex items-center gap-2 min-w-0">
             <span className="text-gray-600 text-xs w-3 shrink-0">{i + 1}</span>
             <span className="text-white text-sm font-medium truncate flex-1" title={s.name}>{s.name}</span>
-            <span className="text-gray-500 text-xs shrink-0">{s.symbol}</span>
             <span className={`text-sm font-medium shrink-0 ${s.gain >= 0 ? "text-green-400" : "text-red-400"}`}>
               {s.gain >= 0 ? "+" : ""}{s.gain.toFixed(1)}%
             </span>

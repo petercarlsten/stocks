@@ -80,7 +80,7 @@ export default function TickerSearch({ onAdd, disabled }: Props) {
     <div ref={containerRef} className="relative">
       <input
         className="bg-gray-800 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64"
-        placeholder="Ticker or company name…"
+        placeholder="Ticker, ISIN or company name…"
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onCompositionStart={() => { composingRef.current = true; }}

@@ -5,7 +5,7 @@ const yf = new YahooFinance({ suppressNotices: ["ripHistorical", "yahooSurvey"] 
 
 // OpenFIGI exchCode → Yahoo Finance ticker suffix
 const EXCH_SUFFIX: Record<string, string> = {
-  US: "",    SS: ".ST", LN: ".L",  GR: ".DE", FP: ".PA",
+  US: "",    SS: ".ST", LN: ".L",  GR: ".MU", FP: ".PA",
   SM: ".MC", IT: ".MI", NA: ".AS", DC: ".CO", HO: ".HE",
   NO: ".OL", SW: ".SW", BB: ".BR", AV: ".VI",
   HK: ".HK", JP: ".T",  AU: ".AX", SG: ".SI", MK: ".KL",
@@ -73,9 +73,50 @@ async function searchOpenFIGI(q: string): Promise<Quote[]> {
   return [];
 }
 
+const ISIN_RE = /^[A-Z]{2}[A-Z0-9]{10}$/i;
+const PARTIAL_ISIN_RE = /^[A-Z]{2}[A-Z0-9]{1,9}$/i;
+
+async function resolveISIN(isin: string): Promise<Quote[]> {
+  try {
+    const res = await fetch("https://api.openfigi.com/v3/mapping", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify([{ idType: "ID_ISIN", idValue: isin.toUpperCase() }]),
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    interface FIGIResult { ticker?: string; name?: string; exchCode?: string; securityType?: string; }
+    const data: FIGIResult[] = json[0]?.data ?? [];
+    const seen = new Set<string>();
+    return data
+      .filter((d) => d.ticker && FIGI_TYPES.includes(d.securityType ?? ""))
+      .map((d) => ({
+        symbol: `${d.ticker}${EXCH_SUFFIX[d.exchCode ?? ""] ?? ""}`,
+        name: d.name ?? d.ticker ?? "",
+        exchCode: d.exchCode ?? "",
+      }))
+      .sort((a, b) => a.exchCode === "US" ? -1 : b.exchCode === "US" ? 1 : 0)
+      .filter(({ symbol, exchCode }) =>
+        exchCode in EXCH_SUFFIX && /^[A-Z0-9.^-]+$/i.test(symbol) && !seen.has(symbol) && seen.add(symbol)
+      )
+      .slice(0, 6)
+      .map(({ symbol, name }) => ({ symbol, name }));
+  } catch {
+    return [];
+  }
+}
+
 export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get("q")?.trim() ?? "";
   if (!q) return NextResponse.json([]);
+
+  if (ISIN_RE.test(q)) {
+    const isinResults = await resolveISIN(q);
+    if (isinResults.length > 0) return NextResponse.json(isinResults);
+  }
+
+  // Looks like an incomplete ISIN (has digits) — don't fuzzy-search, just wait
+  if (PARTIAL_ISIN_RE.test(q) && /\d/.test(q)) return NextResponse.json([]);
 
   const yahooResults = await searchYahoo(q);
   if (yahooResults.length > 0) return NextResponse.json(yahooResults);
