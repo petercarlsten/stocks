@@ -28,6 +28,19 @@ interface StockData {
 }
 
 const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#EC4899", "#14B8A6", "#F97316", "#A855F7", "#EAB308", "#06B6D4", "#84CC16"];
+
+const PORTFOLIO_DOWN_QUOTES = [
+  "This is a complete and total disaster.",
+  "Nobody has ever seen losses like these.",
+  "Very unfair. Very, very unfair.",
+  "Fake numbers. I don't believe it.",
+  "The market is RIGGED. Totally rigged.",
+  "We were winning so much. Now this.",
+  "Absolutely terrible. Embarrassing, frankly.",
+  "My accountant is crying. Big tears.",
+  "I've never seen anything so bad in my life.",
+  "They're laughing at us. The whole world.",
+];
 const MAX_STOCKS = 12;
 const LEGACY_KEY = "saved-stocks-v2";
 
@@ -57,6 +70,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const [trump30dHover, setTrump30dHover] = useState(false);
+  const trumpQuoteRef = useRef(PORTFOLIO_DOWN_QUOTES[0]);
   const initializedFor = useRef<string | null>(null);
 
   // Load stocks from server (with per-user localStorage cache for instant render)
@@ -248,11 +263,18 @@ export default function Home() {
           cutoff.setDate(cutoff.getDate() - 30);
           const cutoffStr = cutoff.toISOString().split("T")[0];
 
+          const cutoff7d = new Date();
+          cutoff7d.setDate(cutoff7d.getDate() - 7);
+          const cutoff7dStr = cutoff7d.toISOString().split("T")[0];
+
+
           let total = 0;
           let total30d = 0;
-          let total3m = 0;
+          let total7d = 0;
+
           let has30d = false;
-          let has3m = false;
+          let has7d = false;
+
 
           for (const s of stocks) {
             if (!s.shares || s.shares <= 0) continue;
@@ -263,12 +285,20 @@ export default function Home() {
             const price30d = past30.length > 0 ? past30[past30.length - 1].close : null;
             if (price30d !== null) { total30d += s.shares * price30d; has30d = true; }
 
-            const price3m = s.data[0]?.close ?? null;
-            if (price3m !== null) { total3m += s.shares * price3m; has3m = true; }
+            const past7 = s.data.filter((d) => d.date <= cutoff7dStr);
+            const price7d = past7.length > 0 ? past7[past7.length - 1].close : null;
+            if (price7d !== null) { total7d += s.shares * price7d; has7d = true; }
+
+
           }
 
           const change30d = has30d && total30d > 0 ? ((total - total30d) / total30d) * 100 : null;
-          const change3m  = has3m  && total3m  > 0 ? ((total - total3m)  / total3m)  * 100 : null;
+          const change7d  = has7d  && total7d  > 0 ? ((total - total7d)  / total7d)  * 100 : null;
+
+          const gain30d   = has30d ? total - total30d : null;
+          const gain7d    = has7d  ? total - total7d  : null;
+
+          const fmtUSD = (v: number) => v.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
           return total > 0 ? (
             <div className="flex items-center gap-3 mb-4 bg-gray-900 rounded-xl px-4 py-3">
@@ -276,14 +306,32 @@ export default function Home() {
               <span className="text-white text-xl font-bold tracking-tight">
                 {total.toLocaleString("en-US", { style: "currency", currency: "USD" })}
               </span>
-              {change30d !== null && (
-                <span className={`text-sm font-medium ${change30d >= 0 ? "text-green-400" : "text-red-400"}`}>
-                  {change30d >= 0 ? "+" : ""}{change30d.toFixed(2)}% · 30d
+              {change30d !== null && gain30d !== null && (
+                <span
+                  className={`relative text-sm font-medium cursor-default ${change30d >= 0 ? "text-green-400" : "text-red-400"}`}
+                  onMouseEnter={() => {
+                    if (change30d < 0) {
+                      trumpQuoteRef.current = PORTFOLIO_DOWN_QUOTES[Math.floor(Math.random() * PORTFOLIO_DOWN_QUOTES.length)];
+                      setTrump30dHover(true);
+                    }
+                  }}
+                  onMouseLeave={() => setTrump30dHover(false)}
+                >
+                  {change30d >= 0 ? "+" : ""}{fmtUSD(gain30d)} ({change30d >= 0 ? "+" : ""}{change30d.toFixed(2)}%) · 30d
+                  {trump30dHover && (
+                    <span className="trump-popup absolute bottom-full left-1/2 mb-2 z-50 pointer-events-none flex flex-col items-center gap-1" style={{ width: 180 }}>
+                      <span className="block bg-gray-800 text-red-400 text-xs font-semibold rounded-lg px-3 py-2 shadow-xl text-center leading-snug border border-red-900">
+                        &ldquo;{trumpQuoteRef.current}&rdquo;
+                      </span>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/trump.jpg" alt="Donald Trump" className="w-36 rounded-xl shadow-2xl" />
+                    </span>
+                  )}
                 </span>
               )}
-              {change3m !== null && (
-                <span className={`text-sm font-medium ${change3m >= 0 ? "text-green-400" : "text-red-400"}`}>
-                  {change3m >= 0 ? "+" : ""}{change3m.toFixed(2)}% · 3m
+              {change7d !== null && gain7d !== null && (
+                <span className={`text-sm font-medium ${change7d >= 0 ? "text-green-400" : "text-red-400"}`}>
+                  {change7d >= 0 ? "+" : ""}{fmtUSD(gain7d)} ({change7d >= 0 ? "+" : ""}{change7d.toFixed(2)}%) · 7d
                 </span>
               )}
             </div>
