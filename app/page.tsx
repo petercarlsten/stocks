@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import TrumpHover from "./components/TrumpHover";
 import WolfHover from "./components/WolfHover";
 import SettingsPanel from "./components/SettingsPanel";
+import { SettingsContext } from "./components/SettingsContext";
 import { useSession, signOut } from "next-auth/react";
 import {
   DndContext,
@@ -64,6 +65,8 @@ export default function Home() {
   const [currency, setCurrency] = useState("USD");
   const [exchangeRate, setExchangeRate] = useState(1);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [trumpEnabled, setTrumpEnabled] = useState(true);
+  const [wolfEnabled, setWolfEnabled] = useState(true);
 
   // Load saved preferences
   useEffect(() => {
@@ -71,6 +74,8 @@ export default function Home() {
     if (saved) setCurrency(saved);
     const savedTheme = localStorage.getItem("portfolio-theme") as "light" | "dark" | null;
     if (savedTheme) setTheme(savedTheme);
+    if (localStorage.getItem("portfolio-trump") === "false") setTrumpEnabled(false);
+    if (localStorage.getItem("portfolio-wolf") === "false") setWolfEnabled(false);
   }, []);
 
   // Apply dark class to <html> and persist
@@ -207,6 +212,7 @@ export default function Home() {
   }
 
   return (
+    <SettingsContext.Provider value={{ trumpEnabled, wolfEnabled }}>
     <main className="min-h-screen bg-gray-50 text-gray-900 p-6">
       <div className="max-w-screen-xl mx-auto">
         <div className="flex items-start gap-6 mb-6">
@@ -344,6 +350,10 @@ export default function Home() {
             onCurrencyChange={setCurrency}
             theme={theme}
             onThemeChange={setTheme}
+            trumpEnabled={trumpEnabled}
+            onTrumpChange={(v) => { setTrumpEnabled(v); localStorage.setItem("portfolio-trump", String(v)); }}
+            wolfEnabled={wolfEnabled}
+            onWolfChange={(v) => { setWolfEnabled(v); localStorage.setItem("portfolio-wolf", String(v)); }}
           />
         </div>
 
@@ -398,5 +408,6 @@ export default function Home() {
 
       </div>
     </main>
+    </SettingsContext.Provider>
   );
 }

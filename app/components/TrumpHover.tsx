@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useSettings } from "./SettingsContext";
 
 const QUOTES = [
   "These numbers are a DISGRACE!",
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function TrumpHover({ isNegative, children }: Props) {
+  const { trumpEnabled } = useSettings();
   const [show, setShow] = useState(false);
   const quoteRef = useRef(QUOTES[0]);
 
@@ -30,7 +32,7 @@ export default function TrumpHover({ isNegative, children }: Props) {
     <span
       className="relative"
       onMouseEnter={() => {
-        if (isNegative) {
+        if (isNegative && trumpEnabled) {
           quoteRef.current = QUOTES[Math.floor(Math.random() * QUOTES.length)];
           setShow(true);
         }

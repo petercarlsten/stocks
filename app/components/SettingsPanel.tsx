@@ -160,6 +160,20 @@ export const ALL_CURRENCIES = [
   { code: "ZWL", name: "Zimbabwean Dollar" },
 ];
 
+function Toggle({ label, enabled, onChange }: { label: string; enabled: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      onClick={() => onChange(!enabled)}
+      className="flex items-center justify-between w-full text-sm text-gray-700 hover:text-gray-900"
+    >
+      <span>{label}</span>
+      <span className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${enabled ? "bg-indigo-600" : "bg-gray-300"}`}>
+        <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform duration-200 mt-0.5 ${enabled ? "translate-x-4" : "translate-x-0.5"}`} />
+      </span>
+    </button>
+  );
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -167,9 +181,13 @@ interface Props {
   onCurrencyChange: (c: string) => void;
   theme: "light" | "dark";
   onThemeChange: (t: "light" | "dark") => void;
+  trumpEnabled: boolean;
+  onTrumpChange: (v: boolean) => void;
+  wolfEnabled: boolean;
+  onWolfChange: (v: boolean) => void;
 }
 
-export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange }: Props) {
+export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, trumpEnabled, onTrumpChange, wolfEnabled, onWolfChange }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -273,6 +291,12 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
               ))}
             </div>
           </div>
+
+          <Toggle
+            label="🎉 Funny things"
+            enabled={trumpEnabled && wolfEnabled}
+            onChange={(v) => { onTrumpChange(v); onWolfChange(v); }}
+          />
         </div>
       </div>
     </>

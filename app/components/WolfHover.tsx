@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSettings } from "./SettingsContext";
 
 interface Props {
   isPositive: boolean;
@@ -8,12 +9,13 @@ interface Props {
 }
 
 export default function WolfHover({ isPositive, children }: Props) {
+  const { wolfEnabled } = useSettings();
   const [show, setShow] = useState(false);
 
   return (
     <span
       className="relative"
-      onMouseEnter={() => isPositive && setShow(true)}
+      onMouseEnter={() => isPositive && wolfEnabled && setShow(true)}
       onMouseLeave={() => setShow(false)}
     >
       {children}
