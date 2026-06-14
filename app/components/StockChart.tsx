@@ -28,8 +28,6 @@ interface Props {
   shares?: number;
   onSharesChange: (shares: number | undefined) => void;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
-  currency?: string;
-  exchangeRate?: number;
   theme?: "light" | "dark";
 }
 
@@ -38,7 +36,7 @@ function formatEarningsDate(dateStr: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, shares, onSharesChange, dragHandleProps, currency = "USD", exchangeRate = 1, theme = "dark" }: Props) {
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, shares, onSharesChange, dragHandleProps, theme = "dark" }: Props) {
   const dark = theme === "dark";
   const chartGrid   = dark ? "#374151" : "#e5e7eb";
   const chartTick   = dark ? "#9ca3af" : "#9ca3af";
@@ -47,7 +45,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const tooltipTxt  = dark ? "#d1d5db" : "#374151";
 
   function fmt(value: number): string {
-    return (value * exchangeRate).toLocaleString("en-US", { style: "currency", currency, minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return value.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   const first = data[0]?.close ?? 0;

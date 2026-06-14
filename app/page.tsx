@@ -394,8 +394,6 @@ export default function Home() {
                     shares={s.shares}
                     onRemove={() => removeStock(s.symbol)}
                     onSharesChange={(shares) => updateShares(s.symbol, shares)}
-                    currency={currency}
-                    exchangeRate={exchangeRate}
                     theme={theme}
                   />
                 ))}

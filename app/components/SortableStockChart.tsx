@@ -18,8 +18,6 @@ interface Props {
   color: string;
   shares?: number;
   onSharesChange: (shares: number | undefined) => void;
-  currency?: string;
-  exchangeRate?: number;
   theme?: "light" | "dark";
 }
 
