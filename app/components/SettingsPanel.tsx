@@ -185,9 +185,11 @@ interface Props {
   onTrumpChange: (v: boolean) => void;
   wolfEnabled: boolean;
   onWolfChange: (v: boolean) => void;
+  newsEnabled: boolean;
+  onNewsChange: (v: boolean) => void;
 }
 
-export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, trumpEnabled, onTrumpChange, wolfEnabled, onWolfChange }: Props) {
+export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, trumpEnabled, onTrumpChange, wolfEnabled, onWolfChange, newsEnabled, onNewsChange }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -297,6 +299,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
             enabled={trumpEnabled && wolfEnabled}
             onChange={(v) => { onTrumpChange(v); onWolfChange(v); }}
           />
+          <Toggle label="📰 Stock news" enabled={newsEnabled} onChange={onNewsChange} />
         </div>
       </div>
     </>

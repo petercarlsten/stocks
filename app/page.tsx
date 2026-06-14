@@ -67,6 +67,7 @@ export default function Home() {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [trumpEnabled, setTrumpEnabled] = useState(true);
   const [wolfEnabled, setWolfEnabled] = useState(true);
+  const [newsEnabled, setNewsEnabled] = useState(true);
 
   // Load saved preferences
   useEffect(() => {
@@ -76,6 +77,7 @@ export default function Home() {
     if (savedTheme) setTheme(savedTheme);
     if (localStorage.getItem("portfolio-trump") === "false") setTrumpEnabled(false);
     if (localStorage.getItem("portfolio-wolf") === "false") setWolfEnabled(false);
+    if (localStorage.getItem("portfolio-news") === "false") setNewsEnabled(false);
   }, []);
 
   // Apply dark class to <html> and persist
@@ -354,6 +356,8 @@ export default function Home() {
             onTrumpChange={(v) => { setTrumpEnabled(v); localStorage.setItem("portfolio-trump", String(v)); }}
             wolfEnabled={wolfEnabled}
             onWolfChange={(v) => { setWolfEnabled(v); localStorage.setItem("portfolio-wolf", String(v)); }}
+            newsEnabled={newsEnabled}
+            onNewsChange={(v) => { setNewsEnabled(v); localStorage.setItem("portfolio-news", String(v)); }}
           />
         </div>
 
@@ -400,7 +404,7 @@ export default function Home() {
           </DndContext>
         )}
 
-        {stocks.length > 0 && (
+        {stocks.length > 0 && newsEnabled && (
           <div className="mt-8">
             <AllStocksNews stocks={stocks} />
           </div>
