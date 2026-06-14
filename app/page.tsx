@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import TrumpHover from "./components/TrumpHover";
 import WolfHover from "./components/WolfHover";
+import SettingsPanel from "./components/SettingsPanel";
 import { useSession, signOut } from "next-auth/react";
 import {
   DndContext,
@@ -59,6 +60,34 @@ export default function Home() {
   const [error, setError] = useState("");
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const initializedFor = useRef<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [currency, setCurrency] = useState("USD");
+  const [exchangeRate, setExchangeRate] = useState(1);
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+
+  // Load saved preferences
+  useEffect(() => {
+    const saved = localStorage.getItem("portfolio-currency");
+    if (saved) setCurrency(saved);
+    const savedTheme = localStorage.getItem("portfolio-theme") as "light" | "dark" | null;
+    if (savedTheme) setTheme(savedTheme);
+  }, []);
+
+  // Apply dark class to <html> and persist
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    localStorage.setItem("portfolio-theme", theme);
+  }, [theme]);
+
+  // Fetch exchange rate and persist whenever currency changes
+  useEffect(() => {
+    localStorage.setItem("portfolio-currency", currency);
+    if (currency === "USD") { setExchangeRate(1); return; }
+    fetch(`https://open.er-api.com/v6/latest/USD`)
+      .then((r) => r.json())
+      .then((data) => setExchangeRate(data.rates?.[currency] ?? 1))
+      .catch(() => setExchangeRate(1));
+  }, [currency]);
 
   // Load stocks from server (with per-user localStorage cache for instant render)
   useEffect(() => {
@@ -171,14 +200,14 @@ export default function Home() {
 
   if (status === "loading") {
     return (
-      <main className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <p className="text-gray-600 text-sm">Loading…</p>
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-400 text-sm">Loading…</p>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white p-6">
+    <main className="min-h-screen bg-gray-50 text-gray-900 p-6">
       <div className="max-w-screen-xl mx-auto">
         <div className="flex items-start gap-6 mb-6">
           <div className="flex-1">
@@ -198,30 +227,107 @@ export default function Home() {
                   </linearGradient>
                 </defs>
               </svg>
-              <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-600 bg-clip-text text-transparent">
                 Your Portfolio
               </h1>
             </div>
             <div className="flex items-center gap-3">
-              <p className="text-gray-500 text-sm">
+              <p className="text-gray-400 text-sm">
                 Last 3 months · up to 12 stocks · auto-refresh every 1h
               </p>
               {username && (
-                <span className="text-gray-600 text-xs">· {username}</span>
+                <span className="text-gray-400 text-xs">· {username}</span>
               )}
             </div>
             {lastRefreshed && (
-              <p className="text-gray-600 text-xs mt-0.5">
+              <p className="text-gray-400 text-xs mt-0.5">
                 Last updated {lastRefreshed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </p>
             )}
+            {(() => {
+              const cutoff = new Date();
+              cutoff.setDate(cutoff.getDate() - 30);
+              const cutoffStr = cutoff.toISOString().split("T")[0];
+
+              const cutoff7d = new Date();
+              cutoff7d.setDate(cutoff7d.getDate() - 7);
+              const cutoff7dStr = cutoff7d.toISOString().split("T")[0];
+
+              let total = 0, total30d = 0, total7d = 0;
+              let has30d = false, has7d = false;
+
+              for (const s of stocks) {
+                if (!s.shares || s.shares <= 0) continue;
+                const price = s.data[s.data.length - 1]?.close ?? 0;
+                total += s.shares * price;
+
+                const past30 = s.data.filter((d) => d.date <= cutoffStr);
+                const price30d = past30.length > 0 ? past30[past30.length - 1].close : null;
+                if (price30d !== null) { total30d += s.shares * price30d; has30d = true; }
+
+                const past7 = s.data.filter((d) => d.date <= cutoff7dStr);
+                const price7d = past7.length > 0 ? past7[past7.length - 1].close : null;
+                if (price7d !== null) { total7d += s.shares * price7d; has7d = true; }
+              }
+
+              const change30d = has30d && total30d > 0 ? ((total - total30d) / total30d) * 100 : null;
+              const change7d  = has7d  && total7d  > 0 ? ((total - total7d)  / total7d)  * 100 : null;
+              const gain30d   = has30d ? total - total30d : null;
+              const gain7d    = has7d  ? total - total7d  : null;
+              const fmt = (v: number) => (v * exchangeRate).toLocaleString("en-US", { style: "currency", currency, minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+              return total > 0 ? (
+                <div className="flex flex-col gap-1 mt-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-gray-400 text-xs w-24 shrink-0">Portfolio value</span>
+                    <span className="text-gray-900 text-2xl font-bold tracking-tight">
+                      {(total * exchangeRate).toLocaleString("en-US", { style: "currency", currency })}
+                    </span>
+                  </div>
+                  {change30d !== null && gain30d !== null && (
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-gray-400 text-xs w-24 shrink-0">Last 30 days {change30d >= 0 ? "gain" : "loss"}</span>
+                      <WolfHover isPositive={change30d >= 0}>
+                        <TrumpHover isNegative={change30d < 0}>
+                          <span className={`text-sm font-medium ${change30d >= 0 ? "text-green-600" : "text-red-500"}`}>
+                            {change30d >= 0 ? "+" : ""}{fmt(gain30d)} ({change30d >= 0 ? "+" : ""}{change30d.toFixed(2)}%)
+                          </span>
+                        </TrumpHover>
+                      </WolfHover>
+                    </div>
+                  )}
+                  {change7d !== null && gain7d !== null && (
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-gray-400 text-xs w-24 shrink-0">Last 7 days {change7d >= 0 ? "gain" : "loss"}</span>
+                      <WolfHover isPositive={change7d >= 0}>
+                        <TrumpHover isNegative={change7d < 0}>
+                          <span className={`text-sm font-medium ${change7d >= 0 ? "text-green-600" : "text-red-500"}`}>
+                            {change7d >= 0 ? "+" : ""}{fmt(gain7d)} ({change7d >= 0 ? "+" : ""}{change7d.toFixed(2)}%)
+                          </span>
+                        </TrumpHover>
+                      </WolfHover>
+                    </div>
+                  )}
+                </div>
+              ) : null;
+            })()}
           </div>
           <DashboardLeaderboard stocks={stocks} />
           <TopGainers />
-          <div className="shrink-0 pt-1">
+          <div className="shrink-0 pt-1 flex flex-col gap-2">
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-900 text-sm font-medium rounded-lg px-3 py-2 transition-colors border border-gray-200 shadow-sm"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+              Settings
+            </button>
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
-              className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-sm font-medium rounded-lg px-3 py-2 transition-colors"
+              className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-900 text-sm font-medium rounded-lg px-3 py-2 transition-colors border border-gray-200 shadow-sm"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -231,6 +337,14 @@ export default function Home() {
               Sign out
             </button>
           </div>
+          <SettingsPanel
+            open={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
+            currency={currency}
+            onCurrencyChange={setCurrency}
+            theme={theme}
+            onThemeChange={setTheme}
+          />
         </div>
 
         <div className="flex gap-2 mb-4">
@@ -238,83 +352,14 @@ export default function Home() {
             onAdd={(symbol) => { setError(""); addStockBySymbol(symbol); }}
             disabled={loading || stocks.length >= MAX_STOCKS}
           />
-          {loading && <span className="text-gray-500 text-sm self-center">Loading…</span>}
+          {loading && <span className="text-gray-400 text-sm self-center">Loading…</span>}
         </div>
 
-        {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
-        {(() => {
-          const cutoff = new Date();
-          cutoff.setDate(cutoff.getDate() - 30);
-          const cutoffStr = cutoff.toISOString().split("T")[0];
-
-          const cutoff7d = new Date();
-          cutoff7d.setDate(cutoff7d.getDate() - 7);
-          const cutoff7dStr = cutoff7d.toISOString().split("T")[0];
-
-
-          let total = 0;
-          let total30d = 0;
-          let total7d = 0;
-
-          let has30d = false;
-          let has7d = false;
-
-
-          for (const s of stocks) {
-            if (!s.shares || s.shares <= 0) continue;
-            const price = s.data[s.data.length - 1]?.close ?? 0;
-            total += s.shares * price;
-
-            const past30 = s.data.filter((d) => d.date <= cutoffStr);
-            const price30d = past30.length > 0 ? past30[past30.length - 1].close : null;
-            if (price30d !== null) { total30d += s.shares * price30d; has30d = true; }
-
-            const past7 = s.data.filter((d) => d.date <= cutoff7dStr);
-            const price7d = past7.length > 0 ? past7[past7.length - 1].close : null;
-            if (price7d !== null) { total7d += s.shares * price7d; has7d = true; }
-
-
-          }
-
-          const change30d = has30d && total30d > 0 ? ((total - total30d) / total30d) * 100 : null;
-          const change7d  = has7d  && total7d  > 0 ? ((total - total7d)  / total7d)  * 100 : null;
-
-          const gain30d   = has30d ? total - total30d : null;
-          const gain7d    = has7d  ? total - total7d  : null;
-
-          const fmtUSD = (v: number) => v.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0 });
-
-          return total > 0 ? (
-            <div className="flex items-center gap-3 mb-4 bg-gray-900 rounded-xl px-4 py-3">
-              <span className="text-gray-400 text-sm">Portfolio value</span>
-              <span className="text-white text-xl font-bold tracking-tight">
-                {total.toLocaleString("en-US", { style: "currency", currency: "USD" })}
-              </span>
-              {change30d !== null && gain30d !== null && (
-                <WolfHover isPositive={change30d >= 0}>
-                  <TrumpHover isNegative={change30d < 0}>
-                    <span className={`text-sm font-medium ${change30d >= 0 ? "text-green-400" : "text-red-400"}`}>
-                      {change30d >= 0 ? "+" : ""}{fmtUSD(gain30d)} ({change30d >= 0 ? "+" : ""}{change30d.toFixed(2)}%) · 30d
-                    </span>
-                  </TrumpHover>
-                </WolfHover>
-              )}
-              {change7d !== null && gain7d !== null && (
-                <WolfHover isPositive={change7d >= 0}>
-                  <TrumpHover isNegative={change7d < 0}>
-                    <span className={`text-sm font-medium ${change7d >= 0 ? "text-green-400" : "text-red-400"}`}>
-                      {change7d >= 0 ? "+" : ""}{fmtUSD(gain7d)} ({change7d >= 0 ? "+" : ""}{change7d.toFixed(2)}%) · 7d
-                    </span>
-                  </TrumpHover>
-                </WolfHover>
-              )}
-            </div>
-          ) : null;
-        })()}
 
         {stocks.length === 0 ? (
-          <p className="text-gray-600 text-center mt-24">
+          <p className="text-gray-400 text-center mt-24">
             Add a stock ticker above to get started.
           </p>
         ) : (
@@ -335,6 +380,9 @@ export default function Home() {
                     shares={s.shares}
                     onRemove={() => removeStock(s.symbol)}
                     onSharesChange={(shares) => updateShares(s.symbol, shares)}
+                    currency={currency}
+                    exchangeRate={exchangeRate}
+                    theme={theme}
                   />
                 ))}
               </div>

@@ -56,18 +56,18 @@ export default function AllStocksNews({ stocks }: { stocks: Stock[] }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">
-        News related to your stocks <span className="text-gray-500">(a bit funky)</span>
+      <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-600 bg-clip-text text-transparent">
+        News related to your stocks <span className="text-gray-400">(a bit funky)</span>
       </h2>
       {loading && (
-        <p className="text-gray-700 text-xs">Loading news…</p>
+        <p className="text-gray-400 text-xs">Loading news…</p>
       )}
       {!loading && bySymbol.map((s) => (
-        <div key={s.symbol} className="bg-gray-900 rounded-xl p-4">
+        <div key={s.symbol} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
           <div className="flex items-baseline gap-2 mb-3">
-            <span className="text-white font-semibold text-sm">{s.name}</span>
-            <span className="text-gray-500 text-xs">{s.symbol}</span>
-            <span className="text-gray-600 text-xs ml-1">· News</span>
+            <span className="text-gray-900 font-semibold text-sm">{s.name}</span>
+            <span className="text-gray-400 text-xs">{s.symbol}</span>
+            <span className="text-gray-300 text-xs ml-1">· News</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {s.items.map((item, i) => (
@@ -76,17 +76,17 @@ export default function AllStocksNews({ stocks }: { stocks: Stock[] }) {
                 href={item.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex gap-3 group rounded-lg hover:bg-gray-800 p-2 -m-2 transition-colors"
+                className="flex gap-3 group rounded-lg hover:bg-gray-50 p-2 -m-2 transition-colors"
               >
                 {item.thumbnail && (
                   <img
                     src={item.thumbnail}
                     alt=""
-                    className="w-14 h-10 object-cover rounded shrink-0 opacity-70 group-hover:opacity-100 transition-opacity"
+                    className="w-14 h-10 object-cover rounded shrink-0 opacity-80 group-hover:opacity-100 transition-opacity"
                   />
                 )}
                 <div className="min-w-0">
-                  <p className="text-gray-200 text-xs font-medium leading-snug group-hover:text-white transition-colors line-clamp-2">
+                  <p className="text-gray-700 text-xs font-medium leading-snug group-hover:text-gray-900 transition-colors line-clamp-2">
                     {item.title}
                   </p>
                   {item.description && (
@@ -94,7 +94,7 @@ export default function AllStocksNews({ stocks }: { stocks: Stock[] }) {
                       {item.description}
                     </p>
                   )}
-                  <p className="text-gray-500 text-xs mt-1">
+                  <p className="text-gray-400 text-xs mt-1">
                     {item.publisher}
                     {item.publishedAt > 0 && <> · {timeAgo(item.publishedAt)}</>}
                   </p>

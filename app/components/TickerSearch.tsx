@@ -38,7 +38,6 @@ export default function TickerSearch({ onAdd, disabled }: Props) {
     search(input);
   }, [input, search]);
 
-  // Close on outside click
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -79,7 +78,7 @@ export default function TickerSearch({ onAdd, disabled }: Props) {
   return (
     <div ref={containerRef} className="relative">
       <input
-        className="bg-gray-800 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64"
+        className="bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64"
         placeholder="Ticker, ISIN or company name…"
         value={input}
         onChange={(e) => setInput(e.target.value)}
@@ -94,18 +93,18 @@ export default function TickerSearch({ onAdd, disabled }: Props) {
         autoComplete="off"
       />
       {open && (
-        <ul className="absolute z-50 top-full mt-1 left-0 w-full bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden">
+        <ul className="absolute z-50 top-full mt-1 left-0 w-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
           {suggestions.map((s, i) => (
             <li
               key={s.symbol}
               onMouseDown={() => commit(s.symbol)}
               onMouseEnter={() => setHighlighted(i)}
               className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer text-sm transition-colors ${
-                i === highlighted ? "bg-indigo-600" : "hover:bg-gray-700"
+                i === highlighted ? "bg-indigo-600 text-white" : "hover:bg-gray-50"
               }`}
             >
-              <span className="text-white font-medium shrink-0 w-16 truncate">{s.symbol}</span>
-              <span className="text-gray-400 truncate" title={s.name}>{s.name}</span>
+              <span className={`font-medium shrink-0 w-16 truncate ${i === highlighted ? "text-white" : "text-gray-900"}`}>{s.symbol}</span>
+              <span className={`truncate ${i === highlighted ? "text-indigo-100" : "text-gray-500"}`} title={s.name}>{s.name}</span>
             </li>
           ))}
         </ul>

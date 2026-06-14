@@ -22,24 +22,24 @@ export default function TopGainers() {
   }, []);
 
   return (
-    <div className="bg-gray-900 rounded-xl p-4 w-96 shrink-0">
-      <h2 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">
+    <div className="bg-white rounded-xl p-4 w-96 shrink-0 border border-gray-200 shadow-sm">
+      <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">
         Top Gainers
       </h2>
-      <p className="text-gray-600 text-xs mb-3">Last 3 months</p>
+      <p className="text-gray-400 text-xs mb-3">Last 3 months</p>
       {loading ? (
-        <p className="text-gray-600 text-xs">Loading…</p>
+        <p className="text-gray-400 text-xs">Loading…</p>
       ) : gainers.length === 0 ? (
-        <p className="text-gray-600 text-xs">No data</p>
+        <p className="text-gray-400 text-xs">No data</p>
       ) : (
         <ol className="flex flex-col gap-2">
           {gainers.map((g, i) => (
             <li key={g.symbol} className="flex items-center gap-2 min-w-0">
-              <span className="text-gray-600 text-xs w-3 shrink-0">{i + 1}</span>
-              <span className="text-white text-sm font-medium truncate flex-1" title={g.name}>{g.name}</span>
+              <span className="text-gray-300 text-xs w-3 shrink-0">{i + 1}</span>
+              <span className="text-gray-900 text-sm font-medium truncate flex-1" title={g.name}>{g.name}</span>
               <WolfHover isPositive={g.gain >= 0}>
                 <TrumpHover isNegative={g.gain < 0}>
-                  <span className={`text-sm font-medium shrink-0 ${g.gain >= 0 ? "text-green-400" : "text-red-400"}`}>
+                  <span className={`text-sm font-medium shrink-0 ${g.gain >= 0 ? "text-green-600" : "text-red-500"}`}>
                     {g.gain >= 0 ? "+" : ""}{g.gain.toFixed(1)}%
                   </span>
                 </TrumpHover>
