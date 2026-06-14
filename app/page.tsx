@@ -199,7 +199,7 @@ export default function Home() {
                 </defs>
               </svg>
               <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">
-                Stock Charts
+                Your Portfolio
               </h1>
             </div>
             <div className="flex items-center gap-3">
