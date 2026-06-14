@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import TrumpHover from "./components/TrumpHover";
+import WolfHover from "./components/WolfHover";
 import { useSession, signOut } from "next-auth/react";
 import {
   DndContext,
@@ -14,7 +16,6 @@ import { SortableContext, rectSortingStrategy, arrayMove } from "@dnd-kit/sortab
 import SortableStockChart from "./components/SortableStockChart";
 import TopGainers from "./components/TopGainers";
 import DashboardLeaderboard from "./components/DashboardLeaderboard";
-import WolfAnimation from "./components/WolfAnimation";
 import TickerSearch from "./components/TickerSearch";
 import AllStocksNews from "./components/AllStocksNews";
 
@@ -28,18 +29,6 @@ interface StockData {
 
 const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#EC4899", "#14B8A6", "#F97316", "#A855F7", "#EAB308", "#06B6D4", "#84CC16"];
 
-const PORTFOLIO_DOWN_QUOTES = [
-  "This is a complete and total disaster.",
-  "Nobody has ever seen losses like these.",
-  "Very unfair. Very, very unfair.",
-  "Fake numbers. I don't believe it.",
-  "The market is RIGGED. Totally rigged.",
-  "We were winning so much. Now this.",
-  "Absolutely terrible. Embarrassing, frankly.",
-  "My accountant is crying. Big tears.",
-  "I've never seen anything so bad in my life.",
-  "They're laughing at us. The whole world.",
-];
 const MAX_STOCKS = 12;
 const LEGACY_KEY = "saved-stocks-v2";
 
@@ -69,8 +58,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
-  const [trump30dHover, setTrump30dHover] = useState(false);
-  const trumpQuoteRef = useRef(PORTFOLIO_DOWN_QUOTES[0]);
   const initializedFor = useRef<string | null>(null);
 
   // Load stocks from server (with per-user localStorage cache for instant render)
@@ -228,7 +215,6 @@ export default function Home() {
                 Last updated {lastRefreshed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </p>
             )}
-            <WolfAnimation />
           </div>
           <DashboardLeaderboard stocks={stocks} />
           <TopGainers />
@@ -306,32 +292,22 @@ export default function Home() {
                 {total.toLocaleString("en-US", { style: "currency", currency: "USD" })}
               </span>
               {change30d !== null && gain30d !== null && (
-                <span
-                  className={`relative text-sm font-medium cursor-default ${change30d >= 0 ? "text-green-400" : "text-red-400"}`}
-                  onMouseEnter={() => {
-                    if (change30d < 0) {
-                      trumpQuoteRef.current = PORTFOLIO_DOWN_QUOTES[Math.floor(Math.random() * PORTFOLIO_DOWN_QUOTES.length)];
-                      setTrump30dHover(true);
-                    }
-                  }}
-                  onMouseLeave={() => setTrump30dHover(false)}
-                >
-                  {change30d >= 0 ? "+" : ""}{fmtUSD(gain30d)} ({change30d >= 0 ? "+" : ""}{change30d.toFixed(2)}%) · 30d
-                  {trump30dHover && (
-                    <span className="trump-popup absolute bottom-full left-1/2 mb-2 z-50 pointer-events-none flex flex-col items-center gap-1" style={{ width: 180 }}>
-                      <span className="block bg-gray-800 text-red-400 text-xs font-semibold rounded-lg px-3 py-2 shadow-xl text-center leading-snug border border-red-900">
-                        &ldquo;{trumpQuoteRef.current}&rdquo;
-                      </span>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="/trump.jpg" alt="Donald Trump" className="w-36 rounded-xl shadow-2xl" />
+                <WolfHover isPositive={change30d >= 0}>
+                  <TrumpHover isNegative={change30d < 0}>
+                    <span className={`text-sm font-medium ${change30d >= 0 ? "text-green-400" : "text-red-400"}`}>
+                      {change30d >= 0 ? "+" : ""}{fmtUSD(gain30d)} ({change30d >= 0 ? "+" : ""}{change30d.toFixed(2)}%) · 30d
                     </span>
-                  )}
-                </span>
+                  </TrumpHover>
+                </WolfHover>
               )}
               {change7d !== null && gain7d !== null && (
-                <span className={`text-sm font-medium ${change7d >= 0 ? "text-green-400" : "text-red-400"}`}>
-                  {change7d >= 0 ? "+" : ""}{fmtUSD(gain7d)} ({change7d >= 0 ? "+" : ""}{change7d.toFixed(2)}%) · 7d
-                </span>
+                <WolfHover isPositive={change7d >= 0}>
+                  <TrumpHover isNegative={change7d < 0}>
+                    <span className={`text-sm font-medium ${change7d >= 0 ? "text-green-400" : "text-red-400"}`}>
+                      {change7d >= 0 ? "+" : ""}{fmtUSD(gain7d)} ({change7d >= 0 ? "+" : ""}{change7d.toFixed(2)}%) · 7d
+                    </span>
+                  </TrumpHover>
+                </WolfHover>
               )}
             </div>
           ) : null;

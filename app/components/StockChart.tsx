@@ -1,5 +1,7 @@
 "use client";
 
+import TrumpHover from "./TrumpHover";
+import WolfHover from "./WolfHover";
 import {
   ResponsiveContainer,
   LineChart,
@@ -76,9 +78,13 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
             <span className="text-white font-bold text-sm truncate" title={name}>{name}</span>
-            <span className={`text-sm font-medium shrink-0 ${positive ? "text-green-400" : "text-red-400"}`}>
-              {positive ? "+" : ""}{change.toFixed(2)}%
-            </span>
+            <WolfHover isPositive={positive}>
+              <TrumpHover isNegative={!positive}>
+                <span className={`text-sm font-medium shrink-0 ${positive ? "text-green-400" : "text-red-400"}`}>
+                  {positive ? "+" : ""}{change.toFixed(2)}%
+                </span>
+              </TrumpHover>
+            </WolfHover>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-gray-500 text-xs">{symbol}</span>
