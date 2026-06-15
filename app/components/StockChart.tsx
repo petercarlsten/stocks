@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import TrumpHover from "./TrumpHover";
 import WolfHover from "./WolfHover";
+import { ALL_CURRENCIES } from "./SettingsPanel";
 import {
   ResponsiveContainer,
   LineChart,
@@ -49,6 +50,32 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const [showHoldings, setShowHoldings] = useState(false);
   const [showGains, setShowGains] = useState(false);
   const fetchedRef = useRef(false);
+  const [cardCurrency, setCardCurrency] = useState("USD");
+  const [cardExRate, setCardExRate] = useState(1);
+  const [currencyQuery, setCurrencyQuery] = useState("");
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+
+  const filteredCurrencies = useMemo(() => {
+    const q = currencyQuery.toLowerCase().trim();
+    if (!q) return ALL_CURRENCIES;
+    return ALL_CURRENCIES.filter(
+      (c) => c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)
+    );
+  }, [currencyQuery]);
+
+  function selectCurrency(code: string) {
+    setCardCurrency(code);
+    setCurrencyQuery("");
+    setCurrencyOpen(false);
+  }
+
+  useEffect(() => {
+    if (cardCurrency === "USD") { setCardExRate(1); return; }
+    fetch("https://open.er-api.com/v6/latest/USD")
+      .then((r) => r.json())
+      .then((d) => setCardExRate(d.rates?.[cardCurrency] ?? 1))
+      .catch(() => setCardExRate(1));
+  }, [cardCurrency]);
 
   async function handleNameEnter() {
     if (holdings !== null && holdings.length === 0) return; // known empty — skip
@@ -75,7 +102,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const tooltipTxt  = dark ? "#d1d5db" : "#374151";
 
   function fmt(value: number): string {
-    return value.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return (value * cardExRate).toLocaleString("en-US", { style: "currency", currency: cardCurrency, minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   const first = data[0]?.close ?? 0;
@@ -186,14 +213,14 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           <YAxis
             domain={[min - padding, max + padding]}
             tick={{ fill: chartTick, fontSize: 10 }}
-            tickFormatter={(v) => `$${v.toFixed(0)}`}
-            width={48}
+            tickFormatter={(v) => (v * cardExRate).toLocaleString("en-US", { style: "currency", currency: cardCurrency, minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            width={56}
           />
           <Tooltip
             contentStyle={{ background: tooltipBg, border: tooltipBdr, borderRadius: 8 }}
             labelStyle={{ color: tooltipTxt }}
             itemStyle={{ color }}
-            formatter={(v) => [`$${Number(v).toFixed(2)}`, "Close"]}
+            formatter={(v) => [(Number(v) * cardExRate).toLocaleString("en-US", { style: "currency", currency: cardCurrency, minimumFractionDigits: 2, maximumFractionDigits: 2 }), "Close"]}
           />
           {earningsInRange && earningsDate && (
             <ReferenceLine
@@ -227,6 +254,35 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           className="w-24 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           placeholder="0"
         />
+        <div className="ml-auto relative">
+          <input
+            type="text"
+            value={currencyQuery}
+            placeholder={cardCurrency}
+            onChange={(e) => { setCurrencyQuery(e.target.value); setCurrencyOpen(true); }}
+            onFocus={() => setCurrencyOpen(true)}
+            onBlur={() => setTimeout(() => setCurrencyOpen(false), 150)}
+            className="w-16 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder-gray-500"
+          />
+          {currencyOpen && (
+            <ul className="absolute bottom-full mb-1 right-0 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+              {filteredCurrencies.length === 0 ? (
+                <li className="px-3 py-2 text-gray-400 text-xs">No results</li>
+              ) : (
+                filteredCurrencies.map((c) => (
+                  <li
+                    key={c.code}
+                    onMouseDown={() => selectCurrency(c.code)}
+                    className={`flex items-center gap-2 px-3 py-1.5 cursor-pointer text-xs hover:bg-gray-50 ${c.code === cardCurrency ? "text-indigo-600 font-semibold" : "text-gray-900"}`}
+                  >
+                    <span className="shrink-0 w-8 font-mono">{c.code}</span>
+                    <span className="text-gray-500 truncate">{c.name}</span>
+                  </li>
+                ))
+              )}
+            </ul>
+          )}
+        </div>
       </div>
 
       {/* Gains tooltip — appears over chart when hovering the % badge */}
