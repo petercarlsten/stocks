@@ -27,12 +27,28 @@ interface StockData {
   earningsDate: string | null;
   data: { date: string; close: number }[];
   shares?: number;
+  currency?: string;
 }
 
 const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#EC4899", "#14B8A6", "#F97316", "#A855F7", "#EAB308", "#06B6D4", "#84CC16"];
 
 const MAX_STOCKS = 12;
 const LEGACY_KEY = "saved-stocks-v2";
+
+const SUFFIX_CURRENCY: Record<string, string> = {
+  ".L": "GBP", ".DE": "EUR", ".MU": "EUR", ".HA": "EUR", ".HM": "EUR",
+  ".SG": "EUR", ".F": "EUR", ".BE": "EUR", ".DU": "EUR", ".ST": "SEK",
+  ".PA": "EUR", ".AS": "EUR", ".MI": "EUR", ".MC": "EUR", ".SW": "CHF",
+  ".CO": "DKK", ".HE": "EUR", ".OL": "NOK", ".BR": "EUR", ".VI": "EUR",
+  ".HK": "HKD", ".T": "JPY", ".AX": "AUD", ".SI": "SGD", ".KL": "MYR",
+  ".NS": "INR",
+};
+
+function inferCurrency(symbol: string): string {
+  const dotIdx = symbol.lastIndexOf(".");
+  const suffix = dotIdx >= 0 ? symbol.slice(dotIdx) : "";
+  return SUFFIX_CURRENCY[suffix] ?? "USD";
+}
 
 function cacheKey(username: string) {
   return `stocks-cache-${username}`;
@@ -42,14 +58,14 @@ async function fetchStock(symbol: string): Promise<StockData> {
   const res = await fetch(`/api/stocks?symbol=${encodeURIComponent(symbol)}`);
   const json = await res.json();
   if (!res.ok) throw new Error(json.error ?? "Failed to fetch");
-  return { symbol: json.symbol, name: json.name, earningsDate: json.earningsDate ?? null, data: json.data };
+  return { symbol: json.symbol, name: json.name, earningsDate: json.earningsDate ?? null, data: json.data, currency: json.currency ?? inferCurrency(json.symbol) };
 }
 
 async function refreshStockData(symbol: string) {
   const res = await fetch(`/api/stocks?symbol=${encodeURIComponent(symbol)}&noName=1`);
   const json = await res.json();
   if (!res.ok) throw new Error(json.error ?? "Failed to fetch");
-  return { data: json.data as StockData["data"], earningsDate: (json.earningsDate as string | null) ?? null };
+  return { data: json.data as StockData["data"], earningsDate: (json.earningsDate as string | null) ?? null, currency: (json.currency as string | undefined) };
 }
 
 export default function Home() {
@@ -64,6 +80,7 @@ export default function Home() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [currency, setCurrency] = useState("USD");
   const [exchangeRate, setExchangeRate] = useState(1);
+  const [usdRates, setUsdRates] = useState<Record<string, number>>({ USD: 1 });
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [trumpEnabled, setTrumpEnabled] = useState(true);
   const [wolfEnabled, setWolfEnabled] = useState(true);
@@ -86,14 +103,17 @@ export default function Home() {
     localStorage.setItem("portfolio-theme", theme);
   }, [theme]);
 
-  // Fetch exchange rate and persist whenever currency changes
+  // Fetch exchange rates and persist whenever currency changes
   useEffect(() => {
     localStorage.setItem("portfolio-currency", currency);
-    if (currency === "USD") { setExchangeRate(1); return; }
     fetch(`https://open.er-api.com/v6/latest/USD`)
       .then((r) => r.json())
-      .then((data) => setExchangeRate(data.rates?.[currency] ?? 1))
-      .catch(() => setExchangeRate(1));
+      .then((data) => {
+        const rates: Record<string, number> = { USD: 1, ...data.rates };
+        setUsdRates(rates);
+        setExchangeRate(rates[currency] ?? 1);
+      })
+      .catch(() => { setExchangeRate(currency === "USD" ? 1 : 1); });
   }, [currency]);
 
   // Load stocks from server (with per-user localStorage cache for instant render)
@@ -102,7 +122,8 @@ export default function Home() {
     initializedFor.current = username;
 
     // Show cached data instantly while server loads
-    const cached: StockData[] = JSON.parse(localStorage.getItem(cacheKey(username)) ?? "[]");
+    const cached: StockData[] = (JSON.parse(localStorage.getItem(cacheKey(username)) ?? "[]") as StockData[])
+      .map((s) => ({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }));
     if (cached.length > 0) setStocks(cached);
 
     fetch("/api/user/stocks")
@@ -113,8 +134,8 @@ export default function Home() {
           const refreshed = await Promise.all(
             serverStocks.map((s) =>
               refreshStockData(s.symbol)
-                .then(({ data, earningsDate }) => ({ ...s, data, earningsDate }))
-                .catch(() => s)
+                .then(({ data, earningsDate, currency }) => ({ ...s, data, earningsDate, currency: currency ?? s.currency ?? inferCurrency(s.symbol) }))
+                .catch(() => ({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }))
             )
           );
           setStocks(refreshed);
@@ -156,7 +177,7 @@ export default function Home() {
         if (current.length === 0) return current;
         Promise.all(
           current.map((s) =>
-            refreshStockData(s.symbol).then(({ data, earningsDate }) => ({ ...s, data, earningsDate }))
+            refreshStockData(s.symbol).then(({ data, earningsDate, currency }) => ({ ...s, data, earningsDate, currency: currency ?? s.currency ?? inferCurrency(s.symbol) }))
           )
         )
           .then((results) => { setStocks(results); setLastRefreshed(new Date()); })
@@ -266,30 +287,34 @@ export default function Home() {
 
               for (const s of stocks) {
                 if (!s.shares || s.shares <= 0) continue;
+                // Convert from ticker's native currency to portfolio currency
+                const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
+                const toPortfolio = exchangeRate / tickerRate;
+
                 const price = s.data[s.data.length - 1]?.close ?? 0;
-                total += s.shares * price;
+                total += s.shares * price * toPortfolio;
 
                 const past30 = s.data.filter((d) => d.date <= cutoffStr);
                 const price30d = past30.length > 0 ? past30[past30.length - 1].close : null;
-                if (price30d !== null) { total30d += s.shares * price30d; has30d = true; }
+                if (price30d !== null) { total30d += s.shares * price30d * toPortfolio; has30d = true; }
 
                 const past7 = s.data.filter((d) => d.date <= cutoff7dStr);
                 const price7d = past7.length > 0 ? past7[past7.length - 1].close : null;
-                if (price7d !== null) { total7d += s.shares * price7d; has7d = true; }
+                if (price7d !== null) { total7d += s.shares * price7d * toPortfolio; has7d = true; }
               }
 
               const change30d = has30d && total30d > 0 ? ((total - total30d) / total30d) * 100 : null;
               const change7d  = has7d  && total7d  > 0 ? ((total - total7d)  / total7d)  * 100 : null;
               const gain30d   = has30d ? total - total30d : null;
               const gain7d    = has7d  ? total - total7d  : null;
-              const fmt = (v: number) => (v * exchangeRate).toLocaleString("en-US", { style: "currency", currency, minimumFractionDigits: 0, maximumFractionDigits: 0 });
+              const fmt = (v: number) => v.toLocaleString("en-US", { style: "currency", currency, minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
               return total > 0 ? (
                 <div className="flex flex-col gap-1 mt-2">
                   <div className="flex items-baseline gap-2">
                     <span className="text-gray-400 text-xs w-24 shrink-0">Portfolio value</span>
                     <span className="text-gray-900 text-2xl font-bold tracking-tight">
-                      {(total * exchangeRate).toLocaleString("en-US", { style: "currency", currency })}
+                      {total.toLocaleString("en-US", { style: "currency", currency })}
                     </span>
                   </div>
                   {change30d !== null && gain30d !== null && (
@@ -382,7 +407,8 @@ export default function Home() {
               {(() => {
                 const totalPortfolioValue = stocks.reduce((sum, s) => {
                   if (!s.shares || s.shares <= 0) return sum;
-                  return sum + s.shares * (s.data[s.data.length - 1]?.close ?? 0);
+                  const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
+                  return sum + s.shares * (s.data[s.data.length - 1]?.close ?? 0) * (exchangeRate / tickerRate);
                 }, 0);
                 return (
                   <div
@@ -390,7 +416,8 @@ export default function Home() {
                     style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
                   >
                     {stocks.map((s, i) => {
-                      const posVal = s.shares && s.shares > 0 ? s.shares * (s.data[s.data.length - 1]?.close ?? 0) : 0;
+                      const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
+                      const posVal = s.shares && s.shares > 0 ? s.shares * (s.data[s.data.length - 1]?.close ?? 0) * (exchangeRate / tickerRate) : 0;
                       const portfolioPct = totalPortfolioValue > 0 && posVal > 0 ? (posVal / totalPortfolioValue) * 100 : undefined;
                       return (
                         <SortableStockChart
@@ -405,6 +432,7 @@ export default function Home() {
                           onSharesChange={(shares) => updateShares(s.symbol, shares)}
                           theme={theme}
                           portfolioPct={portfolioPct}
+                          tickerCurrency={s.currency ?? "USD"}
                         />
                       );
                     })}

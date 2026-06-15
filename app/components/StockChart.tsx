@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import TrumpHover from "./TrumpHover";
 import WolfHover from "./WolfHover";
 import { ALL_CURRENCIES } from "./SettingsPanel";
@@ -32,6 +32,7 @@ interface Props {
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
   theme?: "light" | "dark";
   portfolioPct?: number;
+  tickerCurrency?: string;
 }
 
 function formatEarningsDate(dateStr: string): string {
@@ -45,15 +46,16 @@ function fmtDate(dateStr?: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, shares, onSharesChange, dragHandleProps, theme = "dark", portfolioPct }: Props) {
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, shares, onSharesChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD" }: Props) {
   const [holdings, setHoldings] = useState<{ name: string; pct: number }[] | null>(null);
   const [showHoldings, setShowHoldings] = useState(false);
   const [showGains, setShowGains] = useState(false);
   const fetchedRef = useRef(false);
-  const [cardCurrency, setCardCurrency] = useState("USD");
+  const [cardCurrency, setCardCurrency] = useState(tickerCurrency);
   const [cardExRate, setCardExRate] = useState(1);
   const [currencyQuery, setCurrencyQuery] = useState("");
   const [currencyOpen, setCurrencyOpen] = useState(false);
+  const usdRatesRef = useRef<Record<string, number>>({ USD: 1 });
 
   const filteredCurrencies = useMemo(() => {
     const q = currencyQuery.toLowerCase().trim();
@@ -63,6 +65,11 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
     );
   }, [currencyQuery]);
 
+  const applyRate = useCallback((display: string, ticker: string, rates: Record<string, number>) => {
+    if (display === ticker) { setCardExRate(1); return; }
+    setCardExRate((rates[display] ?? 1) / (rates[ticker] ?? 1));
+  }, []);
+
   function selectCurrency(code: string) {
     setCardCurrency(code);
     setCurrencyQuery("");
@@ -70,12 +77,18 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   }
 
   useEffect(() => {
-    if (cardCurrency === "USD") { setCardExRate(1); return; }
+    if (Object.keys(usdRatesRef.current).length > 1) {
+      applyRate(cardCurrency, tickerCurrency, usdRatesRef.current);
+      return;
+    }
     fetch("https://open.er-api.com/v6/latest/USD")
       .then((r) => r.json())
-      .then((d) => setCardExRate(d.rates?.[cardCurrency] ?? 1))
+      .then((d) => {
+        usdRatesRef.current = { USD: 1, ...d.rates };
+        applyRate(cardCurrency, tickerCurrency, usdRatesRef.current);
+      })
       .catch(() => setCardExRate(1));
-  }, [cardCurrency]);
+  }, [cardCurrency, tickerCurrency, applyRate]);
 
   async function handleNameEnter() {
     if (holdings !== null && holdings.length === 0) return; // known empty — skip

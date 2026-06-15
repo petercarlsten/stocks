@@ -63,6 +63,21 @@ async function fetchFromEODHD(
   }
 }
 
+const SUFFIX_CURRENCY: Record<string, string> = {
+  "": "USD", ".L": "GBP", ".DE": "EUR", ".MU": "EUR", ".HA": "EUR",
+  ".HM": "EUR", ".SG": "EUR", ".F": "EUR", ".BE": "EUR", ".DU": "EUR",
+  ".ST": "SEK", ".PA": "EUR", ".AS": "EUR", ".MI": "EUR", ".MC": "EUR",
+  ".SW": "CHF", ".CO": "DKK", ".HE": "EUR", ".OL": "NOK", ".BR": "EUR",
+  ".VI": "EUR", ".HK": "HKD", ".T": "JPY", ".AX": "AUD", ".SI": "SGD",
+  ".KL": "MYR", ".NS": "INR",
+};
+
+function inferCurrencyFromSuffix(symbol: string): string {
+  const dotIdx = symbol.lastIndexOf(".");
+  const suffix = dotIdx >= 0 ? symbol.slice(dotIdx) : "";
+  return SUFFIX_CURRENCY[suffix] ?? "USD";
+}
+
 const ISIN_RE = /^[A-Z]{2}[A-Z0-9]{10}$/i;
 
 async function resolveISIN(isin: string): Promise<string | null> {
@@ -174,7 +189,8 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ symbol: upper, name, earningsDate, data });
+    const currency = quote?.currency ?? inferCurrencyFromSuffix(upper);
+    return NextResponse.json({ symbol: upper, name, earningsDate, data, currency });
   } catch {
     return NextResponse.json(
       { error: `Could not fetch data for "${upper}"` },
