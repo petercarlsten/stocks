@@ -79,7 +79,7 @@ async function refreshStockData(symbol: string) {
   const res = await fetch(`/api/stocks?symbol=${encodeURIComponent(symbol)}&noName=1`);
   const json = await res.json();
   if (!res.ok) throw new Error(json.error ?? "Failed to fetch");
-  return { data: json.data as StockData["data"], earningsDate: (json.earningsDate as string | null) ?? null, currency: (json.currency as string | undefined) };
+  return { data: json.data as StockData["data"], earningsDate: (json.earningsDate as string | null) ?? null, currency: (json.currency as string | undefined), symbol: (json.symbol as string | undefined) };
 }
 
 export default function Home() {
@@ -149,7 +149,7 @@ export default function Home() {
           const refreshed = await Promise.all(
             migrated.map((s) =>
               refreshStockData(s.symbol)
-                .then(({ data, earningsDate, currency }) => ({ ...s, data, earningsDate, currency: currency ?? s.currency ?? inferCurrency(s.symbol) }))
+                .then(({ data, earningsDate, currency, symbol: corrected }) => ({ ...s, data, earningsDate, currency: currency ?? s.currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol }))
                 .catch(() => ({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }))
             )
           );
@@ -201,7 +201,7 @@ export default function Home() {
         if (current.length === 0) return current;
         Promise.all(
           current.map((s) =>
-            refreshStockData(s.symbol).then(({ data, earningsDate, currency }) => ({ ...s, data, earningsDate, currency: currency ?? s.currency ?? inferCurrency(s.symbol) }))
+            refreshStockData(s.symbol).then(({ data, earningsDate, currency, symbol: corrected }) => ({ ...s, data, earningsDate, currency: currency ?? s.currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol }))
           )
         )
           .then((results) => { setStocks(results); setLastRefreshed(new Date()); })

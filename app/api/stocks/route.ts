@@ -24,19 +24,18 @@ function toEODHDSymbol(yahooSymbol: string): string | null {
   return exch != null ? `${base}.${exch}` : null;
 }
 
-async function fetchNameFromEODHD(query: string): Promise<string | null> {
+async function searchEODHD(query: string): Promise<{ name: string | null; isin: string | null }> {
   const apiKey = process.env.EODHD_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) return { name: null, isin: null };
   try {
     const res = await fetch(`https://eodhd.com/api/search/${encodeURIComponent(query)}?api_token=${apiKey}`);
-    if (!res.ok) return null;
+    if (!res.ok) return { name: null, isin: null };
     const rows: Array<{ Name?: string; ISIN?: string; Code?: string }> = await res.json();
-    if (!Array.isArray(rows) || rows.length === 0) return null;
-    // Prefer exact ISIN match, otherwise first result
+    if (!Array.isArray(rows) || rows.length === 0) return { name: null, isin: null };
     const match = rows.find((r) => r.ISIN === query.toUpperCase()) ?? rows[0];
-    return match?.Name ?? null;
+    return { name: match?.Name ?? null, isin: match?.ISIN ?? null };
   } catch {
-    return null;
+    return { name: null, isin: null };
   }
 }
 
@@ -146,9 +145,19 @@ export async function GET(req: NextRequest) {
     // Fall back to EODHD when Yahoo has no or sparse history
     if (data.length < 5) {
       const eodhdTicker = toEODHDSymbol(upper);
-      const eodhd =
+      let eodhd =
         (eodhdTicker ? await fetchFromEODHD(eodhdTicker, start, end) : null) ??
         (originalISIN   ? await fetchFromEODHD(`${originalISIN}.EUFUND`, start, end) : null);
+
+      // Last resort: if we still have no data and no ISIN, search EODHD for the ticker's
+      // ISIN (e.g. TESG.MU → LU0109392836) and try the EUFUND path.
+      if (!eodhd && !originalISIN) {
+        const { isin } = await searchEODHD(upper);
+        if (isin) {
+          originalISIN = isin;
+          eodhd = await fetchFromEODHD(`${isin}.EUFUND`, start, end);
+        }
+      }
 
       if (eodhd) {
         data = eodhd;
@@ -184,7 +193,7 @@ export async function GET(req: NextRequest) {
       // If name looks abbreviated (e.g. "FR.TEMP.INV.FDS"), try EODHD for a proper name
       const looksAbbreviated = !name || /[A-Z]\.[A-Z]/.test(name);
       if (looksAbbreviated) {
-        const eodhdName = await fetchNameFromEODHD(originalISIN ?? upper);
+        const { name: eodhdName } = await searchEODHD(originalISIN ?? upper);
         name = eodhdName ?? name ?? upper;
       }
     }
