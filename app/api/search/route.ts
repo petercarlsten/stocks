@@ -145,8 +145,12 @@ export async function GET(req: NextRequest) {
   if (!q) return NextResponse.json([]);
 
   if (ISIN_RE.test(q)) {
-    const isinResults = await resolveISIN(q);
-    if (isinResults.length > 0) return NextResponse.json(isinResults);
+    // Run EODHD and OpenFIGI in parallel.
+    // EODHD returns the ISIN as symbol for EUFUND funds (stocks route handles ISIN.EUFUND).
+    // OpenFIGI returns exchange tickers (e.g. TESG.MU) which lack EODHD data — use only as fallback.
+    const [eodhResults, figiResults] = await Promise.all([searchEODHD(q), resolveISIN(q)]);
+    const combined = eodhResults.length > 0 ? eodhResults : figiResults;
+    if (combined.length > 0) return NextResponse.json(combined);
   }
 
   // Looks like an incomplete ISIN (has digits) — don't fuzzy-search, just wait
