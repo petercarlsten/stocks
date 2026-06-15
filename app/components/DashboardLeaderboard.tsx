@@ -33,28 +33,30 @@ function fmtPrice(value: number, currency: string): string {
 export default function DashboardLeaderboard({ stocks }: Props) {
   if (stocks.length === 0) return null;
 
-  type Row = StockData & { current: number; avgCost: number; pctGain: number; valueGain: number; totalShares: number; firstDate: string; currency: string };
+  type PricedPurchase = { date: string; shares: number; price: number };
+  type Row = StockData & { current: number; avgCost: number; pctGain: number; valueGain: number; totalShares: number; currency: string; pricedPurchases: PricedPurchase[] };
 
   const withPurchase: Row[] = stocks
     .flatMap((s) => {
-      const priced = (s.purchases ?? []).filter((p) => p.date && p.price != null);
+      const priced = (s.purchases ?? [])
+        .filter((p): p is { date: string; shares: number; price: number } => !!p.date && p.price != null)
+        .sort((a, b) => a.date.localeCompare(b.date));
       if (priced.length === 0) return [];
       const totalShares = priced.reduce((sum, p) => sum + p.shares, 0);
       if (totalShares <= 0) return [];
-      const totalCost = priced.reduce((sum, p) => sum + p.shares * p.price!, 0);
+      const totalCost = priced.reduce((sum, p) => sum + p.shares * p.price, 0);
       const avgCost = totalCost / totalShares;
       const current = s.data[s.data.length - 1]?.close ?? 0;
       const pctGain = avgCost > 0 ? ((current - avgCost) / avgCost) * 100 : 0;
       const valueGain = totalShares * (current - avgCost);
-      const firstDate = [...priced].sort((a, b) => a.date!.localeCompare(b.date!))[0].date!;
-      return [{ ...s, current, avgCost, pctGain, valueGain, totalShares, firstDate, currency: s.currency ?? "USD" }];
+      return [{ ...s, current, avgCost, pctGain, valueGain, totalShares, currency: s.currency ?? "USD", pricedPurchases: priced }];
     })
     .sort((a, b) => b.pctGain - a.pctGain);
 
   return (
     <div className="bg-white rounded-xl p-4 w-96 shrink-0 border border-gray-200 shadow-sm">
       <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3">
-        Top Gainers Since Purchase
+        Gains since purchased
       </h2>
       {withPurchase.length === 0 ? (
         <p className="text-gray-400 text-xs">Add a purchase to a card to track gains.</p>
@@ -87,7 +89,13 @@ export default function DashboardLeaderboard({ stocks }: Props) {
                       <span className="text-gray-400 font-normal"> total</span>
                     </span>
                   </div>
-                  <span className="text-gray-300 text-xs">since {fmtDate(s.firstDate)}</span>
+                  <div className="flex flex-col gap-0.5 mt-0.5">
+                    {s.pricedPurchases.map((p, j) => (
+                      <span key={j} className="text-gray-300 text-xs tabular-nums">
+                        {fmtDate(p.date)} · {p.shares} sh @ {fmtPrice(p.price, s.currency)}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </li>
             );
