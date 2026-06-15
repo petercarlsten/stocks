@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from "react";
 
-export type FunnyMode = "trump-wolf" | "cats" | "off";
+export type FunnyMode = "trump-wolf" | "cats" | "dogs" | "off";
 
 interface SettingsCtx {
   funnyMode: FunnyMode;
