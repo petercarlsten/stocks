@@ -73,6 +73,40 @@ async function searchOpenFIGI(q: string): Promise<Quote[]> {
   return [];
 }
 
+// Reverse of the YAHOO_TO_EODHD map in stocks/route.ts
+const EODHD_TO_YAHOO_SUFFIX: Record<string, string> = {
+  "US": "", "LSE": ".L", "XETRA": ".DE", "MU": ".MU", "HA": ".HA",
+  "HH": ".HM", "STU": ".SG", "F": ".F", "BE": ".BE", "DU": ".DU",
+  "STO": ".ST", "PA": ".PA", "AS": ".AS", "MIL": ".MI", "MC": ".MC",
+  "SW": ".SW", "CO": ".CO", "HE": ".HE", "OSL": ".OL", "BR": ".BR",
+  "VI": ".VI", "HK": ".HK", "TSE": ".T", "AU": ".AX", "SG": ".SI",
+  "KLSE": ".KL", "NSE": ".NS",
+};
+
+const EODHD_TYPES = ["Common Stock", "ETF", "ETP", "Fund", "FUND", "Open-End Fund", "Closed-End Fund", "Mutual Fund", "Fund of Funds"];
+
+async function searchEODHD(q: string): Promise<Quote[]> {
+  const apiKey = process.env.EODHD_API_KEY;
+  if (!apiKey) return [];
+  try {
+    const res = await fetch(`https://eodhd.com/api/search/${encodeURIComponent(q)}?api_token=${apiKey}&limit=8`);
+    if (!res.ok) return [];
+    const rows: Array<{ Code?: string; Exchange?: string; Name?: string; Type?: string }> = await res.json();
+    return rows
+      .filter((r) => r.Code && r.Exchange && EODHD_TYPES.includes(r.Type ?? ""))
+      .map((r) => {
+        const exch = r.Exchange!;
+        const code = r.Code!;
+        // EUFUND funds use ISIN as Code — return the ISIN; stocks route resolves via ISIN.EUFUND
+        const symbol = exch === "EUFUND" ? code : `${code}${EODHD_TO_YAHOO_SUFFIX[exch] ?? ""}`;
+        return { symbol, name: r.Name ?? code };
+      })
+      .slice(0, 8);
+  } catch {
+    return [];
+  }
+}
+
 const ISIN_RE = /^[A-Z]{2}[A-Z0-9]{10}$/i;
 const PARTIAL_ISIN_RE = /^[A-Z]{2}[A-Z0-9]{1,9}$/i;
 
@@ -121,5 +155,8 @@ export async function GET(req: NextRequest) {
   const yahooResults = await searchYahoo(q);
   if (yahooResults.length > 0) return NextResponse.json(yahooResults);
 
-  return NextResponse.json(await searchOpenFIGI(q));
+  const openFigiResults = await searchOpenFIGI(q);
+  if (openFigiResults.length > 0) return NextResponse.json(openFigiResults);
+
+  return NextResponse.json(await searchEODHD(q));
 }
