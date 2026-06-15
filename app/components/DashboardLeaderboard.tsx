@@ -19,6 +19,7 @@ interface StockData {
 
 interface Props {
   stocks: StockData[];
+  className?: string;
 }
 
 function fmtDate(dateStr: string): string {
@@ -30,7 +31,7 @@ function fmtPrice(value: number, currency: string): string {
   return value.toLocaleString("en-US", { style: "currency", currency, minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-export default function DashboardLeaderboard({ stocks }: Props) {
+export default function DashboardLeaderboard({ stocks, className }: Props) {
   if (stocks.length === 0) return null;
 
   type PricedPurchase = { date: string; shares: number; price: number };
@@ -54,7 +55,7 @@ export default function DashboardLeaderboard({ stocks }: Props) {
     .sort((a, b) => b.pctGain - a.pctGain);
 
   return (
-    <div className="bg-white rounded-xl p-4 w-96 shrink-0 border border-gray-200 shadow-sm">
+    <div className={className ?? "bg-white rounded-xl p-4 w-96 shrink-0 border border-gray-200 shadow-sm"}>
       <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3">
         Gains since purchased
       </h2>
@@ -90,11 +91,23 @@ export default function DashboardLeaderboard({ stocks }: Props) {
                     </span>
                   </div>
                   <div className="flex flex-col gap-0.5 mt-0.5">
-                    {s.pricedPurchases.map((p, j) => (
-                      <span key={j} className="text-gray-300 text-xs tabular-nums">
-                        {fmtDate(p.date)} · {p.shares} sh @ {fmtPrice(p.price, s.currency)}
-                      </span>
-                    ))}
+                    {s.pricedPurchases.map((p, j) => {
+                      const pctGain = ((s.current - p.price) / p.price) * 100;
+                      const pos = pctGain >= 0;
+                      return (
+                        <span key={j} className="text-gray-300 text-xs tabular-nums">
+                          {fmtDate(p.date)} · {p.shares} sh @ {fmtPrice(p.price, s.currency)}
+                          {" · "}
+                          <WolfHover isPositive={pos}>
+                            <TrumpHover isNegative={!pos}>
+                              <span className={pos ? "text-green-500" : "text-red-400"}>
+                                {pos ? "+" : ""}{pctGain.toFixed(1)}%
+                              </span>
+                            </TrumpHover>
+                          </WolfHover>
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               </li>

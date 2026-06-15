@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import TrumpHover from "./components/TrumpHover";
 import WolfHover from "./components/WolfHover";
 import SettingsPanel from "./components/SettingsPanel";
-import { SettingsContext } from "./components/SettingsContext";
+import { SettingsContext, type FunnyMode } from "./components/SettingsContext";
 import { useSession, signOut } from "next-auth/react";
 import {
   DndContext,
@@ -75,8 +75,10 @@ async function fetchStock(symbol: string): Promise<StockData> {
   return { symbol: json.symbol, name: json.name, earningsDate: json.earningsDate ?? null, data: json.data, currency: json.currency ?? inferCurrency(json.symbol) };
 }
 
-async function refreshStockData(symbol: string) {
-  const res = await fetch(`/api/stocks?symbol=${encodeURIComponent(symbol)}&noName=1`);
+async function refreshStockData(symbol: string, name?: string) {
+  const params = new URLSearchParams({ symbol, noName: "1" });
+  if (name) params.set("name", name);
+  const res = await fetch(`/api/stocks?${params}`);
   const json = await res.json();
   if (!res.ok) throw new Error(json.error ?? "Failed to fetch");
   return { data: json.data as StockData["data"], earningsDate: (json.earningsDate as string | null) ?? null, currency: (json.currency as string | undefined), symbol: (json.symbol as string | undefined) };
@@ -96,9 +98,10 @@ export default function Home() {
   const [exchangeRate, setExchangeRate] = useState(1);
   const [usdRates, setUsdRates] = useState<Record<string, number>>({ USD: 1 });
   const [theme, setTheme] = useState<"light" | "dark">("dark");
-  const [trumpEnabled, setTrumpEnabled] = useState(true);
-  const [wolfEnabled, setWolfEnabled] = useState(true);
+  const [funnyMode, setFunnyMode] = useState<FunnyMode>("trump-wolf");
   const [newsEnabled, setNewsEnabled] = useState(true);
+  const [leaderboardEnabled, setLeaderboardEnabled] = useState(true);
+  const [topGainersEnabled, setTopGainersEnabled] = useState(true);
 
   // Load saved preferences
   useEffect(() => {
@@ -106,9 +109,12 @@ export default function Home() {
     if (saved) setCurrency(saved);
     const savedTheme = localStorage.getItem("portfolio-theme") as "light" | "dark" | null;
     if (savedTheme) setTheme(savedTheme);
-    if (localStorage.getItem("portfolio-trump") === "false") setTrumpEnabled(false);
-    if (localStorage.getItem("portfolio-wolf") === "false") setWolfEnabled(false);
+    const savedFunnyMode = localStorage.getItem("portfolio-funny-mode") as FunnyMode | null;
+    if (savedFunnyMode) setFunnyMode(savedFunnyMode);
+    else if (localStorage.getItem("portfolio-trump") === "false") setFunnyMode("off");
     if (localStorage.getItem("portfolio-news") === "false") setNewsEnabled(false);
+    if (localStorage.getItem("portfolio-leaderboard") === "false") setLeaderboardEnabled(false);
+    if (localStorage.getItem("portfolio-top-gainers") === "false") setTopGainersEnabled(false);
   }, []);
 
   // Apply dark class to <html> and persist
@@ -148,7 +154,7 @@ export default function Home() {
           const migrated = serverStocks.map((s) => migrateStock(s));
           const refreshed = await Promise.all(
             migrated.map((s) =>
-              refreshStockData(s.symbol)
+              refreshStockData(s.symbol, s.name)
                 .then(({ data, earningsDate, currency, symbol: corrected }) => ({ ...s, data, earningsDate, currency: currency ?? s.currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol }))
                 .catch(() => ({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }))
             )
@@ -201,7 +207,7 @@ export default function Home() {
         if (current.length === 0) return current;
         Promise.all(
           current.map((s) =>
-            refreshStockData(s.symbol).then(({ data, earningsDate, currency, symbol: corrected }) => ({ ...s, data, earningsDate, currency: currency ?? s.currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol }))
+            refreshStockData(s.symbol, s.name).then(({ data, earningsDate, currency, symbol: corrected }) => ({ ...s, data, earningsDate, currency: currency ?? s.currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol }))
           )
         )
           .then((results) => { setStocks(results); setLastRefreshed(new Date()); })
@@ -267,7 +273,7 @@ export default function Home() {
   );
 
   return (
-    <SettingsContext.Provider value={{ trumpEnabled, wolfEnabled }}>
+    <SettingsContext.Provider value={{ funnyMode }}>
     {missingPriceStocks.length > 0 && (
       <div className="sticky top-0 z-50 flex items-center gap-3 bg-red-600 text-white px-6 py-2.5">
         <svg className="shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -389,8 +395,8 @@ export default function Home() {
               ) : null;
             })()}
           </div>
-          <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} />
-          <TopGainers />
+          {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} />}
+          {topGainersEnabled && <TopGainers />}
           <div className="shrink-0 pt-1 flex flex-col gap-2">
             <button
               onClick={() => setSettingsOpen(true)}
@@ -421,12 +427,14 @@ export default function Home() {
             onCurrencyChange={setCurrency}
             theme={theme}
             onThemeChange={setTheme}
-            trumpEnabled={trumpEnabled}
-            onTrumpChange={(v) => { setTrumpEnabled(v); localStorage.setItem("portfolio-trump", String(v)); }}
-            wolfEnabled={wolfEnabled}
-            onWolfChange={(v) => { setWolfEnabled(v); localStorage.setItem("portfolio-wolf", String(v)); }}
+            funnyMode={funnyMode}
+            onFunnyModeChange={(v) => { setFunnyMode(v); localStorage.setItem("portfolio-funny-mode", v); }}
             newsEnabled={newsEnabled}
             onNewsChange={(v) => { setNewsEnabled(v); localStorage.setItem("portfolio-news", String(v)); }}
+            leaderboardEnabled={leaderboardEnabled}
+            onLeaderboardChange={(v) => { setLeaderboardEnabled(v); localStorage.setItem("portfolio-leaderboard", String(v)); }}
+            topGainersEnabled={topGainersEnabled}
+            onTopGainersChange={(v) => { setTopGainersEnabled(v); localStorage.setItem("portfolio-top-gainers", String(v)); }}
           />
         </div>
 

@@ -24,11 +24,21 @@ function toEODHDSymbol(yahooSymbol: string): string | null {
   return exch != null ? `${base}.${exch}` : null;
 }
 
+// In-memory cache for EODHD responses — survives across requests in the same process.
+// Keyed by EODHD symbol; value is the fetched rows + the date they were cached.
+// TTL: 6 hours, so we refresh intraday but never burn through the 1200/day limit.
+const EODHD_CACHE = new Map<string, { rows: { date: string; close: number }[]; cachedAt: number }>();
+const EODHD_TTL_MS = 6 * 60 * 60 * 1000;
+
+// Tracks whether we've already hit the 402 rate limit today (resets on server restart).
+let eohdRateLimited = false;
+
 async function searchEODHD(query: string): Promise<{ name: string | null; isin: string | null }> {
   const apiKey = process.env.EODHD_API_KEY;
-  if (!apiKey) return { name: null, isin: null };
+  if (!apiKey || eohdRateLimited) return { name: null, isin: null };
   try {
     const res = await fetch(`https://eodhd.com/api/search/${encodeURIComponent(query)}?api_token=${apiKey}`);
+    if (res.status === 402) { eohdRateLimited = true; return { name: null, isin: null }; }
     if (!res.ok) return { name: null, isin: null };
     const rows: Array<{ Name?: string; ISIN?: string; Code?: string }> = await res.json();
     if (!Array.isArray(rows) || rows.length === 0) return { name: null, isin: null };
@@ -45,7 +55,12 @@ async function fetchFromEODHD(
   end: Date
 ): Promise<{ date: string; close: number }[] | null> {
   const apiKey = process.env.EODHD_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey || eohdRateLimited) return null;
+
+  const cached = EODHD_CACHE.get(eodhSymbol);
+  if (cached && Date.now() - cached.cachedAt < EODHD_TTL_MS) {
+    return cached.rows;
+  }
 
   const from = start.toISOString().split("T")[0];
   const to   = end.toISOString().split("T")[0];
@@ -53,10 +68,13 @@ async function fetchFromEODHD(
 
   try {
     const res = await fetch(url);
+    if (res.status === 402) { eohdRateLimited = true; return null; }
     if (!res.ok) return null;
     const rows: Array<{ date: string; close: number }> = await res.json();
     if (!Array.isArray(rows) || rows.length < 2) return null;
-    return rows.map((r) => ({ date: r.date, close: r.close }));
+    const result = rows.map((r) => ({ date: r.date, close: r.close }));
+    EODHD_CACHE.set(eodhSymbol, { rows: result, cachedAt: Date.now() });
+    return result;
   } catch {
     return null;
   }
@@ -110,6 +128,7 @@ async function resolveISIN(isin: string): Promise<string | null> {
 export async function GET(req: NextRequest) {
   const symbol = req.nextUrl.searchParams.get("symbol");
   const includeName = req.nextUrl.searchParams.get("noName") !== "1";
+  const nameHint = req.nextUrl.searchParams.get("name") ?? undefined;
 
   if (!symbol) {
     return NextResponse.json({ error: "Missing symbol" }, { status: 400 });
@@ -133,38 +152,101 @@ export async function GET(req: NextRequest) {
 
   try {
     // Always fetch quote for earnings date; name lookup is optional
-    const [chart, quote] = await Promise.all([
-      yf.chart(upper, { period1: start, period2: end, interval: "1d" }, { validateResult: false }),
+    // yf.chart can throw for bare ISINs or obscure tickers — treat that as 0 rows
+    // so we still fall through to the EODHD fallback below.
+    const [chartResult, quote] = await Promise.all([
+      yf.chart(upper, { period1: start, period2: end, interval: "1d" }, { validateResult: false }).catch(() => null),
       yf.quote(upper, {}, { validateResult: false }).catch(() => null),
     ]);
 
-    let data = (chart.quotes as Array<{ date: Date; close: number }>)
-      .filter((row) => row.close != null)
-      .map((row) => ({ date: row.date.toISOString().split("T")[0], close: row.close }));
+    let data = chartResult
+      ? (chartResult.quotes as Array<{ date: Date; close: number }>)
+          .filter((row) => row.close != null)
+          .map((row) => ({ date: row.date.toISOString().split("T")[0], close: row.close }))
+      : [];
 
     // Fall back to EODHD when Yahoo has no or sparse history
     if (data.length < 5) {
       const eodhdTicker = toEODHDSymbol(upper);
-      let eodhd =
-        (eodhdTicker ? await fetchFromEODHD(eodhdTicker, start, end) : null) ??
-        (originalISIN   ? await fetchFromEODHD(`${originalISIN}.EUFUND`, start, end) : null);
+      const debugSteps: string[] = [];
 
-      // Last resort: if we still have no data and no ISIN, search EODHD for the ticker's
-      // ISIN (e.g. TESG.MU → LU0109392836) and try the EUFUND path.
+      debugSteps.push(`Yahoo quotes: ${data.length} (symbol="${upper}")`);
+
+      let eodhd: { date: string; close: number }[] | null = null;
+
+      if (eodhdTicker) {
+        eodhd = await fetchFromEODHD(eodhdTicker, start, end);
+        debugSteps.push(`EODHD ${eodhdTicker}: ${eodhd ? eodhd.length + " rows" : "null"}`);
+      }
+
+      if (!eodhd && originalISIN) {
+        eodhd = await fetchFromEODHD(`${originalISIN}.EUFUND`, start, end);
+        debugSteps.push(`EODHD ${originalISIN}.EUFUND: ${eodhd ? eodhd.length + " rows" : "null"}`);
+      }
+
+      // Last resort: no data and no ISIN — try to discover the ISIN from the ticker.
+      // Strategy: OpenFIGI ticker+exchange → fund name → EODHD name search → ISIN.EUFUND.
+      // (EODHD fundamentals endpoint 403s on our plan, so we skip it.)
       if (!eodhd && !originalISIN) {
-        const { isin } = await searchEODHD(upper);
-        if (isin) {
-          originalISIN = isin;
-          eodhd = await fetchFromEODHD(`${isin}.EUFUND`, start, end);
+        let recoveredISIN: string | null = null;
+        const dotIdx = upper.lastIndexOf(".");
+        const base = dotIdx >= 0 ? upper.slice(0, dotIdx) : upper;
+        const suffix = dotIdx >= 0 ? upper.slice(dotIdx) : "";
+
+        // 1. OpenFIGI: ticker + exchange → fund name (free, no quota)
+        const YAHOO_TO_OPENFIGI: Record<string, string> = {
+          ".MU": "GR", ".DE": "GR", ".F": "GR", ".BE": "GR", ".HA": "GR",
+          ".HM": "GR", ".SG": "GR", ".DU": "GR",
+          ".L": "LN", ".PA": "FP", ".AS": "NA", ".MI": "IT", ".MC": "SM",
+          ".ST": "SS", ".CO": "DC", ".HE": "HO", ".OL": "NO", ".SW": "SW",
+          ".BR": "BB", ".VI": "AV",
+        };
+        const openFigiExch = YAHOO_TO_OPENFIGI[suffix];
+        let figiName: string | null = null;
+        if (openFigiExch) {
+          try {
+            const res = await fetch("https://api.openfigi.com/v3/mapping", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify([{ idType: "TICKER", idValue: base, exchCode: openFigiExch }]),
+            });
+            if (res.ok) {
+              const json = await res.json();
+              figiName = json[0]?.data?.[0]?.name ?? null;
+            }
+            debugSteps.push(`OpenFIGI ticker=${base} exch=${openFigiExch}: name=${figiName}`);
+          } catch (e) {
+            debugSteps.push(`OpenFIGI: threw ${String(e)}`);
+          }
+        }
+
+        // 2. EODHD search: try base ticker, then OpenFIGI name, then caller name hint
+        const searchTerms = [base, figiName, nameHint].filter(Boolean) as string[];
+        for (const term of searchTerms) {
+          if (recoveredISIN) break;
+          const { isin } = await searchEODHD(term);
+          debugSteps.push(`EODHD search "${term.slice(0, 60)}": isin=${isin}`);
+          if (isin) recoveredISIN = isin;
+        }
+
+        if (recoveredISIN) {
+          originalISIN = recoveredISIN;
+          eodhd = await fetchFromEODHD(`${recoveredISIN}.EUFUND`, start, end);
+          debugSteps.push(`EODHD ${recoveredISIN}.EUFUND: ${eodhd ? eodhd.length + " rows" : "null"}`);
         }
       }
 
       if (eodhd) {
         data = eodhd;
       } else {
-        const hint = process.env.EODHD_API_KEY ? "" : " Add EODHD_API_KEY to .env.local for broader coverage.";
+        const rateLimited = eohdRateLimited;
+        const detail = debugSteps.join(" → ");
+        console.error(`[stocks] No data for "${symbol}": ${detail}`);
+        const hint = rateLimited
+          ? " EODHD daily API limit reached — data will be available again tomorrow."
+          : process.env.EODHD_API_KEY ? "" : " Add EODHD_API_KEY to .env.local for broader coverage.";
         return NextResponse.json(
-          { error: `No price data found for "${symbol.toUpperCase()}".${hint}` },
+          { error: `No price data found for "${symbol.toUpperCase()}".${hint}`, debug: detail },
           { status: 404 }
         );
       }

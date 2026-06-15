@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState, useMemo } from "react";
+import type { FunnyMode } from "./SettingsContext";
 
 export const ALL_CURRENCIES = [
   { code: "AED", name: "UAE Dirham" },
@@ -181,15 +182,17 @@ interface Props {
   onCurrencyChange: (c: string) => void;
   theme: "light" | "dark";
   onThemeChange: (t: "light" | "dark") => void;
-  trumpEnabled: boolean;
-  onTrumpChange: (v: boolean) => void;
-  wolfEnabled: boolean;
-  onWolfChange: (v: boolean) => void;
+  funnyMode: FunnyMode;
+  onFunnyModeChange: (v: FunnyMode) => void;
   newsEnabled: boolean;
   onNewsChange: (v: boolean) => void;
+  leaderboardEnabled: boolean;
+  onLeaderboardChange: (v: boolean) => void;
+  topGainersEnabled: boolean;
+  onTopGainersChange: (v: boolean) => void;
 }
 
-export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, trumpEnabled, onTrumpChange, wolfEnabled, onWolfChange, newsEnabled, onNewsChange }: Props) {
+export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -294,12 +297,27 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
             </div>
           </div>
 
-          <Toggle
-            label="🎉 Funny things"
-            enabled={trumpEnabled && wolfEnabled}
-            onChange={(v) => { onTrumpChange(v); onWolfChange(v); }}
-          />
+          <div className="flex flex-col gap-2">
+            <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Funny reactions</label>
+            <div className="flex rounded-lg overflow-hidden border border-gray-300">
+              {(["off", "trump-wolf", "cats"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => onFunnyModeChange(mode)}
+                  className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                    funnyMode === mode
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600"
+                  }`}
+                >
+                  {mode === "off" ? "Off" : mode === "trump-wolf" ? "🎩 Trump" : "🐱 Cats"}
+                </button>
+              ))}
+            </div>
+          </div>
           <Toggle label="📰 Stock news" enabled={newsEnabled} onChange={onNewsChange} />
+          <Toggle label="🏆 Gains since purchased" enabled={leaderboardEnabled} onChange={onLeaderboardChange} />
+          <Toggle label="📈 Top gainers" enabled={topGainersEnabled} onChange={onTopGainersChange} />
         </div>
       </div>
     </>

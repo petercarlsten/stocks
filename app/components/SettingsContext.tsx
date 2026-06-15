@@ -2,10 +2,11 @@
 
 import { createContext, useContext } from "react";
 
+export type FunnyMode = "trump-wolf" | "cats" | "off";
+
 interface SettingsCtx {
-  trumpEnabled: boolean;
-  wolfEnabled: boolean;
+  funnyMode: FunnyMode;
 }
 
-export const SettingsContext = createContext<SettingsCtx>({ trumpEnabled: true, wolfEnabled: true });
+export const SettingsContext = createContext<SettingsCtx>({ funnyMode: "trump-wolf" });
 export const useSettings = () => useContext(SettingsContext);
