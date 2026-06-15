@@ -33,6 +33,17 @@ const CAT_QUOTES = [
   "crying in meow",
 ];
 
+const SAD_CAT_GIFS = [
+  "https://gifdb.com/images/thumbnail/crying-cat-3edeiy96mwa2u8h4.gif",
+  "https://gifdb.com/images/thumbnail/screaming-crying-cat-xl6msgx53ws3shux.gif",
+  "https://gifdb.com/images/thumbnail/blubbering-sad-crying-cat-auepqb36go1kckph.gif",
+  "https://gifdb.com/images/thumbnail/shocked-crying-cat-8hch9jawuce2q36u.gif",
+  "https://gifdb.com/images/thumbnail/crying-cat-shouting-3bsbhl1wog57uk4c.gif",
+  "https://gifdb.com/images/thumbnail/so-lonely-crying-cat-1ri2ahadswvhizma.gif",
+  "https://gifdb.com/images/thumbnail/emotional-tearful-crying-cat-d6lzpnqx5t409ski.gif",
+  "https://gifdb.com/images/thumbnail/big-eyes-crying-cat-77mmitfzhm1hnp7j.gif",
+];
+
 interface Props {
   isNegative: boolean;
   children: React.ReactNode;
@@ -42,6 +53,7 @@ export default function TrumpHover({ isNegative, children }: Props) {
   const { funnyMode } = useSettings();
   const [show, setShow] = useState(false);
   const quoteRef = useRef("");
+  const catGifRef = useRef(SAD_CAT_GIFS[0]);
 
   const active = isNegative && funnyMode !== "off";
 
@@ -52,6 +64,7 @@ export default function TrumpHover({ isNegative, children }: Props) {
         if (active) {
           const quotes = funnyMode === "cats" ? CAT_QUOTES : TRUMP_QUOTES;
           quoteRef.current = quotes[Math.floor(Math.random() * quotes.length)];
+          catGifRef.current = SAD_CAT_GIFS[Math.floor(Math.random() * SAD_CAT_GIFS.length)];
           setShow(true);
         }
       }}
@@ -80,7 +93,7 @@ export default function TrumpHover({ isNegative, children }: Props) {
           </span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="https://gifdb.com/images/thumbnail/crying-cat-3edeiy96mwa2u8h4.gif"
+            src={catGifRef.current}
             alt="Sad cat"
             className="w-24 rounded-xl shadow-2xl"
           />

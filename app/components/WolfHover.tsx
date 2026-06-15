@@ -16,6 +16,17 @@ const CAT_QUOTES = [
   "paws up! we're rich!",
 ];
 
+const HAPPY_CAT_GIFS = [
+  "https://gifdb.com/images/thumbnail/happy-cat-sassy-head-bobbing-uhryv4lr7t7dgfpp.gif",
+  "https://gifdb.com/images/thumbnail/happy-cat-funny-smiling-grin-2cxp5723g93tahsv.gif",
+  "https://gifdb.com/images/thumbnail/happy-cat-peach-excited-spinning-q5mnqrfbhrgdrdwl.gif",
+  "https://gifdb.com/images/thumbnail/happy-cat-funny-big-awkward-smile-face-zs216kptbat3kohr.gif",
+  "https://gifdb.com/images/thumbnail/happy-cat-high-five-yeah-meow-mq1f2c2qkdj13dmb.gif",
+  "https://gifdb.com/images/thumbnail/happy-cat-you-re-here-excited-jump-414bnrj063t5wry2.gif",
+  "https://gifdb.com/images/thumbnail/happy-cat-goma-excited-clapping-thumbs-up-bi9gbnqp2uvxrtu6.gif",
+  "https://gifdb.com/images/thumbnail/happy-cat-hands-in-the-air-slow-dancing-gbah5wpamm28t2ul.gif",
+];
+
 interface Props {
   isPositive: boolean;
   children: React.ReactNode;
@@ -25,6 +36,7 @@ export default function WolfHover({ isPositive, children }: Props) {
   const { funnyMode } = useSettings();
   const [show, setShow] = useState(false);
   const quoteRef = useRef("");
+  const catGifRef = useRef(HAPPY_CAT_GIFS[0]);
 
   const active = isPositive && funnyMode !== "off";
 
@@ -34,6 +46,7 @@ export default function WolfHover({ isPositive, children }: Props) {
       onMouseEnter={() => {
         if (active) {
           quoteRef.current = CAT_QUOTES[Math.floor(Math.random() * CAT_QUOTES.length)];
+          catGifRef.current = HAPPY_CAT_GIFS[Math.floor(Math.random() * HAPPY_CAT_GIFS.length)];
           setShow(true);
         }
       }}
@@ -63,7 +76,7 @@ export default function WolfHover({ isPositive, children }: Props) {
           </span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="https://gifdb.com/images/thumbnail/happy-cat-sassy-head-bobbing-uhryv4lr7t7dgfpp.gif"
+            src={catGifRef.current}
             alt="Happy cat"
             className="w-28 rounded-xl shadow-2xl"
           />
