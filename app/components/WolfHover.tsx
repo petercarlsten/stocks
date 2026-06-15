@@ -35,27 +35,32 @@ interface Props {
 export default function WolfHover({ isPositive, children }: Props) {
   const { funnyMode } = useSettings();
   const [show, setShow] = useState(false);
+  const [below, setBelow] = useState(false);
+  const triggerRef = useRef<HTMLSpanElement>(null);
   const quoteRef = useRef("");
   const catGifRef = useRef(HAPPY_CAT_GIFS[0]);
 
   const active = isPositive && funnyMode !== "off";
 
+  function handleMouseEnter() {
+    if (!active) return;
+    quoteRef.current = CAT_QUOTES[Math.floor(Math.random() * CAT_QUOTES.length)];
+    catGifRef.current = HAPPY_CAT_GIFS[Math.floor(Math.random() * HAPPY_CAT_GIFS.length)];
+    const rect = triggerRef.current?.getBoundingClientRect();
+    setBelow(rect ? rect.top < 280 : false);
+    setShow(true);
+  }
+
+  const posClass = below
+    ? "top-full mt-2 flex-col"
+    : "bottom-full mb-2 flex-col-reverse";
+
   return (
-    <span
-      className="relative"
-      onMouseEnter={() => {
-        if (active) {
-          quoteRef.current = CAT_QUOTES[Math.floor(Math.random() * CAT_QUOTES.length)];
-          catGifRef.current = HAPPY_CAT_GIFS[Math.floor(Math.random() * HAPPY_CAT_GIFS.length)];
-          setShow(true);
-        }
-      }}
-      onMouseLeave={() => setShow(false)}
-    >
+    <span ref={triggerRef} className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={() => setShow(false)}>
       {children}
       {show && funnyMode === "trump-wolf" && (
         <span
-          className="trump-popup absolute bottom-full left-1/2 mb-2 z-50 pointer-events-none flex flex-col items-center"
+          className={`trump-popup absolute left-1/2 z-50 pointer-events-none flex items-center ${posClass}`}
           style={{ width: 144 }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -68,18 +73,14 @@ export default function WolfHover({ isPositive, children }: Props) {
       )}
       {show && funnyMode === "cats" && (
         <span
-          className="trump-popup absolute bottom-full left-1/2 mb-2 z-50 pointer-events-none flex flex-col items-center gap-1"
+          className={`trump-popup absolute left-1/2 z-50 pointer-events-none flex items-center gap-1 ${posClass}`}
           style={{ width: 120 }}
         >
           <span className="block bg-gray-800 text-green-400 text-xs font-semibold rounded-lg px-3 py-2 shadow-xl text-center leading-snug border border-green-900">
             &ldquo;{quoteRef.current}&rdquo;
           </span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={catGifRef.current}
-            alt="Happy cat"
-            className="w-28 rounded-xl shadow-2xl"
-          />
+          <img src={catGifRef.current} alt="Happy cat" className="w-28 rounded-xl shadow-2xl" />
         </span>
       )}
     </span>
