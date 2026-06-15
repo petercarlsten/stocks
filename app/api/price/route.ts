@@ -19,10 +19,11 @@ export async function GET(req: NextRequest) {
   const date = req.nextUrl.searchParams.get("date")?.trim() ?? "";
   if (!symbol || !date) return NextResponse.json({ error: "Missing params" }, { status: 400 });
 
-  // Fetch a window ending on the target date to catch the nearest prior trading day
+  // Fetch a window ending on the target date to catch the nearest prior trading day.
+  // 30-day lookback so UCITS/EUFUND funds with infrequent NAV publishing are covered.
   const target = new Date(date + "T12:00:00Z");
   const from = new Date(target);
-  from.setDate(from.getDate() - 7);
+  from.setDate(from.getDate() - 30);
   const to = new Date(target);
   to.setDate(to.getDate() + 1);
 
@@ -56,14 +57,17 @@ export async function GET(req: NextRequest) {
     };
 
     try {
+      const isIsin = ISIN_RE.test(upper);
       const dotIdx = upper.lastIndexOf(".");
       const base = dotIdx >= 0 ? upper.slice(0, dotIdx) : upper;
       const suffix = dotIdx >= 0 ? upper.slice(dotIdx) : "";
       const exch = YAHOO_TO_EODHD[suffix];
-      const eodhSym = exch != null ? `${base}.${exch}` : null;
+      // Skip the exchange-mapped lookup for bare ISINs (no suffix) — it would wrongly
+      // produce e.g. LU0109392836.US. Go straight to EUFUND for those.
+      const eodhSym = (!isIsin || dotIdx >= 0) && exch != null ? `${base}.${exch}` : null;
 
       const row = (eodhSym ? await tryEODHD(eodhSym) : null)
-        ?? (ISIN_RE.test(upper) ? await tryEODHD(`${upper}.EUFUND`) : null);
+        ?? (isIsin ? await tryEODHD(`${upper}.EUFUND`) : null);
       if (row) return NextResponse.json({ price: row.close, date: row.date });
     } catch { /* fall through */ }
   }
