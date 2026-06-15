@@ -379,25 +379,38 @@ export default function Home() {
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={stocks.map((s) => s.symbol)} strategy={rectSortingStrategy}>
-              <div
-                className="grid gap-4"
-                style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
-              >
-                {stocks.map((s, i) => (
-                  <SortableStockChart
-                    key={s.symbol}
-                    symbol={s.symbol}
-                    name={s.name}
-                    earningsDate={s.earningsDate}
-                    data={s.data}
-                    color={COLORS[i % COLORS.length]}
-                    shares={s.shares}
-                    onRemove={() => removeStock(s.symbol)}
-                    onSharesChange={(shares) => updateShares(s.symbol, shares)}
-                    theme={theme}
-                  />
-                ))}
-              </div>
+              {(() => {
+                const totalPortfolioValue = stocks.reduce((sum, s) => {
+                  if (!s.shares || s.shares <= 0) return sum;
+                  return sum + s.shares * (s.data[s.data.length - 1]?.close ?? 0);
+                }, 0);
+                return (
+                  <div
+                    className="grid gap-4"
+                    style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+                  >
+                    {stocks.map((s, i) => {
+                      const posVal = s.shares && s.shares > 0 ? s.shares * (s.data[s.data.length - 1]?.close ?? 0) : 0;
+                      const portfolioPct = totalPortfolioValue > 0 && posVal > 0 ? (posVal / totalPortfolioValue) * 100 : undefined;
+                      return (
+                        <SortableStockChart
+                          key={s.symbol}
+                          symbol={s.symbol}
+                          name={s.name}
+                          earningsDate={s.earningsDate}
+                          data={s.data}
+                          color={COLORS[i % COLORS.length]}
+                          shares={s.shares}
+                          onRemove={() => removeStock(s.symbol)}
+                          onSharesChange={(shares) => updateShares(s.symbol, shares)}
+                          theme={theme}
+                          portfolioPct={portfolioPct}
+                        />
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </SortableContext>
           </DndContext>
         )}

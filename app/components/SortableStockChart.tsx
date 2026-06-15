@@ -19,6 +19,7 @@ interface Props {
   shares?: number;
   onSharesChange: (shares: number | undefined) => void;
   theme?: "light" | "dark";
+  portfolioPct?: number;
 }
 
 export default function SortableStockChart(props: Props) {
