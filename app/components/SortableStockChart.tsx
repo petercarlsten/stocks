@@ -18,6 +18,10 @@ interface Props {
   color: string;
   shares?: number;
   onSharesChange: (shares: number | undefined) => void;
+  purchaseDate?: string;
+  purchasePrice?: number;
+  onPurchaseDateChange: (date: string | undefined) => void;
+  onPurchasePriceChange: (price: number | undefined) => void;
   theme?: "light" | "dark";
   portfolioPct?: number;
   tickerCurrency?: string;

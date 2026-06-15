@@ -28,6 +28,8 @@ interface StockData {
   data: { date: string; close: number }[];
   shares?: number;
   currency?: string;
+  purchaseDate?: string;
+  purchasePrice?: number;
 }
 
 const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#EC4899", "#14B8A6", "#F97316", "#A855F7", "#EAB308", "#06B6D4", "#84CC16"];
@@ -138,7 +140,11 @@ export default function Home() {
                 .catch(() => ({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }))
             )
           );
-          setStocks(refreshed);
+          // Preserve purchasePrice already in memory — server save may lag behind the fetch
+          setStocks((prev) => refreshed.map((r) => {
+            const cur = prev.find((p) => p.symbol === r.symbol);
+            return cur?.purchasePrice != null && r.purchasePrice == null ? { ...r, purchasePrice: cur.purchasePrice } : r;
+          }));
           setLastRefreshed(new Date());
         } else {
           // Server is empty — migrate legacy localStorage data if any
@@ -212,6 +218,14 @@ export default function Home() {
     setStocks((prev) => prev.map((s) => s.symbol === symbol ? { ...s, shares } : s));
   }, []);
 
+  const updatePurchaseDate = useCallback((symbol: string, purchaseDate: string | undefined) => {
+    setStocks((prev) => prev.map((s) => s.symbol === symbol ? { ...s, purchaseDate, purchasePrice: undefined } : s));
+  }, []);
+
+  const updatePurchasePrice = useCallback((symbol: string, purchasePrice: number | undefined) => {
+    setStocks((prev) => prev.map((s) => s.symbol === symbol ? { ...s, purchasePrice } : s));
+  }, []);
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
@@ -234,8 +248,21 @@ export default function Home() {
     );
   }
 
+  const missingPriceStocks = stocks.filter((s) => s.purchaseDate && s.purchasePrice == null);
+
   return (
     <SettingsContext.Provider value={{ trumpEnabled, wolfEnabled }}>
+    {missingPriceStocks.length > 0 && (
+      <div className="sticky top-0 z-50 flex items-center gap-3 bg-red-600 text-white px-6 py-2.5">
+        <svg className="shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <p className="text-sm">
+          <span className="font-semibold">Purchase price unavailable</span>
+          {" — "}could not fetch historical price for {missingPriceStocks.map((s) => s.name || s.symbol).join(", ")}. Gain since purchase cannot be calculated.
+        </p>
+      </div>
+    )}
     <main className="min-h-screen bg-gray-50 text-gray-900 p-6">
       <div className="max-w-screen-xl mx-auto">
         <div className="flex items-start gap-6 mb-6">
@@ -345,7 +372,7 @@ export default function Home() {
               ) : null;
             })()}
           </div>
-          <DashboardLeaderboard stocks={stocks} />
+          <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchaseDate: s.purchaseDate, purchasePrice: s.purchasePrice, shares: s.shares, currency: s.currency }))} />
           <TopGainers />
           <div className="shrink-0 pt-1 flex flex-col gap-2">
             <button
@@ -430,6 +457,10 @@ export default function Home() {
                           shares={s.shares}
                           onRemove={() => removeStock(s.symbol)}
                           onSharesChange={(shares) => updateShares(s.symbol, shares)}
+                          purchaseDate={s.purchaseDate}
+                          purchasePrice={s.purchasePrice}
+                          onPurchaseDateChange={(d) => updatePurchaseDate(s.symbol, d)}
+                          onPurchasePriceChange={(p) => updatePurchasePrice(s.symbol, p)}
                           theme={theme}
                           portfolioPct={portfolioPct}
                           tickerCurrency={s.currency ?? "USD"}

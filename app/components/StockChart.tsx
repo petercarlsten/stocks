@@ -29,6 +29,10 @@ interface Props {
   color: string;
   shares?: number;
   onSharesChange: (shares: number | undefined) => void;
+  purchaseDate?: string;
+  purchasePrice?: number;
+  onPurchaseDateChange: (date: string | undefined) => void;
+  onPurchasePriceChange: (price: number | undefined) => void;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
   theme?: "light" | "dark";
   portfolioPct?: number;
@@ -46,7 +50,7 @@ function fmtDate(dateStr?: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, shares, onSharesChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD" }: Props) {
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, shares, onSharesChange, purchaseDate, purchasePrice, onPurchaseDateChange, onPurchasePriceChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD" }: Props) {
   const [holdings, setHoldings] = useState<{ name: string; pct: number }[] | null>(null);
   const [showHoldings, setShowHoldings] = useState(false);
   const [showGains, setShowGains] = useState(false);
@@ -89,6 +93,24 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
       })
       .catch(() => setCardExRate(1));
   }, [cardCurrency, tickerCurrency, applyRate]);
+
+  // Auto-fetch purchase price when the date changes or if it gets cleared by a server reload race
+  useEffect(() => {
+    if (!purchaseDate) { onPurchasePriceChange(undefined); return; }
+    if (purchasePrice != null) return; // already resolved
+    // If the date falls within the loaded chart data, use the closest point
+    if (data.length > 0 && purchaseDate >= data[0].date && purchaseDate <= data[data.length - 1].date) {
+      const pt = data.find((d) => d.date >= purchaseDate) ?? data[0];
+      onPurchasePriceChange(pt.close);
+      return;
+    }
+    // Date is outside the chart window — fetch from API
+    fetch(`/api/price?symbol=${encodeURIComponent(symbol)}&date=${purchaseDate}`)
+      .then((r) => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
+      .then((d) => onPurchasePriceChange(d.price ?? undefined))
+      .catch(() => onPurchasePriceChange(undefined));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [purchaseDate, symbol, purchasePrice, data]);
 
   async function handleNameEnter() {
     if (holdings !== null && holdings.length === 0) return; // known empty — skip
@@ -134,6 +156,14 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
 
   const today = new Date().toISOString().split("T")[0];
   const earningsIsFuture = earningsDate ? earningsDate > today : false;
+
+  // Purchase date reference: find the closest data point at or after the purchase date
+  const purchaseInRange = purchaseDate && data.length > 0
+    ? purchaseDate >= data[0].date && purchaseDate <= data[data.length - 1].date
+    : false;
+  const purchaseDateOnChart = purchaseInRange
+    ? (data.find((d) => d.date >= purchaseDate!) ?? data[0])?.date
+    : null;
 
   const positionValue = shares && shares > 0 ? shares * last : null;
   const absChange = last - first;
@@ -244,6 +274,15 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               label={{ value: "E", position: "top", fill: "#d97706", fontSize: 10 }}
             />
           )}
+          {purchaseDateOnChart && (
+            <ReferenceLine
+              x={purchaseDateOnChart}
+              stroke="#6366f1"
+              strokeDasharray="4 3"
+              strokeWidth={1.5}
+              label={{ value: "B", position: "top", fill: "#6366f1", fontSize: 10 }}
+            />
+          )}
           <Line
             type="monotone"
             dataKey="close"
@@ -253,8 +292,8 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           />
         </LineChart>
       </ResponsiveContainer>
-      <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-        <label className="text-gray-400 text-xs shrink-0">Shares owned</label>
+      <div className="flex items-center gap-2 pt-2 border-t border-gray-100 flex-wrap">
+        <label className="text-gray-400 text-xs shrink-0">Shares</label>
         <input
           type="number"
           min="0"
@@ -264,8 +303,16 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
             const v = e.target.value;
             onSharesChange(v === "" ? undefined : Math.max(0, parseFloat(v)));
           }}
-          className="w-24 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="w-20 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           placeholder="0"
+        />
+        <label className="text-gray-400 text-xs shrink-0">Date Purchased</label>
+        <input
+          type="date"
+          value={purchaseDate ?? ""}
+          max={today}
+          onChange={(e) => onPurchaseDateChange(e.target.value || undefined)}
+          className="w-32 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
         <div className="ml-auto relative">
           <input
