@@ -2,7 +2,12 @@ import fs from "fs";
 import path from "path";
 import bcrypt from "bcryptjs";
 
-const FILE = path.join(process.cwd(), "data", "users.json");
+const DIR  = path.join(process.cwd(), "data");
+const FILE = path.join(DIR, "users.json");
+
+function ensureDir() {
+  if (!fs.existsSync(DIR)) fs.mkdirSync(DIR, { recursive: true });
+}
 
 interface User {
   id: string;
@@ -11,6 +16,7 @@ interface User {
 }
 
 function readUsers(): User[] {
+  ensureDir();
   try {
     return JSON.parse(fs.readFileSync(FILE, "utf-8"));
   } catch {
@@ -19,6 +25,7 @@ function readUsers(): User[] {
 }
 
 function writeUsers(users: User[]) {
+  ensureDir();
   fs.writeFileSync(FILE, JSON.stringify(users, null, 2));
 }
 

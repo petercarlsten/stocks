@@ -33,8 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
-# user data
-data/
+# user data (keep folder, ignore files)
+data/*
+!data/.gitkeep
 
 # vercel
 .vercel
