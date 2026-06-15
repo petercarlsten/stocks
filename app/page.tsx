@@ -21,15 +21,27 @@ import DashboardLeaderboard from "./components/DashboardLeaderboard";
 import TickerSearch from "./components/TickerSearch";
 import AllStocksNews from "./components/AllStocksNews";
 
+interface Purchase {
+  date?: string;
+  shares: number;
+  price?: number;
+}
+
 interface StockData {
   symbol: string;
   name: string;
   earningsDate: string | null;
   data: { date: string; close: number }[];
-  shares?: number;
   currency?: string;
-  purchaseDate?: string;
-  purchasePrice?: number;
+  purchases?: Purchase[];
+}
+
+// Migrate old single-purchase format to the purchases array
+function migrateStock(s: StockData & { shares?: number; purchaseDate?: string; purchasePrice?: number }): StockData {
+  if (s.purchases) return s;
+  const { purchaseDate, purchasePrice, shares, ...rest } = s as typeof s;
+  if (!purchaseDate && !shares) return { ...rest };
+  return { ...rest, purchases: [{ date: purchaseDate, shares: shares ?? 0, price: purchasePrice }] };
 }
 
 const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#EC4899", "#14B8A6", "#F97316", "#A855F7", "#EAB308", "#06B6D4", "#84CC16"];
@@ -125,7 +137,7 @@ export default function Home() {
 
     // Show cached data instantly while server loads
     const cached: StockData[] = (JSON.parse(localStorage.getItem(cacheKey(username)) ?? "[]") as StockData[])
-      .map((s) => ({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }));
+      .map((s) => migrateStock({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }));
     if (cached.length > 0) setStocks(cached);
 
     fetch("/api/user/stocks")
@@ -133,17 +145,23 @@ export default function Home() {
       .then(async (serverStocks: StockData[]) => {
         if (serverStocks.length > 0) {
           // Server has data — use it and refresh prices
+          const migrated = serverStocks.map((s) => migrateStock(s));
           const refreshed = await Promise.all(
-            serverStocks.map((s) =>
+            migrated.map((s) =>
               refreshStockData(s.symbol)
                 .then(({ data, earningsDate, currency }) => ({ ...s, data, earningsDate, currency: currency ?? s.currency ?? inferCurrency(s.symbol) }))
                 .catch(() => ({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }))
             )
           );
-          // Preserve purchasePrice already in memory — server save may lag behind the fetch
+          // Preserve any in-memory purchase prices that haven't been saved to the server yet
           setStocks((prev) => refreshed.map((r) => {
             const cur = prev.find((p) => p.symbol === r.symbol);
-            return cur?.purchasePrice != null && r.purchasePrice == null ? { ...r, purchasePrice: cur.purchasePrice } : r;
+            if (!cur?.purchases) return r;
+            const merged = (r.purchases ?? cur.purchases).map((rp, i) => {
+              const cp = cur.purchases?.[i];
+              return cp?.price != null && rp.price == null ? { ...rp, price: cp.price } : rp;
+            });
+            return { ...r, purchases: merged };
           }));
           setLastRefreshed(new Date());
         } else {
@@ -214,16 +232,12 @@ export default function Home() {
     setStocks((prev) => prev.filter((s) => s.symbol !== symbol));
   }, []);
 
-  const updateShares = useCallback((symbol: string, shares: number | undefined) => {
-    setStocks((prev) => prev.map((s) => s.symbol === symbol ? { ...s, shares } : s));
-  }, []);
-
-  const updatePurchaseDate = useCallback((symbol: string, purchaseDate: string | undefined) => {
-    setStocks((prev) => prev.map((s) => s.symbol === symbol ? { ...s, purchaseDate, purchasePrice: undefined } : s));
-  }, []);
-
-  const updatePurchasePrice = useCallback((symbol: string, purchasePrice: number | undefined) => {
-    setStocks((prev) => prev.map((s) => s.symbol === symbol ? { ...s, purchasePrice } : s));
+  const updatePurchases = useCallback((symbol: string, updater: Purchase[] | ((prev: Purchase[]) => Purchase[])) => {
+    setStocks((prev) => prev.map((s) => {
+      if (s.symbol !== symbol) return s;
+      const next = typeof updater === "function" ? updater(s.purchases ?? []) : updater;
+      return { ...s, purchases: next };
+    }));
   }, []);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -248,7 +262,9 @@ export default function Home() {
     );
   }
 
-  const missingPriceStocks = stocks.filter((s) => s.purchaseDate && s.purchasePrice == null);
+  const missingPriceStocks = stocks.filter((s) =>
+    (s.purchases ?? []).some((p) => p.date && p.price == null)
+  );
 
   return (
     <SettingsContext.Provider value={{ trumpEnabled, wolfEnabled }}>
@@ -313,21 +329,22 @@ export default function Home() {
               let has30d = false, has7d = false;
 
               for (const s of stocks) {
-                if (!s.shares || s.shares <= 0) continue;
+                const totalShares = (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0);
+                if (totalShares <= 0) continue;
                 // Convert from ticker's native currency to portfolio currency
                 const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
                 const toPortfolio = exchangeRate / tickerRate;
 
                 const price = s.data[s.data.length - 1]?.close ?? 0;
-                total += s.shares * price * toPortfolio;
+                total += totalShares * price * toPortfolio;
 
                 const past30 = s.data.filter((d) => d.date <= cutoffStr);
                 const price30d = past30.length > 0 ? past30[past30.length - 1].close : null;
-                if (price30d !== null) { total30d += s.shares * price30d * toPortfolio; has30d = true; }
+                if (price30d !== null) { total30d += totalShares * price30d * toPortfolio; has30d = true; }
 
                 const past7 = s.data.filter((d) => d.date <= cutoff7dStr);
                 const price7d = past7.length > 0 ? past7[past7.length - 1].close : null;
-                if (price7d !== null) { total7d += s.shares * price7d * toPortfolio; has7d = true; }
+                if (price7d !== null) { total7d += totalShares * price7d * toPortfolio; has7d = true; }
               }
 
               const change30d = has30d && total30d > 0 ? ((total - total30d) / total30d) * 100 : null;
@@ -372,7 +389,7 @@ export default function Home() {
               ) : null;
             })()}
           </div>
-          <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchaseDate: s.purchaseDate, purchasePrice: s.purchasePrice, shares: s.shares, currency: s.currency }))} />
+          <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} />
           <TopGainers />
           <div className="shrink-0 pt-1 flex flex-col gap-2">
             <button
@@ -433,9 +450,10 @@ export default function Home() {
             <SortableContext items={stocks.map((s) => s.symbol)} strategy={rectSortingStrategy}>
               {(() => {
                 const totalPortfolioValue = stocks.reduce((sum, s) => {
-                  if (!s.shares || s.shares <= 0) return sum;
+                  const sh = (s.purchases ?? []).reduce((a, p) => a + p.shares, 0);
+                  if (sh <= 0) return sum;
                   const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
-                  return sum + s.shares * (s.data[s.data.length - 1]?.close ?? 0) * (exchangeRate / tickerRate);
+                  return sum + sh * (s.data[s.data.length - 1]?.close ?? 0) * (exchangeRate / tickerRate);
                 }, 0);
                 return (
                   <div
@@ -443,8 +461,9 @@ export default function Home() {
                     style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
                   >
                     {stocks.map((s, i) => {
+                      const sh = (s.purchases ?? []).reduce((a, p) => a + p.shares, 0);
                       const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
-                      const posVal = s.shares && s.shares > 0 ? s.shares * (s.data[s.data.length - 1]?.close ?? 0) * (exchangeRate / tickerRate) : 0;
+                      const posVal = sh > 0 ? sh * (s.data[s.data.length - 1]?.close ?? 0) * (exchangeRate / tickerRate) : 0;
                       const portfolioPct = totalPortfolioValue > 0 && posVal > 0 ? (posVal / totalPortfolioValue) * 100 : undefined;
                       return (
                         <SortableStockChart
@@ -454,13 +473,9 @@ export default function Home() {
                           earningsDate={s.earningsDate}
                           data={s.data}
                           color={COLORS[i % COLORS.length]}
-                          shares={s.shares}
+                          purchases={s.purchases}
                           onRemove={() => removeStock(s.symbol)}
-                          onSharesChange={(shares) => updateShares(s.symbol, shares)}
-                          purchaseDate={s.purchaseDate}
-                          purchasePrice={s.purchasePrice}
-                          onPurchaseDateChange={(d) => updatePurchaseDate(s.symbol, d)}
-                          onPurchasePriceChange={(p) => updatePurchasePrice(s.symbol, p)}
+                          onPurchasesChange={(p) => updatePurchases(s.symbol, p)}
                           theme={theme}
                           portfolioPct={portfolioPct}
                           tickerCurrency={s.currency ?? "USD"}

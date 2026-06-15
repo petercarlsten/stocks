@@ -20,6 +20,12 @@ interface DataPoint {
   close: number;
 }
 
+export interface Purchase {
+  date?: string;
+  shares: number;
+  price?: number;
+}
+
 interface Props {
   symbol: string;
   name: string;
@@ -27,12 +33,8 @@ interface Props {
   data: DataPoint[];
   onRemove: () => void;
   color: string;
-  shares?: number;
-  onSharesChange: (shares: number | undefined) => void;
-  purchaseDate?: string;
-  purchasePrice?: number;
-  onPurchaseDateChange: (date: string | undefined) => void;
-  onPurchasePriceChange: (price: number | undefined) => void;
+  purchases?: Purchase[];
+  onPurchasesChange: (updater: Purchase[] | ((prev: Purchase[]) => Purchase[])) => void;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
   theme?: "light" | "dark";
   portfolioPct?: number;
@@ -50,7 +52,7 @@ function fmtDate(dateStr?: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, shares, onSharesChange, purchaseDate, purchasePrice, onPurchaseDateChange, onPurchasePriceChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD" }: Props) {
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD" }: Props) {
   const [holdings, setHoldings] = useState<{ name: string; pct: number }[] | null>(null);
   const [showHoldings, setShowHoldings] = useState(false);
   const [showGains, setShowGains] = useState(false);
@@ -60,6 +62,8 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const [currencyQuery, setCurrencyQuery] = useState("");
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const usdRatesRef = useRef<Record<string, number>>({ USD: 1 });
+  const fetchingRef = useRef(new Set<string>());
+  const failedRef = useRef(new Set<string>());
 
   const filteredCurrencies = useMemo(() => {
     const q = currencyQuery.toLowerCase().trim();
@@ -94,23 +98,32 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
       .catch(() => setCardExRate(1));
   }, [cardCurrency, tickerCurrency, applyRate]);
 
-  // Auto-fetch purchase price when the date changes or if it gets cleared by a server reload race
+  // Fetch historical prices for purchases that have a date but no price yet.
+  // Uses functional updaters so concurrent fetches don't overwrite each other.
   useEffect(() => {
-    if (!purchaseDate) { onPurchasePriceChange(undefined); return; }
-    if (purchasePrice != null) return; // already resolved
-    // If the date falls within the loaded chart data, use the closest point
-    if (data.length > 0 && purchaseDate >= data[0].date && purchaseDate <= data[data.length - 1].date) {
-      const pt = data.find((d) => d.date >= purchaseDate) ?? data[0];
-      onPurchasePriceChange(pt.close);
-      return;
-    }
-    // Date is outside the chart window — fetch from API
-    fetch(`/api/price?symbol=${encodeURIComponent(symbol)}&date=${purchaseDate}`)
-      .then((r) => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
-      .then((d) => onPurchasePriceChange(d.price ?? undefined))
-      .catch(() => onPurchasePriceChange(undefined));
+    (purchases ?? []).forEach((p, i) => {
+      if (!p.date || p.price != null) return;
+      const key = `${i}:${p.date}`;
+      if (fetchingRef.current.has(key) || failedRef.current.has(key)) return;
+      fetchingRef.current.add(key);
+
+      if (data.length > 0 && p.date >= data[0].date && p.date <= data[data.length - 1].date) {
+        const pt = data.find((d) => d.date >= p.date!) ?? data[0];
+        onPurchasesChange((prev) => prev.map((pp, j) => j === i ? { ...pp, price: pt.close } : pp));
+        fetchingRef.current.delete(key);
+        return;
+      }
+
+      fetch(`/api/price?symbol=${encodeURIComponent(symbol)}&date=${p.date}`)
+        .then((r) => r.ok ? r.json() : Promise.reject())
+        .then((d) => {
+          onPurchasesChange((prev) => prev.map((pp, j) => j === i && pp.price == null ? { ...pp, price: d.price } : pp));
+        })
+        .catch(() => { failedRef.current.add(key); })
+        .finally(() => fetchingRef.current.delete(key));
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [purchaseDate, symbol, purchasePrice, data]);
+  }, [purchases, data, symbol]);
 
   async function handleNameEnter() {
     if (holdings !== null && holdings.length === 0) return; // known empty — skip
@@ -157,17 +170,23 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const today = new Date().toISOString().split("T")[0];
   const earningsIsFuture = earningsDate ? earningsDate > today : false;
 
-  // Purchase date reference: find the closest data point at or after the purchase date
-  const purchaseInRange = purchaseDate && data.length > 0
-    ? purchaseDate >= data[0].date && purchaseDate <= data[data.length - 1].date
-    : false;
-  const purchaseDateOnChart = purchaseInRange
-    ? (data.find((d) => d.date >= purchaseDate!) ?? data[0])?.date
-    : null;
+  const totalShares = (purchases ?? []).reduce((sum, p) => sum + (p.shares || 0), 0);
 
-  const positionValue = shares && shares > 0 ? shares * last : null;
+  const purchaseDatesOnChart = useMemo(() => {
+    if (!purchases || data.length === 0) return [];
+    const multi = purchases.filter(p => p.date).length > 1;
+    return purchases
+      .map((p, i) => {
+        if (!p.date || p.date < data[0].date || p.date > data[data.length - 1].date) return null;
+        const chartDate = (data.find((d) => d.date >= p.date!) ?? data[0])?.date;
+        return { chartDate, label: multi ? `B${i + 1}` : "B" };
+      })
+      .filter(Boolean) as { chartDate: string; label: string }[];
+  }, [purchases, data]);
+
+  const positionValue = totalShares > 0 ? totalShares * last : null;
   const absChange = last - first;
-  const positionGain = shares && shares > 0 ? shares * absChange : null;
+  const positionGain = totalShares > 0 ? totalShares * absChange : null;
 
   const gainColor = positive ? "#16a34a" : "#ef4444";
   const overlayBg = dark ? "#111827" : "#ffffff";
@@ -274,15 +293,16 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               label={{ value: "E", position: "top", fill: "#d97706", fontSize: 10 }}
             />
           )}
-          {purchaseDateOnChart && (
+          {purchaseDatesOnChart.map((p, i) => (
             <ReferenceLine
-              x={purchaseDateOnChart}
+              key={i}
+              x={p.chartDate}
               stroke="#6366f1"
               strokeDasharray="4 3"
               strokeWidth={1.5}
-              label={{ value: "B", position: "top", fill: "#6366f1", fontSize: 10 }}
+              label={{ value: p.label, position: "top", fill: "#6366f1", fontSize: 10 }}
             />
-          )}
+          ))}
           <Line
             type="monotone"
             dataKey="close"
@@ -292,29 +312,15 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           />
         </LineChart>
       </ResponsiveContainer>
-      <div className="flex items-center gap-2 pt-2 border-t border-gray-100 flex-wrap">
-        <label className="text-gray-400 text-xs shrink-0">Shares</label>
-        <input
-          type="number"
-          min="0"
-          step="any"
-          value={shares ?? ""}
-          onChange={(e) => {
-            const v = e.target.value;
-            onSharesChange(v === "" ? undefined : Math.max(0, parseFloat(v)));
-          }}
-          className="w-20 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-          placeholder="0"
-        />
-        <label className="text-gray-400 text-xs shrink-0">Date Purchased</label>
-        <input
-          type="date"
-          value={purchaseDate ?? ""}
-          max={today}
-          onChange={(e) => onPurchaseDateChange(e.target.value || undefined)}
-          className="w-32 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
-        />
-        <div className="ml-auto relative">
+      <div className="pt-2 border-t border-gray-100">
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400 text-xs">Purchases</span>
+            {totalShares > 0 && (
+              <span className="text-gray-500 text-xs">· {totalShares} shares total</span>
+            )}
+          </div>
+          <div className="relative">
           <input
             type="text"
             value={currencyQuery}
@@ -342,7 +348,50 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               )}
             </ul>
           )}
+          </div>
         </div>
+        {(purchases ?? []).map((p, i) => (
+          <div key={i} className="flex items-center gap-2 mb-1">
+            <input
+              type="date"
+              value={p.date ?? ""}
+              max={today}
+              onChange={(e) => {
+                const oldKey = `${i}:${p.date ?? ""}`;
+                failedRef.current.delete(oldKey);
+                fetchingRef.current.delete(oldKey);
+                onPurchasesChange((purchases ?? []).map((pp, j) => j === i ? { ...pp, date: e.target.value || undefined, price: undefined } : pp));
+              }}
+              className="w-32 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            />
+            <input
+              type="number"
+              min="0"
+              step="any"
+              value={p.shares || ""}
+              onChange={(e) => {
+                const v = parseFloat(e.target.value);
+                onPurchasesChange((purchases ?? []).map((pp, j) => j === i ? { ...pp, shares: isNaN(v) ? 0 : Math.max(0, v) } : pp));
+              }}
+              className="w-20 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              placeholder="Shares"
+            />
+            <button
+              onClick={() => {
+                const key = `${i}:${p.date ?? ""}`;
+                failedRef.current.delete(key);
+                fetchingRef.current.delete(key);
+                onPurchasesChange((purchases ?? []).filter((_, j) => j !== i));
+              }}
+              className="text-gray-300 hover:text-red-400 text-base leading-none shrink-0"
+              title="Remove"
+            >×</button>
+          </div>
+        ))}
+        <button
+          onClick={() => onPurchasesChange([...(purchases ?? []), { date: today, shares: 0 }])}
+          className="text-indigo-500 hover:text-indigo-700 text-xs mt-0.5"
+        >+ Add purchase</button>
       </div>
 
       {/* Gains tooltip — appears over chart when hovering the % badge */}
