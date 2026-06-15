@@ -190,7 +190,10 @@ export async function GET(req: NextRequest) {
     }
 
     const currency = quote?.currency ?? inferCurrencyFromSuffix(upper);
-    return NextResponse.json({ symbol: upper, name, earningsDate, data, currency });
+    // Preserve the original ISIN as the symbol so every refresh re-enters the ISIN path
+    // and can fall back to {ISIN}.EUFUND; resolved tickers like TESG.MU have no EODHD data.
+    const responseSymbol = originalISIN ?? upper;
+    return NextResponse.json({ symbol: responseSymbol, name, earningsDate, data, currency });
   } catch {
     return NextResponse.json(
       { error: `Could not fetch data for "${upper}"` },

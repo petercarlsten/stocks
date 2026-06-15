@@ -152,11 +152,19 @@ export async function GET(req: NextRequest) {
   // Looks like an incomplete ISIN (has digits) — don't fuzzy-search, just wait
   if (PARTIAL_ISIN_RE.test(q) && /\d/.test(q)) return NextResponse.json([]);
 
-  const yahooResults = await searchYahoo(q);
-  if (yahooResults.length > 0) return NextResponse.json(yahooResults);
+  // Run Yahoo and EODHD in parallel so funds appear alongside equities
+  const [yahooResults, eodhResults] = await Promise.all([
+    searchYahoo(q),
+    searchEODHD(q),
+  ]);
 
-  const openFigiResults = await searchOpenFIGI(q);
-  if (openFigiResults.length > 0) return NextResponse.json(openFigiResults);
+  const seen = new Set(yahooResults.map((r) => r.symbol));
+  const merged = [
+    ...yahooResults,
+    ...eodhResults.filter((r) => !seen.has(r.symbol)),
+  ].slice(0, 8);
 
-  return NextResponse.json(await searchEODHD(q));
+  if (merged.length > 0) return NextResponse.json(merged);
+
+  return NextResponse.json(await searchOpenFIGI(q));
 }
