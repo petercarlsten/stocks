@@ -209,14 +209,6 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         )}
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
-            <span
-              className="text-gray-900 font-bold text-sm truncate cursor-default"
-              title={name}
-              onMouseEnter={handleNameEnter}
-              onMouseLeave={() => setShowHoldings(false)}
-            >
-              {name}
-            </span>
             <WolfHover isPositive={positive}>
               <TrumpHover isNegative={!positive}>
                 <span
@@ -229,6 +221,14 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                 </span>
               </TrumpHover>
             </WolfHover>
+            <span
+              className="text-gray-900 font-bold text-sm truncate cursor-default"
+              title={name}
+              onMouseEnter={handleNameEnter}
+              onMouseLeave={() => setShowHoldings(false)}
+            >
+              {name}
+            </span>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-gray-400 text-xs">{symbol}</span>
