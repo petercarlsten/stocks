@@ -243,7 +243,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
 
         <div className="flex flex-col gap-6 px-6 py-6">
           <div className="flex flex-col gap-2">
-            <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Display currency</label>
+            <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Display portfolio value</label>
 
             <div className="relative">
               <input
