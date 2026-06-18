@@ -42,12 +42,11 @@ function toStooqSymbol(yahooSymbol: string): string {
   return lower.includes(".") ? lower : `${lower}.us`;
 }
 
-async function fetchFromStooq(
-  symbol: string,
+async function fetchFromStooqSymbol(
+  stooqSymbol: string,
   start: Date,
   end: Date
 ): Promise<{ date: string; close: number }[] | null> {
-  const stooqSymbol = toStooqSymbol(symbol);
   const cacheKey = `stooq:${stooqSymbol}`;
   const cached = STOOQ_CACHE.get(cacheKey);
   if (cached && Date.now() - cached.cachedAt < CACHE_TTL_MS) return cached.rows;
@@ -60,7 +59,9 @@ async function fetchFromStooq(
     const res = await fetch(url);
     if (!res.ok) return null;
     const text = await res.text();
-    if (!text || text.includes("No data") || text.trim().length < 20) return null;
+    console.log(`[stooq] ${stooqSymbol}: ${text.slice(0, 120)}`);
+    // "Brak danych" = Polish for "No data"; also catches HTML error pages
+    if (!text || text.includes("Brak danych") || text.includes("No data") || text.includes("<html") || text.trim().length < 20) return null;
 
     const lines = text.trim().split("\n");
     if (lines.length < 2) return null;
@@ -83,6 +84,29 @@ async function fetchFromStooq(
   } catch {
     return null;
   }
+}
+
+async function fetchFromStooq(
+  symbol: string,
+  start: Date,
+  end: Date
+): Promise<{ date: string; close: number }[] | null> {
+  const primary = toStooqSymbol(symbol);
+  let result = await fetchFromStooqSymbol(primary, start, end);
+  if (result) return result;
+
+  // For Swedish .ST stocks, try stripping a leading 2-letter country prefix
+  // e.g. SEBLAKE.ST → blake.st (some systems prepend the ISO country code)
+  const dotIdx = symbol.lastIndexOf(".");
+  const base = dotIdx >= 0 ? symbol.slice(0, dotIdx) : symbol;
+  const suffix = dotIdx >= 0 ? symbol.slice(dotIdx).toLowerCase() : "";
+  if (suffix === ".st" && base.length > 3 && /^[A-Z]{2}/.test(base)) {
+    const stripped = base.slice(2).toLowerCase() + suffix;
+    console.log(`[stooq] retrying without country prefix: ${stripped}`);
+    result = await fetchFromStooqSymbol(stripped, start, end);
+  }
+
+  return result;
 }
 
 // ─── Alpha Vantage (25 req/day free, good European coverage) ────────────────
