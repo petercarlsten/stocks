@@ -47,6 +47,9 @@ const en = {
   stockNews: "📰 Stock news",
   gainsSincePurchasedToggle: "🏆 Gains since purchased",
   topGainers: "📈 Top gainers",
+  topGainersTitle: "Top Gainers",
+  last3Months: "Last 3 months",
+  noData: "No data",
   language: "Language",
   tickerPlaceholder: "Ticker, ISIN or company name…",
 };
@@ -98,6 +101,9 @@ const sv: typeof en = {
   stockNews: "📰 Aktienyheter",
   gainsSincePurchasedToggle: "🏆 Vinst sedan köp",
   topGainers: "📈 Bästa vinnarna",
+  topGainersTitle: "Bästa vinnare",
+  last3Months: "Senaste 3 månaderna",
+  noData: "Ingen data",
   language: "Språk",
   tickerPlaceholder: "Ticker, ISIN eller företagsnamn…",
 };

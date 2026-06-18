@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import TrumpHover from "./TrumpHover";
 import WolfHover from "./WolfHover";
+import { useTranslation } from "./SettingsContext";
 
 interface Gainer {
   symbol: string;
@@ -11,6 +12,7 @@ interface Gainer {
 }
 
 export default function TopGainers() {
+  const t = useTranslation();
   const [gainers, setGainers] = useState<Gainer[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,13 +26,13 @@ export default function TopGainers() {
   return (
     <div className="bg-white rounded-xl p-4 w-96 shrink-0 border border-gray-200 shadow-sm">
       <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">
-        Top Gainers
+        {t.topGainersTitle}
       </h2>
-      <p className="text-gray-400 text-xs mb-3">Last 3 months</p>
+      <p className="text-gray-400 text-xs mb-3">{t.last3Months}</p>
       {loading ? (
-        <p className="text-gray-400 text-xs">Loading…</p>
+        <p className="text-gray-400 text-xs">{t.loading}</p>
       ) : gainers.length === 0 ? (
-        <p className="text-gray-400 text-xs">No data</p>
+        <p className="text-gray-400 text-xs">{t.noData}</p>
       ) : (
         <ol className="flex flex-col gap-2">
           {gainers.map((g, i) => (
