@@ -100,8 +100,7 @@ const html = `<!DOCTYPE html>
           </div>
         </td>
         <td style="vertical-align:middle;padding-left:14px">
-          <p style="margin:0;color:white;font-size:20px;font-weight:800">Your Portfolio</p>
-          <p style="margin:4px 0 0;color:rgba(255,255,255,0.8);font-size:13px">${month} Report</p>
+          <p style="margin:0;color:white;font-size:20px;font-weight:800">Your Portfolio Value for ${month}</p>
         </td>
       </tr></table>
     </div>
@@ -133,7 +132,7 @@ const res = await fetch("https://api.resend.com/emails", {
   body: JSON.stringify({
     from: "Your Portfolio <onboarding@resend.dev>",
     to: [TO],
-    subject: `Your Portfolio – ${month} Report`,
+    subject: `Your Portfolio Value for ${month}`,
     html,
   }),
 });
