@@ -1,6 +1,7 @@
 export type Language = "en" | "sv";
 
 const en = {
+  appTitle: "Your Portfolio",
   loading: "Loading…",
   portfolioValue: "Portfolio value",
   lastNDaysGain: (n: number) => `Last ${n} days gain`,
@@ -51,6 +52,7 @@ const en = {
 };
 
 const sv: typeof en = {
+  appTitle: "Din Portfölj",
   loading: "Laddar…",
   portfolioValue: "Portföljvärde",
   lastNDaysGain: (n: number) => `${n} dagars vinst`,

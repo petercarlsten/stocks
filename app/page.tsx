@@ -330,7 +330,7 @@ export default function Home() {
               </div>
               <div>
                 <h1 className="logo-text text-5xl font-black tracking-tight leading-none">
-                  Your Portfolio
+                  {t.appTitle}
                 </h1>
                 <div className="logo-underline h-1 mt-2 rounded-full w-3/4" />
               </div>
