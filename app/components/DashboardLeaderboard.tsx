@@ -96,17 +96,18 @@ export default function DashboardLeaderboard({ stocks, className }: Props) {
                       const pctGain = ((s.current - p.price) / p.price) * 100;
                       const pos = pctGain >= 0;
                       return (
-                        <span key={j} className="text-gray-300 text-xs tabular-nums">
-                          {fmtDate(p.date)} · {p.shares} sh @ {fmtPrice(p.price, s.currency)}
-                          {" · "}
+                        <div key={j} className="flex items-baseline justify-between gap-2">
+                          <span className="text-gray-300 text-xs tabular-nums">
+                            {fmtDate(p.date)} · {p.shares} sh @ {fmtPrice(p.price, s.currency)}
+                          </span>
                           <WolfHover isPositive={pos}>
                             <TrumpHover isNegative={!pos}>
-                              <span className={pos ? "text-green-500" : "text-red-400"}>
+                              <span className={`text-xs tabular-nums shrink-0 ${pos ? "text-green-500" : "text-red-400"}`}>
                                 {pos ? "+" : ""}{pctGain.toFixed(1)}%
                               </span>
                             </TrumpHover>
                           </WolfHover>
-                        </span>
+                        </div>
                       );
                     })}
                   </div>

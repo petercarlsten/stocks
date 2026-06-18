@@ -16,6 +16,18 @@ const TRUMP_QUOTES = [
   "My accountant is crying. BIG TEARS.",
   "They're laughing at us. The whole world.",
   "Absolutely terrible. Embarrassing, frankly.",
+  "This is a HOAX. Has to be.",
+  "Disaster. Total and complete disaster.",
+  "I've seen bad, but this? This is HISTORIC.",
+  "The deep state did this. I know it.",
+  "Somebody call my lawyer.",
+  "This wouldn't happen on my watch. Oh wait.",
+  "Shameful. Frankly, shameful.",
+  "Even Sleepy Joe did better. SAD!",
+  "I'm going to tweet about this.",
+  "The fake news won't cover this loss.",
+  "Terrible. The worst. By far.",
+  "We need an investigation. Immediately.",
 ];
 
 const CAT_QUOTES = [
@@ -31,6 +43,16 @@ const CAT_QUOTES = [
   "sadge cat moment",
   "my portfolio... it hurts",
   "crying in meow",
+  "hiss. just... hiss.",
+  "I'm going back under the bed",
+  "no. no no no. NO.",
+  "this is NOT what I purred for",
+  "my whiskers are trembling",
+  "staring into the void now",
+  "I knocked it off the table. it fell.",
+  "purring but make it sad",
+  "someone open a can of tuna pls",
+  "I am become loss",
 ];
 
 const SAD_CAT_GIFS = [
@@ -55,6 +77,16 @@ const DOG_QUOTES_SAD = [
   "such disappoint. wow.",
   "why hooman why",
   "I is cry",
+  "tail between legs rn",
+  "dropped the ball. literally.",
+  "not a good boy today",
+  "whimper...",
+  "I chewed the wrong stock",
+  "this is not the walkies I wanted",
+  "burying my losses in the yard",
+  "bed. I go to bed now.",
+  "sad puppy eyes activated",
+  "no zoomies today",
 ];
 
 const SAD_DOG_GIFS = [

@@ -3,17 +3,27 @@
 import { useState, useRef } from "react";
 import { useSettings } from "./SettingsContext";
 
-const CAT_QUOTES = [
-  "PURRR-FECT gains! 😸",
-  "To the moon! 🚀🐱",
-  "I am rich cat now",
-  "treats incoming!!!",
-  "moneys!!! 🐱",
-  "stonks go MRRROW",
-  "happy cat is happy",
-  "buy more. meow.",
-  "this is the way 🐾",
-  "paws up! we're rich!",
+const TRUMP_QUOTES_POSITIVE = [
+  "BEAUTIFUL! The BEST gains!",
+  "Nobody wins like us. NOBODY.",
+  "This is WINNING. Tremendous!",
+  "MASSIVE returns. Believe me.",
+  "We're making money again!",
+  "The greatest investment. Ever.",
+  "Incredible numbers. Huge!",
+  "My accountant is crying. HAPPY TEARS.",
+  "This is what winning looks like!",
+  "PERFECT. Absolutely perfect.",
+  "I've never seen numbers this good. EVER.",
+  "They said it couldn't be done. Wrong!",
+  "Smart money. Very smart money.",
+  "Genius move. Total genius.",
+  "The markets love me. They really do.",
+  "Bigly profits. The biggest.",
+  "We're rich again, folks!",
+  "Even my enemies are impressed.",
+  "That's called being a WINNER.",
+  "Maybe the best investment in history.",
 ];
 
 const DOG_QUOTES_HAPPY = [
@@ -27,6 +37,39 @@ const DOG_QUOTES_HAPPY = [
   "bork bork to the moon!",
   "SQUEAKY TOY ACQUIRED",
   "best day ever!!!",
+  "OMG OMG OMG green numbers!!!",
+  "doing a happy bounce 🐕",
+  "this calls for ZOOMIES",
+  "i helped. i think i helped.",
+  "pls pet me i did good",
+  "smol brain, big gains 🐾",
+  "wag wag wag wag wag",
+  "i deserve ALL the treats",
+  "money smell good",
+  "fetch! but make it profitable",
+];
+
+const CAT_QUOTES = [
+  "I can has gainz? 😸",
+  "purrfect investment!",
+  "this is fine (it's actually fine)",
+  "meow-nificent returns!",
+  "I knocked the red numbers off the screen",
+  "green means nap time 😻",
+  "cats always land on their feet... and in the green",
+  "purring intensifies",
+  "I am RICH cat now",
+  "fish for everyone tonight!",
+  "heh. called it.",
+  "flexing my whiskers rn",
+  "I sat on this stock and it GREW",
+  "nine lives, nine income streams",
+  "the market fears me 😼",
+  "treats? no. TUNA. because we can afford it.",
+  "my financial advisor is a ball of yarn. still beat the index.",
+  "yes. more. keep going.",
+  "not even surprised. I'm a cat.",
+  "pur... pur... PROFIT",
 ];
 
 const HAPPY_DOG_GIFS = [
@@ -68,7 +111,9 @@ export default function WolfHover({ isPositive, children }: Props) {
 
   function handleMouseEnter() {
     if (!active) return;
-    if (funnyMode === "dogs") {
+    if (funnyMode === "trump-wolf") {
+      quoteRef.current = TRUMP_QUOTES_POSITIVE[Math.floor(Math.random() * TRUMP_QUOTES_POSITIVE.length)];
+    } else if (funnyMode === "dogs") {
       quoteRef.current = DOG_QUOTES_HAPPY[Math.floor(Math.random() * DOG_QUOTES_HAPPY.length)];
       gifRef.current = HAPPY_DOG_GIFS[Math.floor(Math.random() * HAPPY_DOG_GIFS.length)];
     } else {
@@ -89,15 +134,14 @@ export default function WolfHover({ isPositive, children }: Props) {
       {children}
       {show && funnyMode === "trump-wolf" && (
         <span
-          className={`trump-popup absolute left-1/2 z-50 pointer-events-none flex items-center ${posClass}`}
-          style={{ width: 144 }}
+          className={`trump-popup absolute left-1/2 z-50 pointer-events-none flex items-center gap-1 ${posClass}`}
+          style={{ width: 90 }}
         >
+          <span className="block bg-gray-800 text-green-400 text-xs font-semibold rounded-lg px-3 py-2 shadow-xl text-center leading-snug border border-green-900">
+            &ldquo;{quoteRef.current}&rdquo;
+          </span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="https://gifdb.com/images/high/wolf-of-wall-street-midget-hym6j8cpnvanzigo.gif"
-            alt="Wolf of Wall Street"
-            className="w-36 rounded-xl shadow-2xl"
-          />
+          <img src="/trump.jpg" alt="Donald Trump" className="w-18 rounded-xl shadow-2xl" />
         </span>
       )}
       {show && (funnyMode === "cats" || funnyMode === "dogs") && (
