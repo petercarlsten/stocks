@@ -5,6 +5,34 @@ import { NextRequest, NextResponse } from "next/server";
 const YahooFinance = require("yahoo-finance2").default;
 const yf = new YahooFinance({ suppressNotices: ["ripHistorical", "yahooSurvey"] });
 
+// ─── Yahoo Finance v2 direct HTTP (bypasses library validation) ─────────────
+
+async function fetchFromYahooV2(
+  symbol: string,
+  start: Date,
+  end: Date
+): Promise<{ date: string; close: number }[] | null> {
+  const period1 = Math.floor(start.getTime() / 1000);
+  const period2 = Math.floor(end.getTime() / 1000);
+  const url = `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?period1=${period1}&period2=${period2}&interval=1d&includePrePost=false`;
+  try {
+    const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+    if (!res.ok) return null;
+    const json = await res.json();
+    const result = json?.chart?.result?.[0];
+    if (!result) return null;
+    const timestamps: number[] = result.timestamp ?? [];
+    const closes: number[] = result.indicators?.quote?.[0]?.close ?? [];
+    const rows = timestamps
+      .map((ts, i) => ({ date: new Date(ts * 1000).toISOString().split("T")[0], close: closes[i] }))
+      .filter((r) => r.close != null && !isNaN(r.close))
+      .sort((a, b) => a.date.localeCompare(b.date));
+    return rows.length >= 5 ? rows : null;
+  } catch {
+    return null;
+  }
+}
+
 // ─── Stooq (free, no key, no rate limits) ───────────────────────────────────
 
 const STOOQ_CACHE = new Map<string, { rows: { date: string; close: number }[]; cachedAt: number }>();
@@ -51,6 +79,54 @@ async function fetchFromStooq(
 
     if (rows.length < 2) return null;
     STOOQ_CACHE.set(cacheKey, { rows, cachedAt: Date.now() });
+    return rows;
+  } catch {
+    return null;
+  }
+}
+
+// ─── Alpha Vantage (25 req/day free, good European coverage) ────────────────
+
+const AV_SUFFIX: Record<string, string> = {
+  ".ST": "STO", ".L": "LON", ".DE": "FRA", ".MU": "FRA", ".PA": "PAR",
+  ".AS": "AMS", ".MI": "MIL", ".MC": "MAD", ".CO": "CPH", ".HE": "HEL",
+  ".OL": "OSL", ".SW": "SWX", ".HK": "HKG", ".T": "TYO", ".AX": "ASX",
+};
+
+const AV_CACHE = new Map<string, { rows: { date: string; close: number }[]; cachedAt: number }>();
+
+async function fetchFromAlphaVantage(
+  yahooSymbol: string,
+  start: Date
+): Promise<{ date: string; close: number }[] | null> {
+  const apiKey = process.env.ALPHA_VANTAGE_API_KEY;
+  if (!apiKey) return null;
+
+  const dotIdx = yahooSymbol.lastIndexOf(".");
+  const base = dotIdx >= 0 ? yahooSymbol.slice(0, dotIdx) : yahooSymbol;
+  const suffix = dotIdx >= 0 ? yahooSymbol.slice(dotIdx) : "";
+  const avExch = AV_SUFFIX[suffix];
+  const avSymbol = avExch ? `${base}.${avExch}` : base;
+
+  const cacheKey = `av:${avSymbol}`;
+  const cached = AV_CACHE.get(cacheKey);
+  if (cached && Date.now() - cached.cachedAt < CACHE_TTL_MS) return cached.rows;
+
+  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(avSymbol)}&outputsize=compact&apikey=${apiKey}`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const json = await res.json();
+    const series = json["Time Series (Daily)"];
+    if (!series) return null;
+    const cutoff = start.toISOString().split("T")[0];
+    const rows = Object.entries(series as Record<string, Record<string, string>>)
+      .filter(([date]) => date >= cutoff)
+      .map(([date, v]) => ({ date, close: parseFloat(v["4. close"]) }))
+      .filter((r) => !isNaN(r.close))
+      .sort((a, b) => a.date.localeCompare(b.date));
+    if (rows.length < 5) return null;
+    AV_CACHE.set(cacheKey, { rows, cachedAt: Date.now() });
     return rows;
   } catch {
     return null;
@@ -273,11 +349,19 @@ export async function GET(req: NextRequest) {
 
       let fallback: { date: string; close: number }[] | null = null;
 
-      // ── Tier 1: Stooq (free, unlimited) ─────────────────────────────────
-      fallback = await fetchFromStooq(upper, start, end);
+      // ── Tier 1: Yahoo v2 direct HTTP (bypasses library validation) ───────
+      fallback = await fetchFromYahooV2(upper, start, end);
+      debugSteps.push(`YahooV2 "${upper}": ${fallback ? fallback.length + " rows" : "null"}`);
+
+      // ── Tier 2: Stooq (free, unlimited) ──────────────────────────────────
+      if (!fallback) fallback = await fetchFromStooq(upper, start, end);
       debugSteps.push(`Stooq "${toStooqSymbol(upper)}": ${fallback ? fallback.length + " rows" : "null"}`);
 
-      // ── Tier 2: Twelve Data ──────────────────────────────────────────────
+      // ── Tier 3: Alpha Vantage ─────────────────────────────────────────────
+      if (!fallback) fallback = await fetchFromAlphaVantage(upper, start);
+      debugSteps.push(`AlphaVantage "${upper}": ${fallback ? fallback.length + " rows" : "null"}`);
+
+      // ── Tier 4: Twelve Data ──────────────────────────────────────────────
       if (!fallback) fallback = await fetchFromTwelveData(upper, start, end);
       debugSteps.push(`TwelveData "${upper}": ${fallback ? fallback.length + " rows" : "null"}`);
 
@@ -376,6 +460,7 @@ export async function GET(req: NextRequest) {
         console.error(`[stocks] No data for "${symbol}": ${detail}`);
         const hints: string[] = [];
         if (!process.env.TWELVE_DATA_API_KEY) hints.push("Add TWELVE_DATA_API_KEY");
+        if (!process.env.ALPHA_VANTAGE_API_KEY) hints.push("Add ALPHA_VANTAGE_API_KEY");
         if (!process.env.EODHD_API_KEY) hints.push("Add EODHD_API_KEY");
         if (eohdRateLimited) hints.push("EODHD daily limit reached — resets tomorrow");
         return NextResponse.json(
