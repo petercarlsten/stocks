@@ -317,13 +317,13 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         </LineChart>
       </ResponsiveContainer>
       <div className="flex items-center gap-4 mt-1">
-        {purchaseDatesOnChart.length > 0 && (
+        {(purchases ?? []).length > 0 && (
           <span className="flex items-center gap-1.5 text-xs text-gray-400">
             <span className="inline-block w-4 border-t-2 border-dashed border-indigo-400"></span>
             Purchase date
           </span>
         )}
-        {earningsInRange && earningsDate && (
+        {earningsDate && (
           <span className="flex items-center gap-1.5 text-xs text-gray-400">
             <span className="inline-block w-4 border-t-2 border-dashed border-amber-400"></span>
             Earnings date
