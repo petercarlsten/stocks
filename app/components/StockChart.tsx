@@ -326,7 +326,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         {earningsDate && (
           <span className="flex items-center gap-1.5 text-xs text-gray-400">
             <span className="inline-block w-4 border-t-2 border-dashed border-amber-400"></span>
-            Earnings date
+            Earnings call date
           </span>
         )}
       </div>
