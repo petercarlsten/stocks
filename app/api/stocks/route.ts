@@ -5,6 +5,58 @@ import { NextRequest, NextResponse } from "next/server";
 const YahooFinance = require("yahoo-finance2").default;
 const yf = new YahooFinance({ suppressNotices: ["ripHistorical", "yahooSurvey"] });
 
+// ─── Stooq (free, no key, no rate limits) ───────────────────────────────────
+
+const STOOQ_CACHE = new Map<string, { rows: { date: string; close: number }[]; cachedAt: number }>();
+
+function toStooqSymbol(yahooSymbol: string): string {
+  const lower = yahooSymbol.toLowerCase();
+  return lower.includes(".") ? lower : `${lower}.us`;
+}
+
+async function fetchFromStooq(
+  symbol: string,
+  start: Date,
+  end: Date
+): Promise<{ date: string; close: number }[] | null> {
+  const stooqSymbol = toStooqSymbol(symbol);
+  const cacheKey = `stooq:${stooqSymbol}`;
+  const cached = STOOQ_CACHE.get(cacheKey);
+  if (cached && Date.now() - cached.cachedAt < CACHE_TTL_MS) return cached.rows;
+
+  const d1 = start.toISOString().split("T")[0].replace(/-/g, "");
+  const d2 = end.toISOString().split("T")[0].replace(/-/g, "");
+  const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(stooqSymbol)}&d1=${d1}&d2=${d2}&i=d`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const text = await res.text();
+    if (!text || text.includes("No data") || text.trim().length < 20) return null;
+
+    const lines = text.trim().split("\n");
+    if (lines.length < 2) return null;
+
+    // CSV header: Date,Open,High,Low,Close,Volume
+    const rows = lines
+      .slice(1)
+      .map((line) => {
+        const cols = line.split(",");
+        const date = cols[0]?.trim();
+        const close = parseFloat(cols[4]?.trim());
+        return { date, close };
+      })
+      .filter((r) => r.date && !isNaN(r.close) && r.close > 0)
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    if (rows.length < 2) return null;
+    STOOQ_CACHE.set(cacheKey, { rows, cachedAt: Date.now() });
+    return rows;
+  } catch {
+    return null;
+  }
+}
+
 // ─── Twelve Data ────────────────────────────────────────────────────────────
 
 const TD_CACHE = new Map<string, { rows: { date: string; close: number }[]; cachedAt: number }>();
@@ -221,17 +273,21 @@ export async function GET(req: NextRequest) {
 
       let fallback: { date: string; close: number }[] | null = null;
 
-      // ── Tier 1: Twelve Data ──────────────────────────────────────────────
-      fallback = await fetchFromTwelveData(upper, start, end);
+      // ── Tier 1: Stooq (free, unlimited) ─────────────────────────────────
+      fallback = await fetchFromStooq(upper, start, end);
+      debugSteps.push(`Stooq "${toStooqSymbol(upper)}": ${fallback ? fallback.length + " rows" : "null"}`);
+
+      // ── Tier 2: Twelve Data ──────────────────────────────────────────────
+      if (!fallback) fallback = await fetchFromTwelveData(upper, start, end);
       debugSteps.push(`TwelveData "${upper}": ${fallback ? fallback.length + " rows" : "null"}`);
 
       if (!fallback && originalISIN) {
         // Twelve Data accepts ISINs natively
-        fallback = await fetchFromTwelveData(originalISIN, start, end);
+        if (!fallback) fallback = await fetchFromTwelveData(originalISIN, start, end);
         debugSteps.push(`TwelveData ISIN "${originalISIN}": ${fallback ? fallback.length + " rows" : "null"}`);
       }
 
-      // ── Tier 2: EODHD fallback ───────────────────────────────────────────
+      // ── Tier 3: EODHD fallback ───────────────────────────────────────────
       if (!fallback) {
         const eodhdTicker = toEODHDSymbol(upper);
         if (eodhdTicker) {
@@ -278,6 +334,12 @@ export async function GET(req: NextRequest) {
         }
 
         const searchTerms = [base, figiName, nameHint].filter(Boolean) as string[];
+
+        // Try Stooq with base ticker directly
+        if (!fallback) {
+          fallback = await fetchFromStooq(upper, start, end);
+          debugSteps.push(`Stooq search "${toStooqSymbol(upper)}": ${fallback ? fallback.length + " rows" : "null"}`);
+        }
 
         // Try Twelve Data search first
         for (const term of searchTerms) {
