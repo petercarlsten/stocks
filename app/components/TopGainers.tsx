@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import TrumpHover from "./TrumpHover";
-import WolfHover from "./WolfHover";
 import { useTranslation } from "./SettingsContext";
 
 interface Gainer {
@@ -39,13 +37,9 @@ export default function TopGainers() {
             <li key={g.symbol} className="flex items-center gap-2 min-w-0">
               <span className="text-gray-300 text-xs w-3 shrink-0">{i + 1}</span>
               <span className="text-gray-900 text-sm font-medium truncate flex-1" title={g.name}>{g.name}</span>
-              <WolfHover isPositive={g.gain >= 0}>
-                <TrumpHover isNegative={g.gain < 0}>
-                  <span className={`text-sm font-medium shrink-0 ${g.gain >= 0 ? "text-green-600" : "text-red-500"}`}>
-                    {g.gain >= 0 ? "+" : ""}{g.gain.toFixed(1)}%
-                  </span>
-                </TrumpHover>
-              </WolfHover>
+              <span className={`text-sm font-medium shrink-0 ${g.gain >= 0 ? "text-green-600" : "text-red-500"}`}>
+                {g.gain >= 0 ? "+" : ""}{g.gain.toFixed(1)}%
+              </span>
             </li>
           ))}
         </ol>
