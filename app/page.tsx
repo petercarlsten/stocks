@@ -4,9 +4,10 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import TrumpHover from "./components/TrumpHover";
 import WolfHover from "./components/WolfHover";
 import SettingsPanel from "./components/SettingsPanel";
-import { SettingsContext, type FunnyMode } from "./components/SettingsContext";
+import { SettingsContext, type FunnyMode, type Language } from "./components/SettingsContext";
 import { useSession, signOut } from "next-auth/react";
 import { formatCurrency } from "./lib/formatCurrency";
+import { translations } from "./lib/translations";
 import {
   DndContext,
   closestCenter,
@@ -103,6 +104,7 @@ export default function Home() {
   const [newsEnabled, setNewsEnabled] = useState(true);
   const [leaderboardEnabled, setLeaderboardEnabled] = useState(true);
   const [topGainersEnabled, setTopGainersEnabled] = useState(true);
+  const [language, setLanguage] = useState<Language>("en");
 
   // Load saved preferences
   useEffect(() => {
@@ -116,6 +118,8 @@ export default function Home() {
     if (localStorage.getItem("portfolio-news") === "false") setNewsEnabled(false);
     if (localStorage.getItem("portfolio-leaderboard") === "false") setLeaderboardEnabled(false);
     if (localStorage.getItem("portfolio-top-gainers") === "false") setTopGainersEnabled(false);
+    const savedLang = localStorage.getItem("portfolio-language") as Language | null;
+    if (savedLang === "en" || savedLang === "sv") setLanguage(savedLang);
   }, []);
 
   // Apply dark class to <html> and persist
@@ -260,11 +264,12 @@ export default function Home() {
   }, []);
 
   const cols = stocks.length <= 2 ? stocks.length || 1 : Math.min(stocks.length, 3);
+  const t = translations[language];
 
   if (status === "loading") {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-400 text-sm">Loading…</p>
+        <p className="text-gray-400 text-sm">{t.loading}</p>
       </main>
     );
   }
@@ -274,15 +279,15 @@ export default function Home() {
   );
 
   return (
-    <SettingsContext.Provider value={{ funnyMode }}>
+    <SettingsContext.Provider value={{ funnyMode, language }}>
     {missingPriceStocks.length > 0 && (
       <div className="sticky top-0 z-50 flex items-center gap-3 bg-red-600 text-white px-6 py-2.5">
         <svg className="shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
         <p className="text-sm">
-          <span className="font-semibold">Purchase price unavailable</span>
-          {" — "}could not fetch historical price for {missingPriceStocks.map((s) => s.name || s.symbol).join(", ")}. Gain since purchase cannot be calculated.
+          <span className="font-semibold">{t.purchasePriceUnavailable}</span>
+          {" — "}{t.purchasePriceError(missingPriceStocks.map((s) => s.name || s.symbol).join(", "))}
         </p>
       </div>
     )}
@@ -331,11 +336,11 @@ export default function Home() {
               </div>
             </div>
             {username && (
-              <span className="text-gray-400 text-xs">Username: <span className="font-bold text-gray-700">{username}</span></span>
+              <span className="text-gray-400 text-xs">{t.username}: <span className="font-bold text-gray-700">{username}</span></span>
             )}
             {lastRefreshed && (
               <p className="text-gray-400 text-xs mt-0.5">
-                Last updated {lastRefreshed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                {t.lastUpdated} {lastRefreshed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </p>
             )}
             {(() => {
@@ -378,14 +383,14 @@ export default function Home() {
               return total > 0 ? (
                 <div className="flex flex-col gap-1 mt-2">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-gray-400 text-xs w-24 shrink-0">Portfolio value</span>
+                    <span className="text-gray-400 text-xs w-24 shrink-0">{t.portfolioValue}</span>
                     <span className="text-gray-900 text-2xl font-bold tracking-tight">
                       {formatCurrency(total, currency)}
                     </span>
                   </div>
                   {change30d !== null && gain30d !== null && (
                     <div className="flex items-baseline gap-2">
-                      <span className="text-gray-400 text-xs w-24 shrink-0">Last 30 days {change30d >= 0 ? "gain" : "loss"}</span>
+                      <span className="text-gray-400 text-xs w-24 shrink-0">{change30d >= 0 ? t.lastNDaysGain(30) : t.lastNDaysLoss(30)}</span>
                       <WolfHover isPositive={change30d >= 0}>
                         <TrumpHover isNegative={change30d < 0}>
                           <span className={`text-sm font-medium ${change30d >= 0 ? "text-green-600" : "text-red-500"}`}>
@@ -397,7 +402,7 @@ export default function Home() {
                   )}
                   {change7d !== null && gain7d !== null && (
                     <div className="flex items-baseline gap-2">
-                      <span className="text-gray-400 text-xs w-24 shrink-0">Last 7 days {change7d >= 0 ? "gain" : "loss"}</span>
+                      <span className="text-gray-400 text-xs w-24 shrink-0">{change7d >= 0 ? t.lastNDaysGain(7) : t.lastNDaysLoss(7)}</span>
                       <WolfHover isPositive={change7d >= 0}>
                         <TrumpHover isNegative={change7d < 0}>
                           <span className={`text-sm font-medium ${change7d >= 0 ? "text-green-600" : "text-red-500"}`}>
@@ -422,7 +427,7 @@ export default function Home() {
                 <circle cx="12" cy="12" r="3"/>
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
               </svg>
-              Settings
+              {t.settings}
             </button>
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
@@ -433,7 +438,7 @@ export default function Home() {
                 <polyline points="16 17 21 12 16 7"/>
                 <line x1="21" y1="12" x2="9" y2="12"/>
               </svg>
-              Sign out
+              {t.signOut}
             </button>
           </div>
           <SettingsPanel
@@ -451,6 +456,8 @@ export default function Home() {
             onLeaderboardChange={(v) => { setLeaderboardEnabled(v); localStorage.setItem("portfolio-leaderboard", String(v)); }}
             topGainersEnabled={topGainersEnabled}
             onTopGainersChange={(v) => { setTopGainersEnabled(v); localStorage.setItem("portfolio-top-gainers", String(v)); }}
+            language={language}
+            onLanguageChange={(v) => { setLanguage(v); localStorage.setItem("portfolio-language", v); }}
           />
         </div>
 
@@ -459,7 +466,7 @@ export default function Home() {
             onAdd={(symbol) => { setError(""); addStockBySymbol(symbol); }}
             disabled={loading || stocks.length >= MAX_STOCKS}
           />
-          {loading && <span className="text-gray-400 text-sm self-center">Loading…</span>}
+          {loading && <span className="text-gray-400 text-sm self-center">{t.loading}</span>}
         </div>
 
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
@@ -467,7 +474,7 @@ export default function Home() {
 
         {stocks.length === 0 ? (
           <p className="text-gray-400 text-center mt-24">
-            Add a stock ticker above to get started.
+            {t.addTickerPrompt}
           </p>
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

@@ -5,6 +5,7 @@ import TrumpHover from "./TrumpHover";
 import WolfHover from "./WolfHover";
 import { ALL_CURRENCIES } from "./SettingsPanel";
 import { formatCurrency } from "../lib/formatCurrency";
+import { useTranslation } from "./SettingsContext";
 import {
   ResponsiveContainer,
   LineChart,
@@ -54,6 +55,7 @@ function fmtDate(dateStr?: string): string {
 }
 
 export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD" }: Props) {
+  const t = useTranslation();
   const [holdings, setHoldings] = useState<{ name: string; pct: number }[] | null>(null);
   const [showHoldings, setShowHoldings] = useState(false);
   const [showGains, setShowGains] = useState(false);
@@ -202,7 +204,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           <div
             {...dragHandleProps}
             className="text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing mt-1 shrink-0 select-none"
-            title="Drag to reorder"
+            title={t.dragToReorder}
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
               <circle cx="4" cy="3" r="1.2"/><circle cx="10" cy="3" r="1.2"/>
@@ -238,7 +240,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
             <span className="text-gray-400 text-xs">{symbol}</span>
             {earningsDate && (
               <span className="text-xs text-amber-600">
-                {earningsIsFuture ? "Next earnings call " : "Reported "}
+                {earningsIsFuture ? t.nextEarningsCall : t.reported}
                 {formatEarningsDate(earningsDate)}
               </span>
             )}
@@ -262,7 +264,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           <div className="text-gray-700 text-lg font-semibold tracking-tight">
             {fmt(positionValue)}
             {portfolioPct !== undefined && (
-              <span className="text-gray-400 text-xs font-normal ml-1.5">{portfolioPct.toFixed(1)}% of portfolio</span>
+              <span className="text-gray-400 text-xs font-normal ml-1.5">{portfolioPct.toFixed(1)}{t.ofPortfolio}</span>
             )}
           </div>
         )}
@@ -286,7 +288,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
             contentStyle={{ background: tooltipBg, border: tooltipBdr, borderRadius: 8 }}
             labelStyle={{ color: tooltipTxt }}
             itemStyle={{ color }}
-            formatter={(v) => [formatCurrency(Number(v) * cardExRate, cardCurrency), "Close"]}
+            formatter={(v) => [formatCurrency(Number(v) * cardExRate, cardCurrency), t.close]}
           />
           {earningsInRange && earningsDate && (
             <ReferenceLine
@@ -320,22 +322,22 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         {(purchases ?? []).length > 0 && (
           <span className="flex items-center gap-1.5 text-xs text-gray-400">
             <span className="inline-block w-4 border-t-2 border-dashed border-indigo-400"></span>
-            Purchase date
+            {t.purchaseDate}
           </span>
         )}
         {earningsDate && (
           <span className="flex items-center gap-1.5 text-xs text-gray-400">
             <span className="inline-block w-4 border-t-2 border-dashed border-amber-400"></span>
-            Earnings call date
+            {t.earningsCallDate}
           </span>
         )}
       </div>
       <div className="pt-2 border-t border-gray-100">
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-2">
-            <span className="text-gray-400 text-xs">Purchases</span>
+            <span className="text-gray-400 text-xs">{t.purchases}</span>
             {totalShares > 0 && (
-              <span className="text-gray-500 text-xs">· {totalShares} shares total</span>
+              <span className="text-gray-500 text-xs">· {t.sharesTotal(totalShares)}</span>
             )}
           </div>
           <div className="relative">
@@ -351,7 +353,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           {currencyOpen && (
             <ul className="absolute bottom-full mb-1 right-0 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
               {filteredCurrencies.length === 0 ? (
-                <li className="px-3 py-2 text-gray-400 text-xs">No results</li>
+                <li className="px-3 py-2 text-gray-400 text-xs">{t.noResults}</li>
               ) : (
                 filteredCurrencies.map((c) => (
                   <li
@@ -392,7 +394,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                 onPurchasesChange((purchases ?? []).map((pp, j) => j === i ? { ...pp, shares: isNaN(v) ? 0 : Math.max(0, v) } : pp));
               }}
               className="w-20 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              placeholder="Shares"
+              placeholder={t.shares}
             />
             <button
               onClick={() => {
@@ -402,14 +404,14 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                 onPurchasesChange((purchases ?? []).filter((_, j) => j !== i));
               }}
               className="text-gray-300 hover:text-red-400 text-base leading-none shrink-0"
-              title="Remove"
+              title={t.remove}
             >×</button>
           </div>
         ))}
         <button
           onClick={() => onPurchasesChange([...(purchases ?? []), { date: today, shares: 0 }])}
           className="text-indigo-500 hover:text-indigo-700 text-xs mt-0.5"
-        >+ Add purchase</button>
+        >{t.addPurchase}</button>
       </div>
 
       {/* Gains tooltip — appears over chart when hovering the % badge */}
@@ -420,22 +422,22 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           onMouseEnter={() => setShowGains(true)}
           onMouseLeave={() => setShowGains(false)}
         >
-          <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: dark ? "#6b7280" : "#9ca3af" }}>3-month performance</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: dark ? "#6b7280" : "#9ca3af" }}>{t.threeMonthPerformance}</p>
           <div className="flex flex-col gap-1.5">
             <div className="flex justify-between gap-4 text-xs">
-              <span style={{ color: dark ? "#6b7280" : "#9ca3af" }}>Period</span>
+              <span style={{ color: dark ? "#6b7280" : "#9ca3af" }}>{t.period}</span>
               <span style={{ color: dark ? "#d1d5db" : "#374151" }}>{fmtDate(data[0]?.date)} → {fmtDate(data[data.length - 1]?.date)}</span>
             </div>
             <div className="flex justify-between gap-4 text-xs">
-              <span style={{ color: dark ? "#6b7280" : "#9ca3af" }}>Start</span>
+              <span style={{ color: dark ? "#6b7280" : "#9ca3af" }}>{t.start}</span>
               <span style={{ color: dark ? "#d1d5db" : "#374151" }}>{fmt(first)}</span>
             </div>
             <div className="flex justify-between gap-4 text-xs">
-              <span className={dark ? "text-gray-500" : "text-gray-400"}>Current</span>
+              <span className={dark ? "text-gray-500" : "text-gray-400"}>{t.current}</span>
               <span style={{ color: gainColor }}>{fmt(last)}</span>
             </div>
             <div className="flex justify-between gap-4 text-xs">
-              <span className={dark ? "text-gray-500" : "text-gray-400"}>Change</span>
+              <span className={dark ? "text-gray-500" : "text-gray-400"}>{t.change}</span>
               <span style={{ color: gainColor }}>
                 {positive ? "+" : ""}{fmt(absChange)} ({positive ? "+" : ""}{change.toFixed(2)}%)
               </span>
@@ -445,7 +447,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                 className="flex justify-between gap-4 text-xs mt-1 pt-1.5 border-t"
                 style={{ borderColor: dark ? "#374151" : "#e5e7eb" }}
               >
-                <span style={{ color: dark ? "#6b7280" : "#9ca3af" }}>Position gain</span>
+                <span style={{ color: dark ? "#6b7280" : "#9ca3af" }}>{t.positionGain}</span>
                 <span style={{ color: positionGain >= 0 ? "#16a34a" : "#ef4444" }}>
                   {positionGain >= 0 ? "+" : ""}{fmt(positionGain)}
                 </span>
@@ -463,11 +465,11 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           onMouseEnter={() => setShowHoldings(true)}
           onMouseLeave={() => setShowHoldings(false)}
         >
-          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: dark ? "#6b7280" : "#9ca3af" }}>Top holdings</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: dark ? "#6b7280" : "#9ca3af" }}>{t.topHoldings}</p>
           {holdings === null ? (
-            <p className="text-xs" style={{ color: dark ? "#6b7280" : "#9ca3af" }}>Loading…</p>
+            <p className="text-xs" style={{ color: dark ? "#6b7280" : "#9ca3af" }}>{t.loading}</p>
           ) : holdings.length === 0 ? (
-            <p className="text-xs" style={{ color: dark ? "#6b7280" : "#9ca3af" }}>No holdings data available</p>
+            <p className="text-xs" style={{ color: dark ? "#6b7280" : "#9ca3af" }}>{t.noHoldingsData}</p>
           ) : (
             <div className="flex flex-col gap-0.5">
               {holdings.map((h, i) => (

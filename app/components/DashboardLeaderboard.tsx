@@ -3,6 +3,7 @@
 import TrumpHover from "./TrumpHover";
 import WolfHover from "./WolfHover";
 import { formatCurrency } from "../lib/formatCurrency";
+import { useTranslation } from "./SettingsContext";
 
 interface Purchase {
   date?: string;
@@ -33,6 +34,7 @@ function fmtPrice(value: number, currency: string): string {
 }
 
 export default function DashboardLeaderboard({ stocks, className }: Props) {
+  const t = useTranslation();
   if (stocks.length === 0) return null;
 
   type PricedPurchase = { date: string; shares: number; price: number };
@@ -58,10 +60,10 @@ export default function DashboardLeaderboard({ stocks, className }: Props) {
   return (
     <div className={className ?? "bg-white rounded-xl p-4 w-96 shrink-0 border border-gray-200 shadow-sm"}>
       <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3">
-        Gains since purchased
+        {t.gainsSincePurchased}
       </h2>
       {withPurchase.length === 0 ? (
-        <p className="text-gray-400 text-xs">Add a purchase to a card to track gains.</p>
+        <p className="text-gray-400 text-xs">{t.addPurchasePrompt}</p>
       ) : (
         <ol className="flex flex-col gap-3">
           {withPurchase.map((s, i) => {

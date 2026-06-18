@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslation } from "./SettingsContext";
 
 interface Suggestion {
   symbol: string;
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function TickerSearch({ onAdd, disabled }: Props) {
+  const t = useTranslation();
   const [input, setInput] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
@@ -79,7 +81,7 @@ export default function TickerSearch({ onAdd, disabled }: Props) {
     <div ref={containerRef} className="relative">
       <input
         className="bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64"
-        placeholder="Ticker, ISIN or company name…"
+        placeholder={t.tickerPlaceholder}
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onCompositionStart={() => { composingRef.current = true; }}

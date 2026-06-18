@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useEffect, useState, useMemo } from "react";
-import type { FunnyMode } from "./SettingsContext";
+import type { FunnyMode, Language } from "./SettingsContext";
+import { useTranslation } from "./SettingsContext";
 
 export const ALL_CURRENCIES = [
   { code: "AED", name: "UAE Dirham" },
@@ -181,7 +182,7 @@ interface Props {
   currency: string;
   onCurrencyChange: (c: string) => void;
   theme: "light" | "dark";
-  onThemeChange: (t: "light" | "dark") => void;
+  onThemeChange: (v: "light" | "dark") => void;
   funnyMode: FunnyMode;
   onFunnyModeChange: (v: FunnyMode) => void;
   newsEnabled: boolean;
@@ -190,9 +191,12 @@ interface Props {
   onLeaderboardChange: (v: boolean) => void;
   topGainersEnabled: boolean;
   onTopGainersChange: (v: boolean) => void;
+  language: Language;
+  onLanguageChange: (v: Language) => void;
 }
 
-export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange }: Props) {
+export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange }: Props) {
+  const t = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -237,20 +241,20 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
         className="fixed top-0 right-0 h-full w-72 bg-white border-l border-gray-200 z-50 flex flex-col shadow-xl"
       >
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
-          <h2 className="text-gray-900 font-bold text-lg">Settings</h2>
+          <h2 className="text-gray-900 font-bold text-lg">{t.settingsTitle}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
         </div>
 
         <div className="flex flex-col gap-6 px-6 py-6 overflow-y-auto flex-1">
           <div className="flex flex-col gap-2">
-            <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Display portfolio value</label>
+            <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">{t.displayPortfolioValue}</label>
 
             <div className="relative">
               <input
                 ref={inputRef}
                 type="text"
                 value={query}
-                placeholder={selected ? `${selected.code} – ${selected.name}` : "Search currency…"}
+                placeholder={selected ? `${selected.code} – ${selected.name}` : t.searchCurrency}
                 onChange={(e) => { setQuery(e.target.value); setDropdownOpen(true); }}
                 onFocus={() => setDropdownOpen(true)}
                 onBlur={() => setTimeout(() => setDropdownOpen(false), 150)}
@@ -259,7 +263,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
               {dropdownOpen && (
                 <ul className="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-56 overflow-y-auto">
                   {filtered.length === 0 ? (
-                    <li className="px-3 py-2 text-gray-400 text-sm">No results</li>
+                    <li className="px-3 py-2 text-gray-400 text-sm">{t.noResults}</li>
                   ) : (
                     filtered.map((c) => (
                       <li
@@ -275,23 +279,23 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
                 </ul>
               )}
             </div>
-            <p className="text-gray-400 text-xs">Portfolio values converted from USD using live rates.</p>
+            <p className="text-gray-400 text-xs">{t.currencyNote}</p>
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Theme</label>
+            <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">{t.theme}</label>
             <div className="flex rounded-lg overflow-hidden border border-gray-300">
-              {(["light", "dark"] as const).map((t) => (
+              {(["light", "dark"] as const).map((th) => (
                 <button
-                  key={t}
-                  onClick={() => onThemeChange(t)}
+                  key={th}
+                  onClick={() => onThemeChange(th)}
                   className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                    theme === t
+                    theme === th
                       ? "bg-indigo-600 text-white"
                       : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600"
                   }`}
                 >
-                  {t === "light" ? "☀️ Light" : "🌙 Dark"}
+                  {th === "light" ? t.light : t.dark}
                 </button>
               ))}
             </div>
@@ -320,9 +324,28 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
               ))}
             </div>
           </div>
-          <Toggle label="📰 Stock news" enabled={newsEnabled} onChange={onNewsChange} />
-          <Toggle label="🏆 Gains since purchased" enabled={leaderboardEnabled} onChange={onLeaderboardChange} />
-          <Toggle label="📈 Top gainers" enabled={topGainersEnabled} onChange={onTopGainersChange} />
+          <Toggle label={t.stockNews} enabled={newsEnabled} onChange={onNewsChange} />
+          <Toggle label={t.gainsSincePurchasedToggle} enabled={leaderboardEnabled} onChange={onLeaderboardChange} />
+          <Toggle label={t.topGainers} enabled={topGainersEnabled} onChange={onTopGainersChange} />
+
+          <div className="flex flex-col gap-2">
+            <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">{t.language}</label>
+            <div className="flex rounded-lg overflow-hidden border border-gray-300">
+              {(["en", "sv"] as const).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => onLanguageChange(lang)}
+                  className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                    language === lang
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600"
+                  }`}
+                >
+                  {lang === "en" ? "🇬🇧 English" : "🇸🇪 Svenska"}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </>
