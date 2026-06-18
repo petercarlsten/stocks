@@ -102,13 +102,9 @@ export default function DashboardLeaderboard({ stocks, className }: Props) {
                           <span className="text-gray-300 text-xs tabular-nums">
                             {fmtDate(p.date)} · {p.shares} sh @ {fmtPrice(p.price, s.currency)}
                           </span>
-                          <WolfHover isPositive={pos}>
-                            <TrumpHover isNegative={!pos}>
-                              <span className={`text-xs tabular-nums shrink-0 ${pos ? "text-green-500" : "text-red-400"}`}>
-                                {pos ? "+" : ""}{pctGain.toFixed(1)}%
-                              </span>
-                            </TrumpHover>
-                          </WolfHover>
+                          <span className={`text-xs tabular-nums shrink-0 ${pos ? "text-green-500" : "text-red-400"}`}>
+                            {pos ? "+" : ""}{pctGain.toFixed(1)}%
+                          </span>
                         </div>
                       );
                     })}
