@@ -6,6 +6,7 @@ import WolfHover from "./components/WolfHover";
 import SettingsPanel from "./components/SettingsPanel";
 import { SettingsContext, type FunnyMode } from "./components/SettingsContext";
 import { useSession, signOut } from "next-auth/react";
+import { formatCurrency } from "./lib/formatCurrency";
 import {
   DndContext,
   closestCenter,
@@ -286,37 +287,52 @@ export default function Home() {
       </div>
     )}
     <main className="min-h-screen bg-gray-50 text-gray-900 p-6">
+      <style>{`
+        @keyframes logo-gradient {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        @keyframes badge-glow {
+          0%, 100% { box-shadow: 0 8px 30px -4px rgba(99,102,241,0.55), 0 0 0 0 rgba(99,102,241,0); }
+          50% { box-shadow: 0 8px 40px -4px rgba(99,102,241,0.8), 0 0 30px 4px rgba(16,185,129,0.25); }
+        }
+        .logo-text {
+          background: linear-gradient(135deg, #6366f1 0%, #a855f7 35%, #10b981 65%, #6366f1 100%);
+          background-size: 300% 300%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: logo-gradient 5s ease infinite;
+        }
+        .logo-badge {
+          animation: badge-glow 3s ease-in-out infinite;
+        }
+        .logo-underline {
+          background: linear-gradient(90deg, #6366f1, #a855f7 50%, #10b981);
+        }
+      `}</style>
       <div className="max-w-screen-xl mx-auto">
         <div className="flex items-start gap-6 mb-6">
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-1">
-              <svg width="48" height="32" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <polyline points="2,26 10,20 18,22 28,10 38,7 46,3" stroke="url(#sparkGrad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <polygon points="2,26 10,20 18,22 28,10 38,7 46,3 46,32 2,32" fill="url(#areaGrad)" opacity="0.3"/>
-                <circle cx="46" cy="3" r="3" fill="#10B981"/>
-                <defs>
-                  <linearGradient id="sparkGrad" x1="0" y1="0" x2="48" y2="0" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#6366F1"/>
-                    <stop offset="100%" stopColor="#10B981"/>
-                  </linearGradient>
-                  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="32" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#10B981"/>
-                    <stop offset="100%" stopColor="#10B981" stopOpacity="0"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-600 bg-clip-text text-transparent">
-                Your Portfolio
-              </h1>
+            <div className="flex items-center gap-5 mb-2">
+              <div className="logo-badge bg-gradient-to-br from-indigo-500 via-purple-500 to-emerald-500 p-3 rounded-2xl shrink-0">
+                <svg width="44" height="30" viewBox="0 0 56 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <polyline points="2,30 12,22 22,26 34,10 46,6 54,2" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <polygon points="2,30 12,22 22,26 34,10 46,6 54,2 54,34 2,34" fill="white" opacity="0.2"/>
+                  <circle cx="54" cy="2" r="3.5" fill="white"/>
+                  <circle cx="54" cy="2" r="7" fill="white" opacity="0.15"/>
+                </svg>
+              </div>
+              <div>
+                <h1 className="logo-text text-5xl font-black tracking-tight leading-none">
+                  Your Portfolio
+                </h1>
+                <div className="logo-underline h-1 mt-2 rounded-full w-3/4" />
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <p className="text-gray-400 text-sm">
-                Last 3 months · up to 12 stocks · auto-refresh every 1h
-              </p>
-              {username && (
-                <span className="text-gray-400 text-xs">· {username}</span>
-              )}
-            </div>
+            {username && (
+              <span className="text-gray-400 text-xs">Username: <span className="font-bold text-gray-700">{username}</span></span>
+            )}
             {lastRefreshed && (
               <p className="text-gray-400 text-xs mt-0.5">
                 Last updated {lastRefreshed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -357,14 +373,14 @@ export default function Home() {
               const change7d  = has7d  && total7d  > 0 ? ((total - total7d)  / total7d)  * 100 : null;
               const gain30d   = has30d ? total - total30d : null;
               const gain7d    = has7d  ? total - total7d  : null;
-              const fmt = (v: number) => v.toLocaleString("en-US", { style: "currency", currency, minimumFractionDigits: 0, maximumFractionDigits: 0 });
+              const fmt = (v: number) => formatCurrency(v, currency, 0);
 
               return total > 0 ? (
                 <div className="flex flex-col gap-1 mt-2">
                   <div className="flex items-baseline gap-2">
                     <span className="text-gray-400 text-xs w-24 shrink-0">Portfolio value</span>
                     <span className="text-gray-900 text-2xl font-bold tracking-tight">
-                      {total.toLocaleString("en-US", { style: "currency", currency })}
+                      {formatCurrency(total, currency)}
                     </span>
                   </div>
                   {change30d !== null && gain30d !== null && (

@@ -241,7 +241,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
         </div>
 
-        <div className="flex flex-col gap-6 px-6 py-6">
+        <div className="flex flex-col gap-6 px-6 py-6 overflow-y-auto flex-1">
           <div className="flex flex-col gap-2">
             <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Display portfolio value</label>
 

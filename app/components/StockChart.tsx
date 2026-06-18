@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import TrumpHover from "./TrumpHover";
 import WolfHover from "./WolfHover";
 import { ALL_CURRENCIES } from "./SettingsPanel";
+import { formatCurrency } from "../lib/formatCurrency";
 import {
   ResponsiveContainer,
   LineChart,
@@ -57,6 +58,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const [showHoldings, setShowHoldings] = useState(false);
   const [showGains, setShowGains] = useState(false);
   const fetchedRef = useRef(false);
+  const holdingsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [cardCurrency, setCardCurrency] = useState(tickerCurrency);
   const [cardExRate, setCardExRate] = useState(1);
   const [currencyQuery, setCurrencyQuery] = useState("");
@@ -127,19 +129,21 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
 
   async function handleNameEnter() {
     if (holdings !== null && holdings.length === 0) return; // known empty — skip
-    setShowHoldings(true);
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-    try {
-      const res = await fetch(`/api/holdings?symbol=${encodeURIComponent(symbol)}&name=${encodeURIComponent(name)}`);
-      const json = await res.json();
-      const fetched: { name: string; pct: number }[] = json.holdings ?? [];
-      setHoldings(fetched);
-      if (fetched.length === 0) setShowHoldings(false);
-    } catch {
-      setHoldings([]);
-      setShowHoldings(false);
-    }
+    holdingsTimerRef.current = setTimeout(async () => {
+      setShowHoldings(true);
+      if (fetchedRef.current) return;
+      fetchedRef.current = true;
+      try {
+        const res = await fetch(`/api/holdings?symbol=${encodeURIComponent(symbol)}&name=${encodeURIComponent(name)}`);
+        const json = await res.json();
+        const fetched: { name: string; pct: number }[] = json.holdings ?? [];
+        setHoldings(fetched);
+        if (fetched.length === 0) setShowHoldings(false);
+      } catch {
+        setHoldings([]);
+        setShowHoldings(false);
+      }
+    }, 1000);
   }
 
   const dark = theme === "dark";
@@ -150,7 +154,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const tooltipTxt  = dark ? "#d1d5db" : "#374151";
 
   function fmt(value: number): string {
-    return (value * cardExRate).toLocaleString("en-US", { style: "currency", currency: cardCurrency, minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return formatCurrency(value * cardExRate, cardCurrency);
   }
 
   const first = data[0]?.close ?? 0;
@@ -225,7 +229,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               className="text-gray-900 font-bold text-sm truncate cursor-default"
               title={name}
               onMouseEnter={handleNameEnter}
-              onMouseLeave={() => setShowHoldings(false)}
+              onMouseLeave={() => { if (holdingsTimerRef.current) clearTimeout(holdingsTimerRef.current); setShowHoldings(false); }}
             >
               {name}
             </span>
@@ -275,14 +279,14 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           <YAxis
             domain={[min - padding, max + padding]}
             tick={{ fill: chartTick, fontSize: 10 }}
-            tickFormatter={(v) => (v * cardExRate).toLocaleString("en-US", { style: "currency", currency: cardCurrency, minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            tickFormatter={(v) => formatCurrency(v * cardExRate, cardCurrency, 0)}
             width={56}
           />
           <Tooltip
             contentStyle={{ background: tooltipBg, border: tooltipBdr, borderRadius: 8 }}
             labelStyle={{ color: tooltipTxt }}
             itemStyle={{ color }}
-            formatter={(v) => [(Number(v) * cardExRate).toLocaleString("en-US", { style: "currency", currency: cardCurrency, minimumFractionDigits: 2, maximumFractionDigits: 2 }), "Close"]}
+            formatter={(v) => [formatCurrency(Number(v) * cardExRate, cardCurrency), "Close"]}
           />
           {earningsInRange && earningsDate && (
             <ReferenceLine
@@ -312,6 +316,20 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           />
         </LineChart>
       </ResponsiveContainer>
+      <div className="flex items-center gap-4 mt-1">
+        {purchaseDatesOnChart.length > 0 && (
+          <span className="flex items-center gap-1.5 text-xs text-gray-400">
+            <span className="inline-block w-4 border-t-2 border-dashed border-indigo-400"></span>
+            Purchase date
+          </span>
+        )}
+        {earningsInRange && earningsDate && (
+          <span className="flex items-center gap-1.5 text-xs text-gray-400">
+            <span className="inline-block w-4 border-t-2 border-dashed border-amber-400"></span>
+            Earnings date
+          </span>
+        )}
+      </div>
       <div className="pt-2 border-t border-gray-100">
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-2">

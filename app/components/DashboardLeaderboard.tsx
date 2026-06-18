@@ -2,6 +2,7 @@
 
 import TrumpHover from "./TrumpHover";
 import WolfHover from "./WolfHover";
+import { formatCurrency } from "../lib/formatCurrency";
 
 interface Purchase {
   date?: string;
@@ -28,7 +29,7 @@ function fmtDate(dateStr: string): string {
 }
 
 function fmtPrice(value: number, currency: string): string {
-  return value.toLocaleString("en-US", { style: "currency", currency, minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return formatCurrency(value, currency);
 }
 
 export default function DashboardLeaderboard({ stocks, className }: Props) {
