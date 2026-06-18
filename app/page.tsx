@@ -105,6 +105,7 @@ export default function Home() {
   const [leaderboardEnabled, setLeaderboardEnabled] = useState(true);
   const [topGainersEnabled, setTopGainersEnabled] = useState(true);
   const [language, setLanguage] = useState<Language>("en");
+  const [reportEmail, setReportEmail] = useState("");
 
   // Load saved preferences
   useEffect(() => {
@@ -120,6 +121,10 @@ export default function Home() {
     if (localStorage.getItem("portfolio-top-gainers") === "false") setTopGainersEnabled(false);
     const savedLang = localStorage.getItem("portfolio-language") as Language | null;
     if (savedLang === "en" || savedLang === "sv") setLanguage(savedLang);
+    fetch("/api/user/settings")
+      .then((r) => r.json())
+      .then((d) => { if (d.reportEmail) setReportEmail(d.reportEmail); })
+      .catch(() => {});
   }, []);
 
   // Apply dark class to <html> and persist
@@ -458,6 +463,15 @@ export default function Home() {
             onTopGainersChange={(v) => { setTopGainersEnabled(v); localStorage.setItem("portfolio-top-gainers", String(v)); }}
             language={language}
             onLanguageChange={(v) => { setLanguage(v); localStorage.setItem("portfolio-language", v); }}
+            reportEmail={reportEmail}
+            onReportEmailChange={(email) => {
+              setReportEmail(email);
+              fetch("/api/user/settings", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ reportEmail: email }),
+              }).catch(() => {});
+            }}
           />
         </div>
 

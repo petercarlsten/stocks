@@ -193,10 +193,13 @@ interface Props {
   onTopGainersChange: (v: boolean) => void;
   language: Language;
   onLanguageChange: (v: Language) => void;
+  reportEmail: string;
+  onReportEmailChange: (email: string) => void;
 }
 
-export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange }: Props) {
+export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange }: Props) {
   const t = useTranslation();
+  const [sendState, setSendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const panelRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -327,6 +330,37 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
           <Toggle label={t.stockNews} enabled={newsEnabled} onChange={onNewsChange} />
           <Toggle label={t.gainsSincePurchasedToggle} enabled={leaderboardEnabled} onChange={onLeaderboardChange} />
           <Toggle label={t.topGainers} enabled={topGainersEnabled} onChange={onTopGainersChange} />
+
+          <div className="flex flex-col gap-2">
+            <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">{t.reportEmailLabel}</label>
+            <input
+              type="email"
+              value={reportEmail}
+              placeholder={t.reportEmailPlaceholder}
+              onChange={(e) => onReportEmailChange(e.target.value)}
+              className="w-full bg-gray-50 text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-300 placeholder-gray-400"
+            />
+            <div className="flex items-center justify-between">
+              <p className="text-gray-400 text-xs">{t.reportEmailNote}</p>
+              <button
+                onClick={async () => {
+                  if (!reportEmail || sendState === "sending") return;
+                  setSendState("sending");
+                  try {
+                    const res = await fetch("/api/send-report", { method: "POST" });
+                    setSendState(res.ok ? "sent" : "error");
+                  } catch {
+                    setSendState("error");
+                  }
+                  setTimeout(() => setSendState("idle"), 3000);
+                }}
+                disabled={!reportEmail || sendState === "sending"}
+                className="text-xs text-indigo-600 hover:text-indigo-800 disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ml-2"
+              >
+                {sendState === "sending" ? t.sending : sendState === "sent" ? t.sent : sendState === "error" ? t.sendError : t.sendReportNow}
+              </button>
+            </div>
+          </div>
 
           <div className="flex flex-col gap-2">
             <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">{t.language}</label>

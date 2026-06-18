@@ -52,6 +52,13 @@ const en = {
   noData: "No data",
   language: "Language",
   tickerPlaceholder: "Ticker, ISIN or company name…",
+  reportEmailLabel: "Monthly report email",
+  reportEmailPlaceholder: "you@example.com",
+  reportEmailNote: "Report sent on the 1st of each month.",
+  sendReportNow: "Send now",
+  sending: "Sending…",
+  sent: "Sent!",
+  sendError: "Failed to send",
 };
 
 const sv: typeof en = {
@@ -106,6 +113,13 @@ const sv: typeof en = {
   noData: "Ingen data",
   language: "Språk",
   tickerPlaceholder: "Ticker, ISIN eller företagsnamn…",
+  reportEmailLabel: "Månadsrapport e-post",
+  reportEmailPlaceholder: "du@example.com",
+  reportEmailNote: "Rapport skickas den 1:a varje månad.",
+  sendReportNow: "Skicka nu",
+  sending: "Skickar…",
+  sent: "Skickat!",
+  sendError: "Misslyckades",
 };
 
 export const translations: Record<Language, typeof en> = { en, sv };

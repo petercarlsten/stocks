@@ -13,6 +13,7 @@ interface User {
   id: string;
   username: string;
   passwordHash: string;
+  reportEmail?: string;
 }
 
 function readUsers(): User[] {
@@ -50,4 +51,20 @@ export async function createUser(username: string, password: string): Promise<Us
 
 export async function verifyPassword(plain: string, hash: string): Promise<boolean> {
   return bcrypt.compare(plain, hash);
+}
+
+export function getAllUsers(): User[] {
+  return readUsers();
+}
+
+export function getReportEmail(username: string): string | null {
+  return readUsers().find((u) => u.username === username)?.reportEmail ?? null;
+}
+
+export function setReportEmail(username: string, email: string) {
+  const users = readUsers();
+  const idx = users.findIndex((u) => u.username === username);
+  if (idx === -1) return;
+  users[idx] = { ...users[idx], reportEmail: email || undefined };
+  writeUsers(users);
 }
