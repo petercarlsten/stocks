@@ -328,13 +328,21 @@ export default function Home() {
         <div className="flex items-start gap-6 mb-6">
           <div className="flex-1">
             <div className="flex items-center gap-5 mb-2">
-              <div className="logo-badge bg-gradient-to-br from-indigo-500 via-purple-500 to-emerald-500 p-3 rounded-2xl shrink-0">
-                <svg width="44" height="30" viewBox="0 0 56 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <polyline points="2,30 12,22 22,26 34,10 46,6 54,2" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <polygon points="2,30 12,22 22,26 34,10 46,6 54,2 54,34 2,34" fill="white" opacity="0.2"/>
-                  <circle cx="54" cy="2" r="3.5" fill="white"/>
-                  <circle cx="54" cy="2" r="7" fill="white" opacity="0.15"/>
-                </svg>
+              <div className="logo-badge bg-gradient-to-br from-indigo-500 via-purple-500 to-emerald-500 p-3 rounded-2xl shrink-0 flex items-center justify-center">
+                {funnyMode === "cats" ? (
+                  <span style={{ fontSize: 36, lineHeight: 1 }}>🐱</span>
+                ) : funnyMode === "dogs" ? (
+                  <span style={{ fontSize: 36, lineHeight: 1 }}>🐶</span>
+                ) : funnyMode === "trump-wolf" ? (
+                  <span style={{ fontSize: 36, lineHeight: 1 }}>🐺</span>
+                ) : (
+                  <svg width="44" height="30" viewBox="0 0 56 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polyline points="2,30 12,22 22,26 34,10 46,6 54,2" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <polygon points="2,30 12,22 22,26 34,10 46,6 54,2 54,34 2,34" fill="white" opacity="0.2"/>
+                    <circle cx="54" cy="2" r="3.5" fill="white"/>
+                    <circle cx="54" cy="2" r="7" fill="white" opacity="0.15"/>
+                  </svg>
+                )}
               </div>
               <div>
                 <h1 className="logo-text text-5xl font-black tracking-tight leading-none">
