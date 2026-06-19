@@ -299,7 +299,7 @@ export default function Home() {
         </p>
       </div>
     )}
-    <main className="min-h-screen bg-gray-50 text-gray-900 p-6">
+    <main className="min-h-screen bg-gray-50 text-gray-900 p-3 sm:p-6">
       <style>{`
         @keyframes logo-gradient {
           0%, 100% { background-position: 0% 50%; }
@@ -323,12 +323,15 @@ export default function Home() {
         .logo-underline {
           background: linear-gradient(90deg, #6366f1, #a855f7 50%, #10b981);
         }
+        @media (max-width: 639px) {
+          .stocks-grid { grid-template-columns: 1fr !important; }
+        }
       `}</style>
       <div className="max-w-screen-xl mx-auto">
-        <div className="flex items-start gap-6 mb-6">
+        <div className="flex flex-wrap items-start gap-3 sm:gap-6 mb-4 sm:mb-6">
           <div className="flex-1">
             <div className="flex items-center gap-5 mb-2">
-              <div className="logo-badge bg-gradient-to-br from-indigo-500 via-purple-500 to-emerald-500 p-3 rounded-2xl shrink-0 flex items-center justify-center">
+              <div className="logo-badge bg-gradient-to-br from-indigo-500 via-purple-500 to-emerald-500 p-2 sm:p-3 rounded-xl sm:rounded-2xl shrink-0 flex items-center justify-center">
                 {funnyMode === "cats" ? (
                   /* Cat face */
                   <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
@@ -387,7 +390,7 @@ export default function Home() {
                 )}
               </div>
               <div>
-                <h1 className="logo-text text-5xl font-black tracking-tight leading-none">
+                <h1 className="logo-text text-3xl sm:text-5xl font-black tracking-tight leading-none">
                   {t.appTitle}
                 </h1>
                 <div className="logo-underline h-1 mt-2 rounded-full w-3/4" />
@@ -474,9 +477,9 @@ export default function Home() {
               ) : null;
             })()}
           </div>
-          {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} />}
-          {topGainersEnabled && <TopGainers />}
-          <div className="shrink-0 pt-1 flex flex-col gap-2">
+          {leaderboardEnabled && <div className="hidden sm:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} /></div>}
+          {topGainersEnabled && <div className="hidden sm:block"><TopGainers /></div>}
+          <div className="shrink-0 pt-1 flex flex-row sm:flex-col gap-2 ml-auto sm:ml-0">
             <button
               onClick={() => setSettingsOpen(true)}
               className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-900 text-sm font-medium rounded-lg px-3 py-2 transition-colors border border-gray-200 shadow-sm"
@@ -485,14 +488,15 @@ export default function Home() {
                 <circle cx="12" cy="12" r="3"/>
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
               </svg>
-              {t.settings}
+              <span className="hidden sm:inline">{t.settings}</span>
             </button>
             {isAdminUser && (
               <button
                 onClick={() => setAdminOpen(true)}
                 className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-indigo-600 hover:text-indigo-800 text-sm font-medium rounded-lg px-3 py-2 transition-colors border border-indigo-200 shadow-sm"
               >
-                Admin
+                <span className="hidden sm:inline">Admin</span>
+                <span className="sm:hidden">⚙</span>
               </button>
             )}
             <button
@@ -504,7 +508,7 @@ export default function Home() {
                 <polyline points="16 17 21 12 16 7"/>
                 <line x1="21" y1="12" x2="9" y2="12"/>
               </svg>
-              {t.signOut}
+              <span className="hidden sm:inline">{t.signOut}</span>
             </button>
           </div>
           <SettingsPanel
@@ -544,6 +548,12 @@ export default function Home() {
           {loading && <span className="text-gray-400 text-sm self-center">{t.loading}</span>}
         </div>
 
+        {/* Leaderboard + Top Gainers shown below search on mobile */}
+        <div className="flex flex-wrap gap-3 mb-4 sm:hidden">
+          {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} />}
+          {topGainersEnabled && <TopGainers />}
+        </div>
+
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
 
@@ -563,7 +573,7 @@ export default function Home() {
                 }, 0);
                 return (
                   <div
-                    className="grid gap-4"
+                    className="stocks-grid grid gap-3 sm:gap-4"
                     style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
                   >
                     {stocks.map((s, i) => {
