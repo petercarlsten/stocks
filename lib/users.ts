@@ -12,7 +12,8 @@ function ensureDir() {
 interface User {
   id: string;
   username: string;
-  passwordHash: string;
+  passwordHash?: string;
+  provider?: "google";
   reportEmail?: string;
 }
 
@@ -51,6 +52,15 @@ export async function createUser(username: string, password: string): Promise<Us
 
 export async function verifyPassword(plain: string, hash: string): Promise<boolean> {
   return bcrypt.compare(plain, hash);
+}
+
+export function findOrCreateGoogleUser(email: string): User {
+  const users = readUsers();
+  const existing = users.find((u) => u.username.toLowerCase() === email.toLowerCase());
+  if (existing) return existing;
+  const user: User = { id: crypto.randomUUID(), username: email, provider: "google" };
+  writeUsers([...users, user]);
+  return user;
 }
 
 export function getAllUsers(): User[] {
