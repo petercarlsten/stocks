@@ -13,7 +13,13 @@ async function requireAdmin() {
 export async function GET() {
   const admin = await requireAdmin();
   if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  const users = getAllUsers().map((u) => u.username);
+  const users = getAllUsers().map((u) => ({
+    username: u.username,
+    provider: u.provider ?? "credentials",
+    createdAt: u.createdAt ?? null,
+    lastLoginAt: u.lastLoginAt ?? null,
+    loginCount: u.loginCount ?? 0,
+  }));
   return NextResponse.json({ users });
 }
 

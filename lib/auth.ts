@@ -1,7 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { findByUsername, verifyPassword, findOrCreateGoogleUser } from "./users";
+import { findByUsername, verifyPassword, findOrCreateGoogleUser, recordLogin } from "./users";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -31,6 +31,7 @@ export const authOptions: NextAuthOptions = {
         const dbUser = findOrCreateGoogleUser(user.email);
         user.name = dbUser.username;
       }
+      if (user.name) recordLogin(user.name);
       return true;
     },
     async jwt({ token, user }) {

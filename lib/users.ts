@@ -15,6 +15,9 @@ interface User {
   passwordHash?: string;
   provider?: "google";
   reportEmail?: string;
+  createdAt?: string;
+  lastLoginAt?: string;
+  loginCount?: number;
 }
 
 function readUsers(): User[] {
@@ -45,7 +48,7 @@ export async function createUser(username: string, password: string): Promise<Us
     throw new Error("Username already taken");
   }
   const passwordHash = await bcrypt.hash(password, 12);
-  const user: User = { id: crypto.randomUUID(), username, passwordHash };
+  const user: User = { id: crypto.randomUUID(), username, passwordHash, createdAt: new Date().toISOString() };
   writeUsers([...users, user]);
   return user;
 }
@@ -58,9 +61,21 @@ export function findOrCreateGoogleUser(email: string): User {
   const users = readUsers();
   const existing = users.find((u) => u.username.toLowerCase() === email.toLowerCase());
   if (existing) return existing;
-  const user: User = { id: crypto.randomUUID(), username: email, provider: "google" };
+  const user: User = { id: crypto.randomUUID(), username: email, provider: "google", createdAt: new Date().toISOString() };
   writeUsers([...users, user]);
   return user;
+}
+
+export function recordLogin(username: string) {
+  const users = readUsers();
+  const idx = users.findIndex((u) => u.username.toLowerCase() === username.toLowerCase());
+  if (idx === -1) return;
+  users[idx] = {
+    ...users[idx],
+    lastLoginAt: new Date().toISOString(),
+    loginCount: (users[idx].loginCount ?? 0) + 1,
+  };
+  writeUsers(users);
 }
 
 export function getAllUsers(): User[] {
