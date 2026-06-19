@@ -100,7 +100,7 @@ const html = `<!DOCTYPE html>
           </div>
         </td>
         <td style="vertical-align:middle;padding-left:14px">
-          <p style="margin:0;color:white;font-size:20px;font-weight:800">Your Portfolio Value for ${month}</p>
+          <p style="margin:0;color:white;font-size:20px;font-weight:800">My Portfolio Value for ${month}</p>
         </td>
       </tr></table>
     </div>
@@ -119,7 +119,7 @@ const html = `<!DOCTYPE html>
           <tbody>${stockRows}</tbody>
         </table>
       </div>
-      <p style="margin:32px 0 0;color:#9ca3af;font-size:12px;text-align:center">Sent by Your Portfolio · Report sent on the 1st of each month.</p>
+      <p style="margin:32px 0 0;color:#9ca3af;font-size:12px;text-align:center">Sent by My Portfolio · Report sent on the 1st of each month.</p>
     </div>
   </div>
 </body>
@@ -132,7 +132,7 @@ const res = await fetch("https://api.resend.com/emails", {
   body: JSON.stringify({
     from: "Your Portfolio <onboarding@resend.dev>",
     to: [TO],
-    subject: `Your Portfolio Value for ${month}`,
+    subject: `My Portfolio Value for ${month}`,
     html,
   }),
 });

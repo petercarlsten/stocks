@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Stock Charts",
-  description: "3-month stock market charts for up to 6 tickers",
+  title: "My Portfolio",
+  description: "Track your stock portfolio",
 };
 
 export default function RootLayout({

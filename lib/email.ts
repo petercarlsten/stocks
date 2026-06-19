@@ -79,7 +79,7 @@ function buildHtml(data: ReportData): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Your Portfolio Value for ${data.month}</title>
+  <title>My Portfolio Value for ${data.month}</title>
 </head>
 <body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
   <div style="max-width:620px;margin:40px auto 60px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 32px rgba(0,0,0,0.08)">
@@ -97,7 +97,7 @@ function buildHtml(data: ReportData): string {
           </div>
         </td>
         <td style="vertical-align:middle;padding-left:14px">
-          <p style="margin:0;color:white;font-size:20px;font-weight:800;line-height:1.1">Your Portfolio Value for ${data.month}</p>
+          <p style="margin:0;color:white;font-size:20px;font-weight:800;line-height:1.1">My Portfolio Value for ${data.month}</p>
         </td>
       </tr></table>
     </div>
@@ -127,7 +127,7 @@ function buildHtml(data: ReportData): string {
       </div>
 
       <p style="margin:32px 0 0;color:#9ca3af;font-size:12px;text-align:center;line-height:1.6">
-        Sent by Your Portfolio on the 1st of each month.
+        Sent by My Portfolio on the 1st of each month.
       </p>
     </div>
   </div>
@@ -140,7 +140,7 @@ export async function sendMonthlyReport(to: string, data: ReportData) {
   return getResend().emails.send({
     from: `Your Portfolio <${from}>`,
     to,
-    subject: `Your Portfolio Value for ${data.month}`,
+    subject: `My Portfolio Value for ${data.month}`,
     html: buildHtml(data),
   });
 }
