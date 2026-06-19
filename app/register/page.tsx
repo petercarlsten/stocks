@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -12,16 +13,18 @@ export default function RegisterPage() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const turnstileToken = useRef<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     if (password !== confirm) { setError("Passwords do not match"); return; }
+    if (!turnstileToken.current) { setError("Please complete the human check"); return; }
     setLoading(true);
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, turnstileToken: turnstileToken.current }),
     });
     const json = await res.json();
     if (!res.ok) {
@@ -34,11 +37,13 @@ export default function RegisterPage() {
     router.refresh();
   }
 
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "1x00000000000000000000AA";
+
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-600 bg-clip-text text-transparent mb-8 text-center">
-          Stock Charts
+          My Portfolio
         </h1>
         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
           <h2 className="text-gray-900 font-semibold text-lg mb-5">Create account</h2>
@@ -77,6 +82,12 @@ export default function RegisterPage() {
                 required
               />
             </div>
+            <Turnstile
+              siteKey={siteKey}
+              onSuccess={(token) => { turnstileToken.current = token; }}
+              onExpire={() => { turnstileToken.current = null; }}
+              options={{ theme: "light" }}
+            />
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <button
               type="submit"
