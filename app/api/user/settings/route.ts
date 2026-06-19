@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getReportEmail, setReportEmail } from "@/lib/users";
+import { getReportEmail, setReportEmail, isAdmin } from "@/lib/users";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
   const username = session?.user?.name ?? null;
   if (!username) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  return NextResponse.json({ reportEmail: getReportEmail(username) });
+  return NextResponse.json({ reportEmail: getReportEmail(username), isAdmin: isAdmin(username) });
 }
 
 export async function PUT(req: NextRequest) {

@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import TrumpHover from "./components/TrumpHover";
 import WolfHover from "./components/WolfHover";
 import SettingsPanel from "./components/SettingsPanel";
+import AdminPanel from "./components/AdminPanel";
 import { SettingsContext, type FunnyMode, type Language } from "./components/SettingsContext";
 import { useSession, signOut } from "next-auth/react";
 import { formatCurrency } from "./lib/formatCurrency";
@@ -106,6 +107,8 @@ export default function Home() {
   const [topGainersEnabled, setTopGainersEnabled] = useState(true);
   const [language, setLanguage] = useState<Language>("en");
   const [reportEmail, setReportEmail] = useState("");
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
 
   // Load saved preferences
   useEffect(() => {
@@ -123,7 +126,7 @@ export default function Home() {
     if (savedLang === "en" || savedLang === "sv") setLanguage(savedLang);
     fetch("/api/user/settings")
       .then((r) => r.json())
-      .then((d) => { if (d.reportEmail) setReportEmail(d.reportEmail); })
+      .then((d) => { if (d.reportEmail) setReportEmail(d.reportEmail); if (d.isAdmin) setIsAdminUser(true); })
       .catch(() => {});
   }, []);
 
@@ -434,6 +437,14 @@ export default function Home() {
               </svg>
               {t.settings}
             </button>
+            {isAdminUser && (
+              <button
+                onClick={() => setAdminOpen(true)}
+                className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-indigo-600 hover:text-indigo-800 text-sm font-medium rounded-lg px-3 py-2 transition-colors border border-indigo-200 shadow-sm"
+              >
+                Admin
+              </button>
+            )}
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
               className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-900 text-sm font-medium rounded-lg px-3 py-2 transition-colors border border-gray-200 shadow-sm"
@@ -542,6 +553,7 @@ export default function Home() {
 
       </div>
     </main>
+    <AdminPanel open={adminOpen} onClose={() => setAdminOpen(false)} />
     </SettingsContext.Provider>
   );
 }

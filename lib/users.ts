@@ -68,3 +68,15 @@ export function setReportEmail(username: string, email: string) {
   users[idx] = { ...users[idx], reportEmail: email || undefined };
   writeUsers(users);
 }
+
+export function isAdmin(username: string): boolean {
+  return username.toLowerCase() === "peter.carlsten";
+}
+
+export function deleteUser(username: string) {
+  const users = readUsers();
+  writeUsers(users.filter((u) => u.username.toLowerCase() !== username.toLowerCase()));
+  // Delete their stock data file if it exists
+  const stockFile = path.join(DIR, "stocks", `${username}.json`);
+  if (fs.existsSync(stockFile)) fs.unlinkSync(stockFile);
+}
