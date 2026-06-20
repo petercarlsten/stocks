@@ -276,7 +276,7 @@ export default function Home() {
 
   if (status === "loading") {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <main className="min-h-screen page-bg flex items-center justify-center">
         <p className="text-gray-400 text-sm">{t.loading}</p>
       </main>
     );
@@ -299,7 +299,7 @@ export default function Home() {
         </p>
       </div>
     )}
-    <main className="min-h-screen bg-gray-50 text-gray-900 p-3 sm:p-6">
+    <main className="min-h-screen page-bg text-gray-900 p-3 sm:p-6">
       <style>{`
         @keyframes logo-gradient {
           0%, 100% { background-position: 0% 50%; }
