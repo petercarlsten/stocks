@@ -28,9 +28,9 @@ export default function TopGainers() {
       </h2>
       <p className="text-gray-400 text-xs mb-3">{t.last3Months}</p>
       {loading ? (
-        <p className="text-gray-400 text-xs">{t.loading}</p>
+        <p className="text-gray-600 text-xs">{t.loading}</p>
       ) : gainers.length === 0 ? (
-        <p className="text-gray-400 text-xs">{t.noData}</p>
+        <p className="text-gray-600 text-xs">{t.noData}</p>
       ) : (
         <ol className="flex flex-col gap-2">
           {gainers.map((g, i) => (

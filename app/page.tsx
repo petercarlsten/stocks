@@ -397,10 +397,10 @@ export default function Home() {
               </div>
             </div>
             {username && (
-              <span className="text-gray-400 text-xs">{t.username}: <span className="font-bold text-gray-700">{username}</span></span>
+              <span className="text-gray-600 text-xs">{t.username}: <span className="font-bold text-gray-800">{username}</span></span>
             )}
             {lastRefreshed && (
-              <p className="text-gray-400 text-xs mt-0.5">
+              <p className="text-gray-600 text-xs mt-0.5">
                 {t.lastUpdated} {lastRefreshed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </p>
             )}
@@ -444,14 +444,14 @@ export default function Home() {
               return total > 0 ? (
                 <div className="flex flex-col gap-1 mt-2">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-gray-400 text-xs w-24 shrink-0">{t.portfolioValue}</span>
+                    <span className="text-gray-600 text-xs w-24 shrink-0">{t.portfolioValue}</span>
                     <span className="text-gray-900 text-2xl font-bold tracking-tight">
                       {formatCurrency(total, currency)}
                     </span>
                   </div>
                   {change30d !== null && gain30d !== null && (
                     <div className="flex items-baseline gap-2">
-                      <span className="text-gray-400 text-xs w-24 shrink-0">{change30d >= 0 ? t.lastNDaysGain(30) : t.lastNDaysLoss(30)}</span>
+                      <span className="text-gray-600 text-xs w-24 shrink-0">{change30d >= 0 ? t.lastNDaysGain(30) : t.lastNDaysLoss(30)}</span>
                       <WolfHover isPositive={change30d >= 0}>
                         <TrumpHover isNegative={change30d < 0}>
                           <span className={`text-sm font-medium ${change30d >= 0 ? "text-green-600" : "text-red-500"}`}>
@@ -463,7 +463,7 @@ export default function Home() {
                   )}
                   {change7d !== null && gain7d !== null && (
                     <div className="flex items-baseline gap-2">
-                      <span className="text-gray-400 text-xs w-24 shrink-0">{change7d >= 0 ? t.lastNDaysGain(7) : t.lastNDaysLoss(7)}</span>
+                      <span className="text-gray-600 text-xs w-24 shrink-0">{change7d >= 0 ? t.lastNDaysGain(7) : t.lastNDaysLoss(7)}</span>
                       <WolfHover isPositive={change7d >= 0}>
                         <TrumpHover isNegative={change7d < 0}>
                           <span className={`text-sm font-medium ${change7d >= 0 ? "text-green-600" : "text-red-500"}`}>

@@ -59,11 +59,11 @@ export default function DashboardLeaderboard({ stocks, className }: Props) {
 
   return (
     <div className={className ?? "bg-white rounded-xl p-4 w-96 shrink-0 border border-gray-200 shadow-sm"}>
-      <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3">
+      <h2 className="text-gray-700 text-xs font-semibold uppercase tracking-wider mb-3">
         {t.gainsSincePurchased}
       </h2>
       {withPurchase.length === 0 ? (
-        <p className="text-gray-400 text-xs">{t.addPurchasePrompt}</p>
+        <p className="text-gray-600 text-xs">{t.addPurchasePrompt}</p>
       ) : (
         <ol className="flex flex-col gap-3">
           {withPurchase.map((s, i) => {
@@ -72,7 +72,7 @@ export default function DashboardLeaderboard({ stocks, className }: Props) {
             const sign = positive ? "+" : "";
             return (
               <li key={s.symbol} className="flex items-start gap-2 min-w-0">
-                <span className="text-gray-400 text-xs w-3 shrink-0 mt-0.5">{i + 1}</span>
+                <span className="text-gray-500 text-xs w-3 shrink-0 mt-0.5">{i + 1}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="text-gray-900 text-sm font-medium truncate" title={s.name}>{s.name}</span>
@@ -85,12 +85,12 @@ export default function DashboardLeaderboard({ stocks, className }: Props) {
                     </WolfHover>
                   </div>
                   <div className="flex items-baseline justify-between gap-2 mt-0.5">
-                    <span className="text-gray-400 text-xs tabular-nums">
+                    <span className="text-gray-700 text-xs tabular-nums">
                       {fmtPrice(s.avgCost, s.currency)} → {fmtPrice(s.current, s.currency)}
                     </span>
                     <span className={`text-xs shrink-0 tabular-nums ${gainColor}`}>
                       {sign}{fmtPrice(s.valueGain, s.currency)}
-                      <span className="text-gray-400 font-normal"> total</span>
+                      <span className="text-gray-600 font-normal"> total</span>
                     </span>
                   </div>
                   <div className="flex flex-col gap-0.5 mt-0.5">
@@ -99,7 +99,7 @@ export default function DashboardLeaderboard({ stocks, className }: Props) {
                       const pos = pctGain >= 0;
                       return (
                         <div key={j} className="flex items-baseline justify-between gap-2">
-                          <span className="text-gray-400 text-xs tabular-nums">
+                          <span className="text-gray-600 text-xs tabular-nums">
                             {fmtDate(p.date)} · {p.shares} sh @ {fmtPrice(p.price, s.currency)}
                           </span>
                           <span className={`text-xs tabular-nums shrink-0 ${pos ? "text-green-500" : "text-red-400"}`}>

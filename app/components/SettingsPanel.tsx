@@ -256,7 +256,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
 
         <div className="flex flex-col gap-6 px-6 py-6 overflow-y-auto flex-1">
           <div className="flex flex-col gap-2">
-            <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">{t.displayPortfolioValue}</label>
+            <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">{t.displayPortfolioValue}</label>
 
             <div className="relative">
               <input
@@ -288,11 +288,11 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
                 </ul>
               )}
             </div>
-            <p className="text-gray-400 text-xs">{t.currencyNote}</p>
+            <p className="text-gray-600 text-xs">{t.currencyNote}</p>
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">{t.theme}</label>
+            <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">{t.theme}</label>
             <div className="flex rounded-lg overflow-hidden border border-gray-300">
               {(["light", "dark"] as const).map((th) => (
                 <button
@@ -311,7 +311,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Funny reactions</label>
+            <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">Funny reactions</label>
             <div className="grid grid-cols-2 rounded-lg overflow-hidden border border-gray-300">
               {([
                 ["off", "Off"],
@@ -338,7 +338,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
           <Toggle label={t.topGainers} enabled={topGainersEnabled} onChange={onTopGainersChange} />
 
           <div className="flex flex-col gap-2">
-            <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">{t.reportEmailLabel}</label>
+            <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">{t.reportEmailLabel}</label>
             <input
               type="email"
               value={reportEmail}
@@ -347,7 +347,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
               className="w-full bg-gray-50 text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-300 placeholder-gray-400"
             />
             <div className="flex items-center justify-between">
-              <p className="text-gray-400 text-xs">{t.reportEmailNote}</p>
+              <p className="text-gray-600 text-xs">{t.reportEmailNote}</p>
               <button
                 onClick={async () => {
                   if (!reportEmail || sendState === "sending") return;
@@ -373,7 +373,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
               onClick={() => { setPwOpen((v) => !v); setPwError(""); setPwState("idle"); setCurrentPw(""); setNewPw(""); setConfirmPw(""); }}
               className="flex items-center justify-between text-gray-700 text-sm font-medium"
             >
-              <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Change password</span>
+              <span className="text-gray-700 text-xs font-semibold uppercase tracking-wider">Change password</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${pwOpen ? "rotate-180" : ""}`}><polyline points="6 9 12 15 18 9"/></svg>
             </button>
             {pwOpen && (
@@ -413,7 +413,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-gray-500 text-xs font-semibold uppercase tracking-wider">{t.language}</label>
+            <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">{t.language}</label>
             <div className="flex rounded-lg overflow-hidden border border-gray-300">
               {(["en", "sv"] as const).map((lang) => (
                 <button

@@ -203,7 +203,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         {dragHandleProps && (
           <div
             {...dragHandleProps}
-            className="text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing mt-1 shrink-0 select-none"
+            className="text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing mt-1 shrink-0 select-none"
             title={t.dragToReorder}
           >
             <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
@@ -237,7 +237,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-gray-400 text-xs">{symbol}</span>
+            <span className="text-gray-600 text-xs">{symbol}</span>
             {earningsDate && (
               <span className="text-xs text-amber-600">
                 {earningsIsFuture ? t.nextEarningsCall : t.reported}
@@ -248,7 +248,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         </div>
         <button
           onClick={onRemove}
-          className="text-gray-300 hover:text-gray-500 text-lg leading-none shrink-0"
+          className="text-gray-400 hover:text-gray-600 text-lg leading-none shrink-0"
         >
           ×
         </button>
@@ -264,7 +264,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           <div className="text-gray-700 text-lg font-semibold tracking-tight">
             {fmt(positionValue)}
             {portfolioPct !== undefined && (
-              <span className="text-gray-400 text-xs font-normal ml-1.5">{portfolioPct.toFixed(1)}{t.ofPortfolio}</span>
+              <span className="text-gray-600 text-xs font-normal ml-1.5">{portfolioPct.toFixed(1)}{t.ofPortfolio}</span>
             )}
           </div>
         )}
@@ -320,13 +320,13 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
       </ResponsiveContainer>
       <div className="flex items-center gap-4 mt-1">
         {(purchases ?? []).length > 0 && (
-          <span className="flex items-center gap-1.5 text-xs text-gray-400">
+          <span className="flex items-center gap-1.5 text-xs text-gray-600">
             <span className="inline-block w-4 border-t-2 border-dashed border-indigo-400"></span>
             {t.purchaseDate}
           </span>
         )}
         {earningsDate && (
-          <span className="flex items-center gap-1.5 text-xs text-gray-400">
+          <span className="flex items-center gap-1.5 text-xs text-gray-600">
             <span className="inline-block w-4 border-t-2 border-dashed border-amber-400"></span>
             {t.earningsCallDate}
           </span>
@@ -335,9 +335,9 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
       <div className="pt-2 border-t border-gray-100">
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-2">
-            <span className="text-gray-400 text-xs">{t.purchases}</span>
+            <span className="text-gray-600 text-xs">{t.purchases}</span>
             {totalShares > 0 && (
-              <span className="text-gray-500 text-xs">· {t.sharesTotal(totalShares)}</span>
+              <span className="text-gray-700 text-xs">· {t.sharesTotal(totalShares)}</span>
             )}
           </div>
           <div className="relative">
@@ -353,7 +353,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           {currencyOpen && (
             <ul className="absolute bottom-full mb-1 right-0 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
               {filteredCurrencies.length === 0 ? (
-                <li className="px-3 py-2 text-gray-400 text-xs">{t.noResults}</li>
+                <li className="px-3 py-2 text-gray-600 text-xs">{t.noResults}</li>
               ) : (
                 filteredCurrencies.map((c) => (
                   <li
@@ -362,7 +362,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                     className={`flex items-center gap-2 px-3 py-1.5 cursor-pointer text-xs hover:bg-gray-50 ${c.code === cardCurrency ? "text-indigo-600 font-semibold" : "text-gray-900"}`}
                   >
                     <span className="shrink-0 w-8 font-mono">{c.code}</span>
-                    <span className="text-gray-500 truncate">{c.name}</span>
+                    <span className="text-gray-700 truncate">{c.name}</span>
                   </li>
                 ))
               )}
@@ -433,11 +433,11 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               <span style={{ color: dark ? "#d1d5db" : "#374151" }}>{fmt(first)}</span>
             </div>
             <div className="flex justify-between gap-4 text-xs">
-              <span className={dark ? "text-gray-500" : "text-gray-400"}>{t.current}</span>
+              <span className={dark ? "text-gray-500" : "text-gray-600"}>{t.current}</span>
               <span style={{ color: gainColor }}>{fmt(last)}</span>
             </div>
             <div className="flex justify-between gap-4 text-xs">
-              <span className={dark ? "text-gray-500" : "text-gray-400"}>{t.change}</span>
+              <span className={dark ? "text-gray-500" : "text-gray-600"}>{t.change}</span>
               <span style={{ color: gainColor }}>
                 {positive ? "+" : ""}{fmt(absChange)} ({positive ? "+" : ""}{change.toFixed(2)}%)
               </span>
