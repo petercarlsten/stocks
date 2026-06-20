@@ -422,14 +422,14 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           onMouseEnter={() => setShowGains(true)}
           onMouseLeave={() => setShowGains(false)}
         >
-          <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: dark ? "#6b7280" : "#9ca3af" }}>{t.threeMonthPerformance}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: dark ? "#6b7280" : "#475569" }}>{t.threeMonthPerformance}</p>
           <div className="flex flex-col gap-1.5">
             <div className="flex justify-between gap-4 text-xs">
-              <span style={{ color: dark ? "#6b7280" : "#9ca3af" }}>{t.period}</span>
+              <span style={{ color: dark ? "#6b7280" : "#475569" }}>{t.period}</span>
               <span style={{ color: dark ? "#d1d5db" : "#374151" }}>{fmtDate(data[0]?.date)} → {fmtDate(data[data.length - 1]?.date)}</span>
             </div>
             <div className="flex justify-between gap-4 text-xs">
-              <span style={{ color: dark ? "#6b7280" : "#9ca3af" }}>{t.start}</span>
+              <span style={{ color: dark ? "#6b7280" : "#475569" }}>{t.start}</span>
               <span style={{ color: dark ? "#d1d5db" : "#374151" }}>{fmt(first)}</span>
             </div>
             <div className="flex justify-between gap-4 text-xs">
@@ -447,7 +447,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                 className="flex justify-between gap-4 text-xs mt-1 pt-1.5 border-t"
                 style={{ borderColor: dark ? "#374151" : "#e5e7eb" }}
               >
-                <span style={{ color: dark ? "#6b7280" : "#9ca3af" }}>{t.positionGain}</span>
+                <span style={{ color: dark ? "#6b7280" : "#475569" }}>{t.positionGain}</span>
                 <span style={{ color: positionGain >= 0 ? "#16a34a" : "#ef4444" }}>
                   {positionGain >= 0 ? "+" : ""}{fmt(positionGain)}
                 </span>

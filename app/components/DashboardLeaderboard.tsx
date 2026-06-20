@@ -72,7 +72,7 @@ export default function DashboardLeaderboard({ stocks, className }: Props) {
             const sign = positive ? "+" : "";
             return (
               <li key={s.symbol} className="flex items-start gap-2 min-w-0">
-                <span className="text-gray-300 text-xs w-3 shrink-0 mt-0.5">{i + 1}</span>
+                <span className="text-gray-400 text-xs w-3 shrink-0 mt-0.5">{i + 1}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="text-gray-900 text-sm font-medium truncate" title={s.name}>{s.name}</span>
@@ -99,7 +99,7 @@ export default function DashboardLeaderboard({ stocks, className }: Props) {
                       const pos = pctGain >= 0;
                       return (
                         <div key={j} className="flex items-baseline justify-between gap-2">
-                          <span className="text-gray-300 text-xs tabular-nums">
+                          <span className="text-gray-400 text-xs tabular-nums">
                             {fmtDate(p.date)} · {p.shares} sh @ {fmtPrice(p.price, s.currency)}
                           </span>
                           <span className={`text-xs tabular-nums shrink-0 ${pos ? "text-green-500" : "text-red-400"}`}>
