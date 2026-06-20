@@ -459,6 +459,18 @@ export default function Home() {
                       {formatCurrency(total, currency)}
                     </span>
                   </div>
+                  {change1yr !== null && gain1yr !== null && (
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-gray-600 text-xs w-24 shrink-0">{change1yr >= 0 ? t.lastYearGain : t.lastYearLoss}</span>
+                      <WolfHover isPositive={change1yr >= 0}>
+                        <TrumpHover isNegative={change1yr < 0}>
+                          <span className={`text-sm font-medium ${change1yr >= 0 ? "text-green-600" : "text-red-500"}`}>
+                            {change1yr >= 0 ? "+" : ""}{fmt(gain1yr)} ({change1yr >= 0 ? "+" : ""}{change1yr.toFixed(2)}%)
+                          </span>
+                        </TrumpHover>
+                      </WolfHover>
+                    </div>
+                  )}
                   {change30d !== null && gain30d !== null && (
                     <div className="flex items-baseline gap-2">
                       <span className="text-gray-600 text-xs w-24 shrink-0">{change30d >= 0 ? t.lastNDaysGain(30) : t.lastNDaysLoss(30)}</span>
@@ -478,18 +490,6 @@ export default function Home() {
                         <TrumpHover isNegative={change7d < 0}>
                           <span className={`text-sm font-medium ${change7d >= 0 ? "text-green-600" : "text-red-500"}`}>
                             {change7d >= 0 ? "+" : ""}{fmt(gain7d)} ({change7d >= 0 ? "+" : ""}{change7d.toFixed(2)}%)
-                          </span>
-                        </TrumpHover>
-                      </WolfHover>
-                    </div>
-                  )}
-                  {change1yr !== null && gain1yr !== null && (
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-gray-600 text-xs w-24 shrink-0">{change1yr >= 0 ? t.lastYearGain : t.lastYearLoss}</span>
-                      <WolfHover isPositive={change1yr >= 0}>
-                        <TrumpHover isNegative={change1yr < 0}>
-                          <span className={`text-sm font-medium ${change1yr >= 0 ? "text-green-600" : "text-red-500"}`}>
-                            {change1yr >= 0 ? "+" : ""}{fmt(gain1yr)} ({change1yr >= 0 ? "+" : ""}{change1yr.toFixed(2)}%)
                           </span>
                         </TrumpHover>
                       </WolfHover>
