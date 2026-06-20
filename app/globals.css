@@ -6,14 +6,22 @@
 }
 
 body {
-  background: #f9fafb;
+  background: #dce3ef;
   color: #111827;
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* ── Light theme: boost muted greys for better readability ─ */
-html:not(.dark) .text-gray-400 { color: #4b5563 !important; }
-html:not(.dark) .text-gray-500 { color: #374151 !important; }
+/* ── Light theme: richer background + readable text ───────── */
+html:not(.dark) .bg-gray-50       { background-color: #edf1f7 !important; }
+html:not(.dark) .bg-white         { background-color: #ffffff !important; }
+html:not(.dark) .border-gray-100  { border-color: #c9d3e0 !important; }
+html:not(.dark) .border-gray-200  { border-color: #b8c4d4 !important; }
+html:not(.dark) .border-gray-300  { border-color: #a0aec0 !important; }
+html:not(.dark) .text-gray-300    { color: #94a3b8 !important; }
+html:not(.dark) .text-gray-400    { color: #475569 !important; }
+html:not(.dark) .text-gray-500    { color: #334155 !important; }
+html:not(.dark) .text-gray-600    { color: #1e293b !important; }
+html:not(.dark) .text-gray-700    { color: #0f172a !important; }
 
 /* ── Dark theme overrides (applied via html.dark class) ─── */
 html.dark { color-scheme: dark; }
