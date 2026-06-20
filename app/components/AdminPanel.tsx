@@ -6,6 +6,7 @@ interface UserInfo {
   provider: "google" | "credentials";
   createdAt: string | null;
   lastLoginAt: string | null;
+  lastSeenAt: string | null;
   loginCount: number;
 }
 
@@ -68,6 +69,7 @@ export default function AdminPanel({ open, onClose }: Props) {
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Auth</th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Joined</th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Last login</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Last seen</th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Logins</th>
                 <th className="px-4 py-3"></th>
               </tr>
@@ -88,6 +90,7 @@ export default function AdminPanel({ open, onClose }: Props) {
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{fmtDate(u.createdAt)}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{fmtDateTime(u.lastLoginAt)}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{fmtDateTime(u.lastSeenAt)}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs text-right">{u.loginCount}</td>
                   <td className="px-4 py-3 text-right">
                     {confirm === u.username ? (

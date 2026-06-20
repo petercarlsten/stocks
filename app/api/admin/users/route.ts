@@ -18,6 +18,7 @@ export async function GET() {
     provider: u.provider ?? "credentials",
     createdAt: u.createdAt ?? null,
     lastLoginAt: u.lastLoginAt ?? null,
+    lastSeenAt: u.lastSeenAt ?? null,
     loginCount: u.loginCount ?? 0,
   }));
   return NextResponse.json({ users });

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getReportEmail, setReportEmail, getReportCurrency, setReportCurrency, isAdmin } from "@/lib/users";
+import { getReportEmail, setReportEmail, getReportCurrency, setReportCurrency, updateLastSeen, isAdmin } from "@/lib/users";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
   const username = session?.user?.name ?? null;
   if (!username) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  updateLastSeen(username);
   return NextResponse.json({
     reportEmail: getReportEmail(username),
     reportCurrency: getReportCurrency(username),

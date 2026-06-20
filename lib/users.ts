@@ -18,6 +18,7 @@ interface User {
   reportCurrency?: string;
   createdAt?: string;
   lastLoginAt?: string;
+  lastSeenAt?: string;
   loginCount?: number;
 }
 
@@ -92,6 +93,14 @@ export function setReportEmail(username: string, email: string) {
   const idx = users.findIndex((u) => u.username === username);
   if (idx === -1) return;
   users[idx] = { ...users[idx], reportEmail: email || undefined };
+  writeUsers(users);
+}
+
+export function updateLastSeen(username: string) {
+  const users = readUsers();
+  const idx = users.findIndex((u) => u.username.toLowerCase() === username.toLowerCase());
+  if (idx === -1) return;
+  users[idx] = { ...users[idx], lastSeenAt: new Date().toISOString() };
   writeUsers(users);
 }
 
