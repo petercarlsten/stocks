@@ -1,4 +1,5 @@
 import { getUserStocks } from "./stockStore";
+import { getReportCurrency } from "./users";
 import type { YearlyReportData, YearlyStockReport } from "./email";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -60,30 +61,34 @@ export async function buildYearlyReportData(username: string): Promise<YearlyRep
   if (stockResults.length === 0) return null;
 
   const rates = await fetchRates();
-  let totalUSD = 0, totalUSDStart = 0, hasData = false;
+  const reportCurrency = getReportCurrency(username);
+  const displayRate = rates[reportCurrency] ?? 1;
+
+  let total = 0, totalStart = 0, hasData = false;
 
   for (const r of stockResults) {
-    const toUSD = 1 / (rates[r.currency] ?? 1);
+    const toDisplay = displayRate / (rates[r.currency] ?? 1);
     const shares = rawStocks.find((s) => s.symbol === r.symbol)?.purchases?.reduce((sum, p) => sum + p.shares, 0) ?? 0;
     if (shares > 0 && r.currentPrice > 0) {
-      totalUSD += shares * r.currentPrice * toUSD;
+      total += shares * r.currentPrice * toDisplay;
       if (r.changeYr !== null) {
         const priceStart = r.currentPrice / (1 + r.changeYr / 100);
-        totalUSDStart += shares * priceStart * toUSD;
+        totalStart += shares * priceStart * toDisplay;
         hasData = true;
       }
     }
   }
 
-  const totalChangeYrPct     = hasData && totalUSDStart > 0 ? ((totalUSD - totalUSDStart) / totalUSDStart) * 100 : null;
-  const totalEarningsYrUSD   = hasData ? totalUSD - totalUSDStart : null;
+  const totalChangeYrPct   = hasData && totalStart > 0 ? ((total - totalStart) / totalStart) * 100 : null;
+  const totalEarningsYrUSD = hasData ? total - totalStart : null;
 
   return {
     username,
     year: reportYear,
-    totalValueUSD: totalUSD > 0 ? totalUSD : null,
+    totalValueUSD: total > 0 ? total : null,
     totalChangeYrPct,
     totalEarningsYrUSD,
+    currency: reportCurrency,
     stocks: stockResults,
   };
 }

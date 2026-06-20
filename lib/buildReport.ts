@@ -1,4 +1,5 @@
 import { getUserStocks } from "./stockStore";
+import { getReportCurrency } from "./users";
 import type { ReportData, StockReport } from "./email";
 
 interface StoredPurchase {
@@ -45,31 +46,34 @@ export async function buildReportData(username: string): Promise<ReportData | nu
   }).sort((a, b) => (b.positionValue ?? -Infinity) - (a.positionValue ?? -Infinity));
 
   const rates = await fetchRates();
+  const reportCurrency = getReportCurrency(username);
+  const displayRate = rates[reportCurrency] ?? 1;
 
-  let totalUSD = 0, totalUSD30d = 0, has30d = false;
+  let total = 0, total30d = 0, has30d = false;
   for (const report of stockResults) {
-    const toUSD = 1 / (rates[report.currency] ?? 1);
+    const toDisplay = displayRate / (rates[report.currency] ?? 1);
     const shares = rawStocks.find((s) => s.symbol === report.symbol)?.purchases?.reduce((sum, p) => sum + p.shares, 0) ?? 0;
     if (shares > 0 && report.currentPrice > 0) {
-      totalUSD += shares * report.currentPrice * toUSD;
+      total += shares * report.currentPrice * toDisplay;
       if (report.change30d !== null) {
         const price30d = report.currentPrice / (1 + report.change30d / 100);
-        totalUSD30d += shares * price30d * toUSD;
+        total30d += shares * price30d * toDisplay;
         has30d = true;
       }
     }
   }
 
-  const totalChange30dPct = has30d && totalUSD30d > 0 ? ((totalUSD - totalUSD30d) / totalUSD30d) * 100 : null;
-  const totalEarnings30dUSD = has30d ? totalUSD - totalUSD30d : null;
+  const totalChange30dPct = has30d && total30d > 0 ? ((total - total30d) / total30d) * 100 : null;
+  const totalEarnings30d = has30d ? total - total30d : null;
   const month = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
   return {
     username,
     month,
-    totalValueUSD: totalUSD > 0 ? totalUSD : null,
+    totalValueUSD: total > 0 ? total : null,
     totalChange30dPct,
-    totalEarnings30dUSD,
+    totalEarnings30dUSD: totalEarnings30d,
+    currency: reportCurrency,
     stocks: stockResults,
   };
 }

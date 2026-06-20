@@ -15,6 +15,7 @@ interface User {
   passwordHash?: string;
   provider?: "google";
   reportEmail?: string;
+  reportCurrency?: string;
   createdAt?: string;
   lastLoginAt?: string;
   loginCount?: number;
@@ -91,6 +92,18 @@ export function setReportEmail(username: string, email: string) {
   const idx = users.findIndex((u) => u.username === username);
   if (idx === -1) return;
   users[idx] = { ...users[idx], reportEmail: email || undefined };
+  writeUsers(users);
+}
+
+export function getReportCurrency(username: string): string {
+  return readUsers().find((u) => u.username === username)?.reportCurrency ?? "USD";
+}
+
+export function setReportCurrency(username: string, currency: string) {
+  const users = readUsers();
+  const idx = users.findIndex((u) => u.username === username);
+  if (idx === -1) return;
+  users[idx] = { ...users[idx], reportCurrency: currency || undefined };
   writeUsers(users);
 }
 

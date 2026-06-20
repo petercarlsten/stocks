@@ -236,6 +236,11 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
     onCurrencyChange(code);
     setQuery("");
     setDropdownOpen(false);
+    fetch("/api/user/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportCurrency: code }),
+    });
   }
 
   const selected = ALL_CURRENCIES.find((c) => c.code === currency);

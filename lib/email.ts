@@ -19,6 +19,7 @@ export interface ReportData {
   totalValueUSD: number | null;
   totalChange30dPct: number | null;
   totalEarnings30dUSD: number | null;
+  currency: string;
   stocks: StockReport[];
 }
 
@@ -59,14 +60,14 @@ function buildHtml(data: ReportData): string {
           <table style="width:100%;border-collapse:collapse"><tr>
             <td style="vertical-align:top">
               <p style="margin:0 0 4px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600">Portfolio value</p>
-              <p style="margin:0;color:#111827;font-size:26px;font-weight:800">${fmt(data.totalValueUSD, "USD")}</p>
+              <p style="margin:0;color:#111827;font-size:26px;font-weight:800">${fmt(data.totalValueUSD, data.currency)}</p>
             </td>
             ${
               data.totalChange30dPct !== null
                 ? `<td style="text-align:right;vertical-align:top">
                 <p style="margin:0 0 4px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600">30-day change</p>
                 <p style="margin:0;font-size:22px;font-weight:800;color:${pctColor(data.totalChange30dPct)}">${fmtPct(data.totalChange30dPct)}</p>
-                ${data.totalEarnings30dUSD !== null ? `<p style="margin:4px 0 0;font-size:14px;font-weight:600;color:${pctColor(data.totalEarnings30dUSD)}">${data.totalEarnings30dUSD >= 0 ? "+" : ""}${fmt(data.totalEarnings30dUSD, "USD")}</p>` : ""}
+                ${data.totalEarnings30dUSD !== null ? `<p style="margin:4px 0 0;font-size:14px;font-weight:600;color:${pctColor(data.totalEarnings30dUSD)}">${data.totalEarnings30dUSD >= 0 ? "+" : ""}${fmt(data.totalEarnings30dUSD, data.currency)}</p>` : ""}
               </td>`
                 : ""
             }
@@ -163,6 +164,7 @@ export interface YearlyReportData {
   totalValueUSD: number | null;
   totalChangeYrPct: number | null;
   totalEarningsYrUSD: number | null;
+  currency: string;
   stocks: YearlyStockReport[];
 }
 
@@ -185,14 +187,14 @@ function buildYearlyHtml(data: YearlyReportData): string {
           <table style="width:100%;border-collapse:collapse"><tr>
             <td style="vertical-align:top">
               <p style="margin:0 0 4px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600">Portfolio value</p>
-              <p style="margin:0;color:#111827;font-size:26px;font-weight:800">${fmt(data.totalValueUSD, "USD")}</p>
+              <p style="margin:0;color:#111827;font-size:26px;font-weight:800">${fmt(data.totalValueUSD, data.currency)}</p>
             </td>
             ${
               data.totalChangeYrPct !== null
                 ? `<td style="text-align:right;vertical-align:top">
                 <p style="margin:0 0 4px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600">${data.year} change</p>
                 <p style="margin:0;font-size:22px;font-weight:800;color:${pctColor(data.totalChangeYrPct)}">${fmtPct(data.totalChangeYrPct)}</p>
-                ${data.totalEarningsYrUSD !== null ? `<p style="margin:4px 0 0;font-size:14px;font-weight:600;color:${pctColor(data.totalEarningsYrUSD)}">${data.totalEarningsYrUSD >= 0 ? "+" : ""}${fmt(data.totalEarningsYrUSD, "USD")}</p>` : ""}
+                ${data.totalEarningsYrUSD !== null ? `<p style="margin:4px 0 0;font-size:14px;font-weight:600;color:${pctColor(data.totalEarningsYrUSD)}">${data.totalEarningsYrUSD >= 0 ? "+" : ""}${fmt(data.totalEarningsYrUSD, data.currency)}</p>` : ""}
               </td>`
                 : ""
             }
