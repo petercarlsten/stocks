@@ -136,9 +136,14 @@ export default function Home() {
     localStorage.setItem("portfolio-theme", theme);
   }, [theme]);
 
-  // Fetch exchange rates and persist whenever currency changes
+  // Fetch exchange rates, persist locally and sync currency to server
   useEffect(() => {
     localStorage.setItem("portfolio-currency", currency);
+    fetch("/api/user/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reportCurrency: currency }),
+    }).catch(() => {});
     fetch(`https://open.er-api.com/v6/latest/USD`)
       .then((r) => r.json())
       .then((data) => {
