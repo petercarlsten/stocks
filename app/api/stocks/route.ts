@@ -136,7 +136,7 @@ async function fetchFromAlphaVantage(
   const cached = AV_CACHE.get(cacheKey);
   if (cached && Date.now() - cached.cachedAt < CACHE_TTL_MS) return cached.rows;
 
-  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(avSymbol)}&outputsize=compact&apikey=${apiKey}`;
+  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${encodeURIComponent(avSymbol)}&outputsize=full&apikey=${apiKey}`;
   try {
     const res = await fetch(url);
     if (!res.ok) return null;
@@ -176,7 +176,7 @@ async function fetchFromTwelveData(
 
   const from = start.toISOString().split("T")[0];
   const to   = end.toISOString().split("T")[0];
-  const url  = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(symbol)}&interval=1day&start_date=${from}&end_date=${to}&outputsize=90&apikey=${apiKey}`;
+  const url  = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(symbol)}&interval=1day&start_date=${from}&end_date=${to}&outputsize=260&apikey=${apiKey}`;
 
   try {
     const res = await fetch(url);
@@ -353,7 +353,7 @@ export async function GET(req: NextRequest) {
 
   const end = new Date();
   const start = new Date();
-  start.setMonth(start.getMonth() - 3);
+  start.setFullYear(start.getFullYear() - 1);
 
   try {
     const [chartResult, quote] = await Promise.all([

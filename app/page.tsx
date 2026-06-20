@@ -413,8 +413,12 @@ export default function Home() {
               cutoff7d.setDate(cutoff7d.getDate() - 7);
               const cutoff7dStr = cutoff7d.toISOString().split("T")[0];
 
-              let total = 0, total30d = 0, total7d = 0;
-              let has30d = false, has7d = false;
+              const cutoff1yr = new Date();
+              cutoff1yr.setFullYear(cutoff1yr.getFullYear() - 1);
+              const cutoff1yrStr = cutoff1yr.toISOString().split("T")[0];
+
+              let total = 0, total30d = 0, total7d = 0, total1yr = 0;
+              let has30d = false, has7d = false, has1yr = false;
 
               for (const s of stocks) {
                 const totalShares = (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0);
@@ -433,12 +437,18 @@ export default function Home() {
                 const past7 = s.data.filter((d) => d.date <= cutoff7dStr);
                 const price7d = past7.length > 0 ? past7[past7.length - 1].close : null;
                 if (price7d !== null) { total7d += totalShares * price7d * toPortfolio; has7d = true; }
+
+                const past1yr = s.data.filter((d) => d.date <= cutoff1yrStr);
+                const price1yr = past1yr.length > 0 ? past1yr[past1yr.length - 1].close : null;
+                if (price1yr !== null) { total1yr += totalShares * price1yr * toPortfolio; has1yr = true; }
               }
 
               const change30d = has30d && total30d > 0 ? ((total - total30d) / total30d) * 100 : null;
               const change7d  = has7d  && total7d  > 0 ? ((total - total7d)  / total7d)  * 100 : null;
+              const change1yr = has1yr && total1yr > 0 ? ((total - total1yr) / total1yr) * 100 : null;
               const gain30d   = has30d ? total - total30d : null;
               const gain7d    = has7d  ? total - total7d  : null;
+              const gain1yr   = has1yr ? total - total1yr : null;
               const fmt = (v: number) => formatCurrency(v, currency, 0);
 
               return total > 0 ? (
@@ -468,6 +478,18 @@ export default function Home() {
                         <TrumpHover isNegative={change7d < 0}>
                           <span className={`text-sm font-medium ${change7d >= 0 ? "text-green-600" : "text-red-500"}`}>
                             {change7d >= 0 ? "+" : ""}{fmt(gain7d)} ({change7d >= 0 ? "+" : ""}{change7d.toFixed(2)}%)
+                          </span>
+                        </TrumpHover>
+                      </WolfHover>
+                    </div>
+                  )}
+                  {change1yr !== null && gain1yr !== null && (
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-gray-600 text-xs w-24 shrink-0">{change1yr >= 0 ? t.lastYearGain : t.lastYearLoss}</span>
+                      <WolfHover isPositive={change1yr >= 0}>
+                        <TrumpHover isNegative={change1yr < 0}>
+                          <span className={`text-sm font-medium ${change1yr >= 0 ? "text-green-600" : "text-red-500"}`}>
+                            {change1yr >= 0 ? "+" : ""}{fmt(gain1yr)} ({change1yr >= 0 ? "+" : ""}{change1yr.toFixed(2)}%)
                           </span>
                         </TrumpHover>
                       </WolfHover>
@@ -581,13 +603,16 @@ export default function Home() {
                       const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
                       const posVal = sh > 0 ? sh * (s.data[s.data.length - 1]?.close ?? 0) * (exchangeRate / tickerRate) : 0;
                       const portfolioPct = totalPortfolioValue > 0 && posVal > 0 ? (posVal / totalPortfolioValue) * 100 : undefined;
+                      const threeMonthsAgo = new Date(); threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+                      const chartCutoff = threeMonthsAgo.toISOString().split("T")[0];
+                      const chartData = s.data.filter((d) => d.date >= chartCutoff);
                       return (
                         <SortableStockChart
                           key={s.symbol}
                           symbol={s.symbol}
                           name={s.name}
                           earningsDate={s.earningsDate}
-                          data={s.data}
+                          data={chartData}
                           color={COLORS[i % COLORS.length]}
                           purchases={s.purchases}
                           onRemove={() => removeStock(s.symbol)}
