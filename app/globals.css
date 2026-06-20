@@ -11,6 +11,10 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* ── Light theme: boost muted greys for better readability ─ */
+html:not(.dark) .text-gray-400 { color: #6b7280; }
+html:not(.dark) .text-gray-500 { color: #4b5563; }
+
 /* ── Dark theme overrides (applied via html.dark class) ─── */
 html.dark { color-scheme: dark; }
 
