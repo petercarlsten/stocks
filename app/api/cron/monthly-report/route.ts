@@ -9,7 +9,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const users = getAllUsers();
+  const testOnly = new URL(req.url).searchParams.get("test") === "1";
+  const users = getAllUsers().filter((u) => !testOnly || u.username.toLowerCase() === "peter.carlsten");
   const results: { username: string; status: string }[] = [];
 
   for (const user of users) {

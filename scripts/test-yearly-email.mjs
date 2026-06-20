@@ -7,7 +7,7 @@ const CRON_SECRET = process.env.CRON_SECRET ?? "";
 
 console.log(`Calling ${BASE_URL}/api/cron/yearly-report …`);
 
-const res = await fetch(`${BASE_URL}/api/cron/yearly-report`, {
+const res = await fetch(`${BASE_URL}/api/cron/yearly-report?test=1`, {
   headers: CRON_SECRET ? { authorization: `Bearer ${CRON_SECRET}` } : {},
 });
 
