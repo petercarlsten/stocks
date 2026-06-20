@@ -113,7 +113,14 @@ export default function Home() {
   // Load saved preferences
   useEffect(() => {
     const saved = localStorage.getItem("portfolio-currency");
-    if (saved) setCurrency(saved);
+    if (saved) {
+      setCurrency(saved);
+      fetch("/api/user/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reportCurrency: saved }),
+      }).catch(() => {});
+    }
     const savedTheme = localStorage.getItem("portfolio-theme") as "light" | "dark" | null;
     if (savedTheme) setTheme(savedTheme);
     const savedFunnyMode = localStorage.getItem("portfolio-funny-mode") as FunnyMode | null;
@@ -136,14 +143,9 @@ export default function Home() {
     localStorage.setItem("portfolio-theme", theme);
   }, [theme]);
 
-  // Fetch exchange rates, persist locally and sync currency to server
+  // Fetch exchange rates and persist locally
   useEffect(() => {
     localStorage.setItem("portfolio-currency", currency);
-    fetch("/api/user/settings", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reportCurrency: currency }),
-    }).catch(() => {});
     fetch(`https://open.er-api.com/v6/latest/USD`)
       .then((r) => r.json())
       .then((data) => {
