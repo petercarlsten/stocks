@@ -42,7 +42,7 @@ export async function buildReportData(username: string): Promise<ReportData | nu
     const totalShares = (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0);
     const positionValue = totalShares > 0 && current > 0 ? totalShares * current : null;
     return { symbol: s.symbol, name: s.name, currentPrice: current, change30d, positionValue, currency: s.currency ?? "USD" };
-  }).sort((a, b) => (b.change30d ?? -Infinity) - (a.change30d ?? -Infinity));
+  }).sort((a, b) => (b.positionValue ?? -Infinity) - (a.positionValue ?? -Infinity));
 
   const rates = await fetchRates();
 

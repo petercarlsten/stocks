@@ -239,7 +239,7 @@ function buildYearlyHtml(data: YearlyReportData): string {
       ${summaryBlock}
 
       <!-- Stock table -->
-      <p style="margin:0 0 10px;color:#111827;font-size:14px;font-weight:700">Year Performance — sorted by best gain</p>
+      <p style="margin:0 0 10px;color:#111827;font-size:14px;font-weight:700">Year Performance</p>
       <div style="border-radius:10px;overflow:hidden;border:1px solid #f3f4f6">
         <table style="width:100%;border-collapse:collapse">
           <thead>

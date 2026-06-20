@@ -55,7 +55,7 @@ export async function buildYearlyReportData(username: string): Promise<YearlyRep
 
   const stockResults: YearlyStockReport[] = rawResults
     .filter((r): r is YearlyStockReport => r !== null)
-    .sort((a, b) => ((b.changeYr ?? -Infinity) - (a.changeYr ?? -Infinity)));
+    .sort((a, b) => ((b.positionValue ?? -Infinity) - (a.positionValue ?? -Infinity)));
 
   if (stockResults.length === 0) return null;
 
