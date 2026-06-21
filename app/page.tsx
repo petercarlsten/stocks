@@ -423,6 +423,7 @@ export default function Home() {
               const cutoff1yr = new Date();
               cutoff1yr.setFullYear(cutoff1yr.getFullYear() - 1);
               const cutoff1yrStr = cutoff1yr.toISOString().split("T")[0];
+              const cutoff1yrEndStr = new Date(cutoff1yr.getTime() + 10 * 86400000).toISOString().split("T")[0];
 
               let total = 0, total30d = 0, total7d = 0, total1yr = 0;
               let has30d = false, has7d = false, has1yr = false;
@@ -445,8 +446,9 @@ export default function Home() {
                 const price7d = past7.length > 0 ? past7[past7.length - 1].close : null;
                 if (price7d !== null) { total7d += totalShares * price7d * toPortfolio; has7d = true; }
 
-                const past1yr = s.data.filter((d) => d.date <= cutoff1yrStr);
-                const price1yr = past1yr.length > 0 ? past1yr[past1yr.length - 1].close : null;
+                // Find closest trading day at or just after the 1-year mark (handles weekends/holidays)
+                const near1yr = s.data.filter((d) => d.date >= cutoff1yrStr && d.date <= cutoff1yrEndStr);
+                const price1yr = near1yr.length > 0 ? near1yr[0].close : null;
                 if (price1yr !== null) { total1yr += totalShares * price1yr * toPortfolio; has1yr = true; }
               }
 

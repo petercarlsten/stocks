@@ -353,7 +353,7 @@ export async function GET(req: NextRequest) {
 
   const end = new Date();
   const start = new Date();
-  start.setFullYear(start.getFullYear() - 1);
+  start.setMonth(start.getMonth() - 13);
 
   try {
     const [chartResult, quote] = await Promise.all([
