@@ -4,6 +4,7 @@ const STOP_WORDS = new Set([
   // Corporate suffixes
   "inc", "corp", "ltd", "llc", "the", "and", "co", "plc", "group",
   "holdings", "company", "companies", "international", "global", "trust",
+  "berhad", "bhd", "sdn", "nv", "ag", "gmbh", "asa", "ab", "oyj", "sarl",
   // Generic financial/market terms that appear in many unrelated headlines
   "stock", "stocks", "share", "shares", "market", "markets", "fund", "funds",
   "index", "sector", "equity", "equities", "asset", "assets", "capital",
@@ -216,7 +217,7 @@ export async function GET(req: NextRequest) {
   if (symbolsParam) {
     const symbols = symbolsParam.split(",").map((s) => s.trim()).filter(Boolean);
     const namesParam = url.searchParams.get("names") ?? "";
-    const names = namesParam.split(",").map((s) => s.trim());
+    const names = namesParam.split("|").map((s) => s.trim());
 
     try {
       const perStock = await Promise.all(

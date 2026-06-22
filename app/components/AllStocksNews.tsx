@@ -38,7 +38,7 @@ export default function AllStocksNews({ stocks }: { stocks: Stock[] }) {
     setNews([]);
 
     const symbols = newsStocks.map((s) => s.symbol).join(",");
-    const names = newsStocks.map((s) => s.name).join(",");
+    const names = newsStocks.map((s) => s.name).join("|");
     const params = new URLSearchParams({ symbols, names });
 
     fetch(`/api/news?${params}`)
