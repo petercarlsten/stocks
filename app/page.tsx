@@ -334,8 +334,27 @@ export default function Home() {
     )}
     <main className="min-h-screen page-bg text-gray-900 p-3 sm:p-6">
       <style>{`
+        @keyframes logo-gradient {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        @keyframes badge-glow {
+          0%, 100% { box-shadow: 0 8px 30px -4px rgba(99,102,241,0.55), 0 0 0 0 rgba(99,102,241,0); }
+          50% { box-shadow: 0 8px 40px -4px rgba(99,102,241,0.8), 0 0 30px 4px rgba(16,185,129,0.25); }
+        }
+        .logo-text {
+          background: linear-gradient(135deg, #6366f1 0%, #a855f7 35%, #10b981 65%, #6366f1 100%);
+          background-size: 300% 300%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation: logo-gradient 5s ease infinite;
+        }
         .logo-badge {
-          box-shadow: 0 4px 14px -2px rgba(79,70,229,0.35);
+          animation: badge-glow 3s ease-in-out infinite;
+        }
+        .logo-underline {
+          background: linear-gradient(90deg, #6366f1, #a855f7 50%, #10b981);
         }
         @media (max-width: 639px) {
           .stocks-grid { grid-template-columns: 1fr !important; }
@@ -348,7 +367,7 @@ export default function Home() {
         <div className="flex flex-wrap items-start gap-3 sm:gap-6 mb-4 sm:mb-6">
           <div className="flex-1">
             <div className="flex items-center gap-5 mb-2">
-              <div className="logo-badge bg-gradient-to-br from-indigo-600 to-indigo-800 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl shrink-0 flex items-center justify-center">
+              <div className="logo-badge bg-gradient-to-br from-indigo-500 via-purple-500 to-emerald-500 p-2 sm:p-3 rounded-xl sm:rounded-2xl shrink-0 flex items-center justify-center">
                 {funnyMode === "cats" ? (
                   /* Cat face */
                   <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
@@ -423,18 +442,19 @@ export default function Home() {
                     <path d="M 15,32 Q 20,30.5 25,32" stroke="#c2410c" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
                   </svg>
                 ) : (
-                  <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-                    <rect x="2"  y="24" width="6" height="10" rx="1.5" fill="white" opacity="0.5"/>
-                    <rect x="10" y="16" width="6" height="18" rx="1.5" fill="white" opacity="0.65"/>
-                    <rect x="18" y="9"  width="6" height="25" rx="1.5" fill="white" opacity="0.8"/>
-                    <rect x="26" y="2"  width="6" height="32" rx="1.5" fill="white"/>
-                    <polyline points="5,22 13,14 21,7 29,0" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.4"/>
+                  <svg width="44" height="30" viewBox="0 0 56 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polyline points="2,30 12,22 22,26 34,10 46,6 54,2" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <polygon points="2,30 12,22 22,26 34,10 46,6 54,2 54,34 2,34" fill="white" opacity="0.2"/>
+                    <circle cx="54" cy="2" r="3.5" fill="white"/>
+                    <circle cx="54" cy="2" r="7" fill="white" opacity="0.15"/>
                   </svg>
                 )}
               </div>
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-[0.18em] mb-0.5">My</p>
-                <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight leading-none">Portfolio</h1>
+                <h1 className="logo-text text-3xl sm:text-5xl font-black tracking-tight leading-none">
+                  {t.appTitle}
+                </h1>
+                <div className="logo-underline h-1 mt-2 rounded-full w-3/4" />
               </div>
             </div>
             {username && (
