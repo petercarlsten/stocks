@@ -162,28 +162,28 @@ async function fetchDescription(link: string): Promise<string | null> {
 
 async function fetchNewsForStock(symbol: string, name: string | null) {
   const terms = nameTerms(name);
-  if (!terms.length) terms.push(symbol.toLowerCase());
-  const primaryTerm = terms[0];
-
   const threeMonthsAgo = Math.floor(Date.now() / 1000) - 90 * 24 * 60 * 60;
 
-  const [rssItems, searchItems] = await Promise.all([
-    fetchRSSNews(symbol),
-    fetchSearchNews(primaryTerm),
-  ]);
-
-  // RSS items are already ticker-specific — trust them all, no name filter needed
+  // RSS is symbol-specific and already curated — always fetch it
+  const rssItems = await fetchRSSNews(symbol);
   const rssTrusted = rssItems.filter((item) => {
     const t = item.providerPublishTime;
     return !t || t >= threeMonthsAgo;
   });
 
-  // Search items need relevance filtering against the title
-  const searchFiltered = searchItems.filter((item) => {
-    const t = item.providerPublishTime;
-    if (t && t < threeMonthsAgo) return false;
-    return isRelevant(item.title ?? "", terms);
-  });
+  // Only hit the search API if RSS didn't return enough results
+  let searchFiltered: YFNewsItem[] = [];
+  if (rssTrusted.length < 3 && (name || terms.length)) {
+    // Search by full company name — far more specific than a single extracted word
+    const query = name ?? terms.join(" ");
+    const searchItems = await fetchSearchNews(query);
+    searchFiltered = searchItems.filter((item) => {
+      const t = item.providerPublishTime;
+      if (t && t < threeMonthsAgo) return false;
+      // Must match at least one meaningful name term in the headline
+      return terms.length ? isRelevant(item.title ?? "", terms) : false;
+    });
+  }
 
   // Merge, deduplicate, keep RSS items first (higher quality), cap at 5 per stock
   const seen = new Set<string>();
