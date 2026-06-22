@@ -57,7 +57,7 @@ export default function AllStocksNews({ stocks }: { stocks: Stock[] }) {
   return (
     <div className="flex flex-col gap-6">
       <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-600 bg-clip-text text-transparent">
-        News related to your stocks <span className="text-gray-400">(a bit funky)</span>
+        News related to your stocks
       </h2>
       {loading && (
         <p className="text-gray-400 text-xs">Loading news…</p>
