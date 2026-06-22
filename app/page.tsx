@@ -606,13 +606,14 @@ const cutoff1yr = new Date();
                       </GainHover>
                     </div>
                   )}
-                  {totalRealized !== 0 && (
+                  {gain1yr !== null && totalRealized !== 0 && (
                     <div className="flex items-baseline gap-2">
-                      <span className="text-gray-600 text-xs w-24 shrink-0">Realized (FIFO)</span>
-                      <GainHover isPositive={totalRealized >= 0}>
-                        <TrumpHover isNegative={totalRealized < 0}>
-                          <span className={`text-sm font-medium whitespace-nowrap ${totalRealized >= 0 ? "text-green-600" : "text-red-500"}`}>
-                            {totalRealized >= 0 ? "+" : ""}{fmt(totalRealized)}
+                      <span className="text-gray-600 text-xs w-24 shrink-0">Total return</span>
+                      <GainHover isPositive={(gain1yr + totalRealized) >= 0}>
+                        <TrumpHover isNegative={(gain1yr + totalRealized) < 0}>
+                          <span className={`text-sm font-medium whitespace-nowrap ${(gain1yr + totalRealized) >= 0 ? "text-green-600" : "text-red-500"}`}>
+                            {(gain1yr + totalRealized) >= 0 ? "+" : ""}{fmt(gain1yr + totalRealized)}
+                            <span className="text-gray-500 font-normal text-xs ml-1">(1yr + realized)</span>
                           </span>
                         </TrumpHover>
                       </GainHover>
