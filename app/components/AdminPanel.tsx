@@ -26,10 +26,15 @@ interface Props {
   onClose: () => void;
 }
 
-function deviceColor(device: string): string {
-  if (device === "iPhone" || device === "Android Phone") return "bg-blue-50 text-blue-700";
-  if (device === "iPad" || device === "Android Tablet") return "bg-purple-50 text-purple-700";
-  return "bg-gray-100 text-gray-600";
+function deviceColor(_device: string): string {
+  return "bg-white text-gray-700 border border-gray-200";
+}
+
+function deviceIcon(device: string): string {
+  if (device === "iPhone" || device === "Android Phone") return "📱";
+  if (device === "iPad" || device === "Android Tablet") return "📲";
+  if (device === "Mac") return "💻";
+  return "🖥️";
 }
 
 function fmtDate(iso: string | null) {
@@ -122,7 +127,7 @@ export default function AdminPanel({ open, onClose }: Props) {
                 <div className="flex items-center justify-between mt-0.5">
                   {u.lastSeenDevice ? (
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${deviceColor(u.lastSeenDevice)}`}>
-                      {u.lastSeenDevice}
+                      {deviceIcon(u.lastSeenDevice)} {u.lastSeenDevice}
                     </span>
                   ) : <span className="text-gray-400 text-xs">—</span>}
                   {confirm === u.username ? (
@@ -174,8 +179,8 @@ export default function AdminPanel({ open, onClose }: Props) {
                     <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{fmtDateTime(u.lastSeenAt)}</td>
                     <td className="px-4 py-3 text-xs whitespace-nowrap">
                       {u.lastSeenDevice ? (
-                        <span className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full font-medium ${deviceColor(u.lastSeenDevice)}`}>
-                          {u.lastSeenDevice}
+                        <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${deviceColor(u.lastSeenDevice)}`}>
+                          {deviceIcon(u.lastSeenDevice)} {u.lastSeenDevice}
                         </span>
                       ) : <span className="text-gray-400">—</span>}
                     </td>
