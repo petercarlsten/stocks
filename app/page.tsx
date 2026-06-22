@@ -23,8 +23,6 @@ import TopGainers from "./components/TopGainers";
 import DashboardLeaderboard from "./components/DashboardLeaderboard";
 import TickerSearch from "./components/TickerSearch";
 import AllStocksNews from "./components/AllStocksNews";
-import PortfolioValueChart from "./components/PortfolioValueChart";
-import SectorChart from "./components/SectorChart";
 
 interface Purchase {
   date?: string;
@@ -593,30 +591,7 @@ export default function Home() {
 
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
-        {stocks.length > 0 && (
-          <div className="flex flex-wrap gap-3 mb-4">
-            <div className="flex-1 min-w-[280px]">
-              <PortfolioValueChart
-                stocks={stocks.map((s) => ({ symbol: s.symbol, data: s.data, purchases: s.purchases, currency: s.currency }))}
-                currency={currency}
-                exchangeRate={exchangeRate}
-                usdRates={usdRates}
-                theme={theme}
-              />
-            </div>
-            <div className="w-full sm:w-auto sm:min-w-[240px]">
-              <SectorChart
-                stocks={stocks.map((s) => ({ symbol: s.symbol, data: s.data, purchases: s.purchases, currency: s.currency }))}
-                currency={currency}
-                exchangeRate={exchangeRate}
-                usdRates={usdRates}
-                theme={theme}
-              />
-            </div>
-          </div>
-        )}
-
-        {stocks.length === 0 ? (
+{stocks.length === 0 ? (
           <p className="text-gray-400 text-center mt-24">
             {t.addTickerPrompt}
           </p>
