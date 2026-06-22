@@ -21,6 +21,7 @@ interface StockData {
 
 interface Props {
   stocks: StockData[];
+  usdRates?: Record<string, number>;
   className?: string;
 }
 
@@ -33,12 +34,12 @@ function fmtPrice(value: number, currency: string): string {
   return formatCurrency(value, currency);
 }
 
-export default function DashboardLeaderboard({ stocks, className }: Props) {
+export default function DashboardLeaderboard({ stocks, usdRates = {}, className }: Props) {
   const t = useTranslation();
   if (stocks.length === 0) return null;
 
   type PricedPurchase = { date: string; shares: number; price: number };
-  type Row = StockData & { current: number; avgCost: number; pctGain: number; valueGain: number; totalShares: number; currency: string; pricedPurchases: PricedPurchase[] };
+  type Row = StockData & { current: number; avgCost: number; pctGain: number; valueGain: number; valueGainUSD: number; totalShares: number; currency: string; pricedPurchases: PricedPurchase[] };
 
   const withPurchase: Row[] = stocks
     .flatMap((s) => {
@@ -53,9 +54,12 @@ export default function DashboardLeaderboard({ stocks, className }: Props) {
       const current = s.data[s.data.length - 1]?.close ?? 0;
       const pctGain = avgCost > 0 ? ((current - avgCost) / avgCost) * 100 : 0;
       const valueGain = totalShares * (current - avgCost);
-      return [{ ...s, current, avgCost, pctGain, valueGain, totalShares, currency: s.currency ?? "USD", pricedPurchases: priced }];
+      const currency = s.currency ?? "USD";
+      const tickerRate = usdRates[currency] ?? 1;
+      const valueGainUSD = valueGain / tickerRate;
+      return [{ ...s, current, avgCost, pctGain, valueGain, valueGainUSD, totalShares, currency, pricedPurchases: priced }];
     })
-    .sort((a, b) => b.valueGain - a.valueGain);
+    .sort((a, b) => b.valueGainUSD - a.valueGainUSD);
 
   return (
     <div className={className ?? "bg-white rounded-xl p-4 w-96 shrink-0 border border-gray-200 shadow-sm"}>
