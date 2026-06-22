@@ -134,12 +134,11 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
       .catch(() => setCardExRate(1));
   }, [cardCurrency, tickerCurrency, applyRate]);
 
-  // Fetch historical prices for purchases that have a date but no price yet.
-  // Uses functional updaters so concurrent fetches don't overwrite each other.
+  // Fetch historical prices for purchases/sales that have a date but no price yet.
   useEffect(() => {
     (purchases ?? []).forEach((p, i) => {
       if (!p.date || p.price != null) return;
-      const key = `${i}:${p.date}`;
+      const key = `p${i}:${p.date}`;
       if (fetchingRef.current.has(key) || failedRef.current.has(key)) return;
       fetchingRef.current.add(key);
 
@@ -158,8 +157,30 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         .catch(() => { failedRef.current.add(key); })
         .finally(() => fetchingRef.current.delete(key));
     });
+
+    (sales ?? []).forEach((s, i) => {
+      if (!s.date || s.price != null) return;
+      const key = `s${i}:${s.date}`;
+      if (fetchingRef.current.has(key) || failedRef.current.has(key)) return;
+      fetchingRef.current.add(key);
+
+      if (data.length > 0 && s.date >= data[0].date && s.date <= data[data.length - 1].date) {
+        const pt = data.find((d) => d.date >= s.date!) ?? data[0];
+        onSalesChange((prev) => prev.map((ss, j) => j === i ? { ...ss, price: pt.close } : ss));
+        fetchingRef.current.delete(key);
+        return;
+      }
+
+      fetch(`/api/price?symbol=${encodeURIComponent(symbol)}&date=${s.date}`)
+        .then((r) => r.ok ? r.json() : Promise.reject())
+        .then((d) => {
+          onSalesChange((prev) => prev.map((ss, j) => j === i && ss.price == null ? { ...ss, price: d.price } : ss));
+        })
+        .catch(() => { failedRef.current.add(key); })
+        .finally(() => fetchingRef.current.delete(key));
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [purchases, data, symbol]);
+  }, [purchases, sales, data, symbol]);
 
   async function handleNameEnter() {
     if (holdings !== null && holdings.length === 0) return; // known empty — skip
@@ -506,18 +527,9 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                 className="w-20 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-red-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 placeholder={t.shares}
               />
-              <input
-                type="number"
-                min="0"
-                step="any"
-                value={s.price ?? ""}
-                onChange={(e) => {
-                  const v = parseFloat(e.target.value);
-                  onSalesChange((sales ?? []).map((ss, j) => j === i ? { ...ss, price: isNaN(v) ? undefined : v } : ss));
-                }}
-                className="w-24 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-red-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                placeholder="Sale price"
-              />
+              <span className="text-gray-400 text-xs w-20 truncate">
+                {s.price != null ? fmt(s.price) : "…"}
+              </span>
               <button
                 onClick={() => onSalesChange((sales ?? []).filter((_, j) => j !== i))}
                 className="text-gray-300 hover:text-red-400 text-base leading-none shrink-0"
