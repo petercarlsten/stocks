@@ -403,6 +403,31 @@ export default function Home() {
                     <ellipse cx="20" cy="30" rx="3" ry="2.5" fill="#f87171" opacity="0.95"/>
                     <ellipse cx="20" cy="31.5" rx="2" ry="1.2" fill="#ef4444" opacity="0.7"/>
                   </svg>
+                ) : funnyMode === "chuck" ? (
+                  /* Chuck Norris: cowboy hat + beard */
+                  <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
+                    {/* Cowboy hat brim */}
+                    <ellipse cx="20" cy="12" rx="16" ry="3.5" fill="#92400e"/>
+                    {/* Hat crown */}
+                    <rect x="11" y="3" width="18" height="10" rx="3" fill="#78350f"/>
+                    {/* Hat band */}
+                    <rect x="11" y="10" width="18" height="2.5" fill="#451a03"/>
+                    {/* Face */}
+                    <ellipse cx="20" cy="27" rx="12" ry="12" fill="#fcd9a0"/>
+                    {/* Beard */}
+                    <ellipse cx="20" cy="33" rx="9" ry="6" fill="#92400e"/>
+                    <ellipse cx="20" cy="29" rx="7" ry="5" fill="#a16207"/>
+                    {/* Mustache */}
+                    <path d="M 14,26 Q 17,28 20,26 Q 23,28 26,26" fill="#78350f"/>
+                    {/* Eyes */}
+                    <ellipse cx="15" cy="23" rx="2" ry="1.8" fill="#1c1917"/>
+                    <ellipse cx="25" cy="23" rx="2" ry="1.8" fill="#1c1917"/>
+                    <circle cx="15.6" cy="22.4" r="0.7" fill="white"/>
+                    <circle cx="25.6" cy="22.4" r="0.7" fill="white"/>
+                    {/* Eyebrows */}
+                    <path d="M 12,20.5 Q 15,19 18,20.5" stroke="#78350f" strokeWidth="1.6" fill="none" strokeLinecap="round"/>
+                    <path d="M 22,20.5 Q 25,19 28,20.5" stroke="#78350f" strokeWidth="1.6" fill="none" strokeLinecap="round"/>
+                  </svg>
                 ) : funnyMode === "trump-wolf" ? (
                   /* Trump face: iconic swept hair + orange face */
                   <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
