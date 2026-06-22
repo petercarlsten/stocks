@@ -64,13 +64,13 @@ export default function AdminPanel({ open, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl mx-auto flex flex-col max-h-[90vh]">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-5xl mx-auto flex flex-col max-h-[90vh]">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white">Admin — Accounts</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
         </div>
         <div className="overflow-auto flex-1">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[700px] text-sm">
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-800 text-left">
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
