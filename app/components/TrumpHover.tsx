@@ -116,13 +116,13 @@ const CHUCK_QUOTES_NEGATIVE = [
 ];
 
 const CHUCK_GIFS_NEGATIVE = [
-  "https://gifdb.com/images/thumbnail/chuck-norris-doing-round-kick-to-opponent-91cci2crzrqdxznm.gif",
-  "https://gifdb.com/images/thumbnail/chuck-norris-rapid-punches-yybw46sgaw3cbf8o.gif",
-  "https://gifdb.com/images/thumbnail/chuck-norris-firing-machine-gun-in-movie-scene-njyvay3rr71uq8wn.gif",
-  "https://gifdb.com/images/thumbnail/mad-chuck-norris-punching-hpswhsgol1f6xdop.gif",
-  "https://gifdb.com/images/thumbnail/chuck-norris-rapid-gun-fire-f1b8by3dof3j9ou5.gif",
-  "https://gifdb.com/images/thumbnail/chuck-norris-one-punch-knock-out-din47zx1i43drolk.gif",
-  "https://gifdb.com/images/thumbnail/different-shots-of-chuck-norris-zlumll0cdn0nvrjw.gif",
+  "https://media.tenor.com/3zURMzv9NbsAAAAd/walker-texas-ranger-chuck-norris.gif",
+  "https://media.tenor.com/GdF28omU-1YAAAAd/chuck-norris-kick-action.gif",
+  "https://media.tenor.com/nJxUQsqEBm0AAAAd/chuck-norris-walker-texas-ranger.gif",
+  "https://media.tenor.com/3zURMzv9NbsAAAAd/walker-texas-ranger-chuck-norris.gif",
+  "https://media.tenor.com/GdF28omU-1YAAAAd/chuck-norris-kick-action.gif",
+  "https://media.tenor.com/nJxUQsqEBm0AAAAd/chuck-norris-walker-texas-ranger.gif",
+  "https://media.tenor.com/3zURMzv9NbsAAAAd/walker-texas-ranger-chuck-norris.gif",
 ];
 
 const SAD_DOG_GIFS = [

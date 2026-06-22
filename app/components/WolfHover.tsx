@@ -110,15 +110,14 @@ const CHUCK_QUOTES_POSITIVE = [
 ];
 
 const CHUCK_GIFS_POSITIVE = [
-  "https://gifdb.com/images/thumbnail/chuck-norris-approved-t1k3m7tzbwexgupb.gif",
-  "https://gifdb.com/images/thumbnail/chuck-norris-thumbs-up-and-down-233l5orexlav8a2s.gif",
-  "https://gifdb.com/images/thumbnail/chuck-norris-thumbs-up-along-other-personalities-j70eg20n127qd5g6.gif",
-  "https://gifdb.com/images/thumbnail/chuck-norris-thumbs-up-hitting-year-2017-2018-94mv8z95tgffjraj.gif",
-  "https://gifdb.com/images/thumbnail/dodgeball-chuck-norris-thumbs-up-gw1y5db5hvvz92hg.gif",
-  "https://gifdb.com/images/thumbnail/quicktrip-chuck-norris-thumbs-up-watch-out-86yc3h9ya6zwst53.gif",
-  "https://gifdb.com/images/thumbnail/chuck-norris-thumbs-up-guy-face-swap-animation-dezgxf61todnirea.gif",
-  "https://gifdb.com/images/thumbnail/good-luck-chuck-norris-thumbs-up-8zbpprqqvlydr3oi.gif",
-  "https://gifdb.com/images/thumbnail/dodgeball-thank-you-chuck-norris-r4q45prxu3ws8a17.gif",
+  "https://media.tenor.com/g39A1y1HfO0AAAAd/chuck-norris-walker-texas-ranger.gif",
+  "https://media.tenor.com/tXIXAn5StkcAAAAd/chuck-norris-chuck.gif",
+  "https://media.tenor.com/FgGLhTw6LxQAAAAd/you-betcha-chuck-norris.gif",
+  "https://media.tenor.com/__BnyxGGE4sAAAAd/chuck-norris-thumbs-up.gif",
+  "https://media.tenor.com/TGH4D9JDwrAAAAAd/chuck-norris-thumbs-up.gif",
+  "https://media.tenor.com/M0WuyPtHC1MAAAAd/thumbs-up-chuck-norris.gif",
+  "https://media.tenor.com/1vySVcQqUmsAAAAd/chuck-norris-approves.gif",
+  "https://media.tenor.com/1chQnZduRjkAAAAd/chuck-norris-approved.gif",
 ];
 
 const HAPPY_CAT_GIFS = [
