@@ -110,14 +110,14 @@ const CHUCK_QUOTES_POSITIVE = [
 ];
 
 const CHUCK_GIFS_POSITIVE = [
-  "https://media.giphy.com/media/xT9IgG50Lg7rusRgqA/giphy.gif",
-  "https://media.giphy.com/media/5GoVLqeAOo6PK/giphy.gif",
-  "https://media.giphy.com/media/l0MYruglSEPU9QKGQ/giphy.gif",
-  "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif",
-  "https://media.giphy.com/media/26tP4gFBQewkLnMv6/giphy.gif",
-  "https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif",
-  "https://media.giphy.com/media/3oEjHFOscgNwdpfAGY/giphy.gif",
-  "https://media.giphy.com/media/l0HlCUsHEUVIuXsc0/giphy.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-approved-t1k3m7tzbwexgupb.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-thumbs-up-and-down-233l5orexlav8a2s.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-thumbs-up-along-other-personalities-j70eg20n127qd5g6.gif",
+  "https://gifdb.com/images/thumbnail/quicktrip-chuck-norris-thumbs-up-watch-out-86yc3h9ya6zwst53.gif",
+  "https://gifdb.com/images/thumbnail/dodgeball-thank-you-chuck-norris-r4q45prxu3ws8a17.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-approved-t1k3m7tzbwexgupb.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-thumbs-up-and-down-233l5orexlav8a2s.gif",
+  "https://gifdb.com/images/thumbnail/quicktrip-chuck-norris-thumbs-up-watch-out-86yc3h9ya6zwst53.gif",
 ];
 
 const HAPPY_CAT_GIFS = [
