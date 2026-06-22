@@ -556,10 +556,10 @@ const cutoff1yr = new Date();
             {isAdminUser && (
               <button
                 onClick={() => setAdminOpen(true)}
-                className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-indigo-600 hover:text-indigo-800 text-sm font-medium rounded-lg px-3 py-2 transition-colors border border-indigo-200 shadow-sm"
+                className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-900 text-sm font-medium rounded-lg px-3 py-2 transition-colors border border-gray-200 shadow-sm"
               >
                 <span className="hidden sm:inline">Admin</span>
-                <span className="sm:hidden">⚙</span>
+                <span className="sm:hidden">Admin</span>
               </button>
             )}
             <button
