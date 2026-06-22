@@ -111,6 +111,7 @@ export default function Home() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [confirmRemoveSymbol, setConfirmRemoveSymbol] = useState<string | null>(null);
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Load saved preferences — localStorage first (instant), then server overrides
   useEffect(() => {
@@ -257,6 +258,28 @@ export default function Home() {
     return () => clearInterval(id);
   }, []);
 
+  const handleRefresh = useCallback(async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      const current = stocks;
+      if (current.length === 0) return;
+      const results = await Promise.all(
+        current.map((s) =>
+          refreshStockData(s.symbol, s.name).then(({ data, earningsDate, currency, symbol: corrected }) => ({
+            ...s, data, earningsDate,
+            currency: currency ?? s.currency ?? inferCurrency(s.symbol),
+            symbol: corrected ?? s.symbol,
+          }))
+        )
+      );
+      setStocks(results);
+      setLastRefreshed(new Date());
+    } catch { /* non-fatal */ } finally {
+      setRefreshing(false);
+    }
+  }, [stocks, refreshing]);
+
   const addStockBySymbol = useCallback(async (symbol: string) => {
     if (stocks.length >= MAX_STOCKS) { setError("Maximum 9 stocks reached."); return; }
     if (stocks.find((s) => s.symbol === symbol)) { setError(`${symbol} is already added.`); return; }
@@ -357,6 +380,7 @@ export default function Home() {
         .logo-underline {
           background: linear-gradient(90deg, #6366f1, #a855f7 50%, #10b981);
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 639px) {
           .stocks-grid { grid-template-columns: 1fr !important; }
         }
@@ -544,6 +568,18 @@ const cutoff1yr = new Date();
           {leaderboardEnabled && <div className="hidden lg:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} /></div>}
           {topGainersEnabled && <div className="hidden lg:block"><TopGainers /></div>}
           <div className="shrink-0 pt-1 flex flex-row sm:flex-col gap-2 ml-auto sm:ml-0">
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-900 text-sm font-medium rounded-lg px-3 py-2 transition-colors border border-gray-200 shadow-sm disabled:opacity-50"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={refreshing ? {animation:"spin 1s linear infinite"} : {}}>
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              <span className="hidden sm:inline">{refreshing ? "Refreshing…" : "Reload"}</span>
+            </button>
             <button
               onClick={() => setSettingsOpen(true)}
               className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-900 text-sm font-medium rounded-lg px-3 py-2 transition-colors border border-gray-200 shadow-sm"
