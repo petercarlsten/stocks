@@ -642,10 +642,6 @@ const cutoff1yr = new Date();
                     return (
                       <div className="flex flex-col gap-1 mt-0.5 pt-1.5 border-t border-gray-100">
                         <div className="flex items-baseline gap-2">
-                          <span className="text-gray-600 text-xs w-24 shrink-0">Total invested</span>
-                          <span className="text-gray-700 text-sm font-medium whitespace-nowrap">{fmt(totalEverInvested)}</span>
-                        </div>
-                        <div className="flex items-baseline gap-2">
                           <span className="text-gray-600 text-xs w-24 shrink-0">You made</span>
                           <GainHover isPositive={positive}>
                             <TrumpHover isNegative={!positive}>
