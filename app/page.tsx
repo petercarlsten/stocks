@@ -334,24 +334,14 @@ export default function Home() {
     )}
     <main className="min-h-screen page-bg text-gray-900 p-3 sm:p-6">
       <style>{`
-        @keyframes logo-gradient {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        @keyframes badge-glow {
-          0%, 100% { box-shadow: 0 8px 30px -4px rgba(99,102,241,0.55), 0 0 0 0 rgba(99,102,241,0); }
-          50% { box-shadow: 0 8px 40px -4px rgba(99,102,241,0.8), 0 0 30px 4px rgba(16,185,129,0.25); }
-        }
         .logo-text {
-          background: linear-gradient(135deg, #6366f1 0%, #a855f7 35%, #10b981 65%, #6366f1 100%);
-          background-size: 300% 300%;
+          background: linear-gradient(135deg, #6366f1 0%, #a855f7 40%, #10b981 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          animation: logo-gradient 5s ease infinite;
         }
         .logo-badge {
-          animation: badge-glow 3s ease-in-out infinite;
+          box-shadow: 0 8px 24px -4px rgba(99,102,241,0.4);
         }
         .logo-underline {
           background: linear-gradient(90deg, #6366f1, #a855f7 50%, #10b981);
