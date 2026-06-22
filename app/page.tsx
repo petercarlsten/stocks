@@ -110,6 +110,7 @@ export default function Home() {
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [confirmRemoveSymbol, setConfirmRemoveSymbol] = useState<string | null>(null);
+  const [pushEnabled, setPushEnabled] = useState(false);
 
   // Load saved preferences — localStorage first (instant), then server overrides
   useEffect(() => {
@@ -125,6 +126,14 @@ export default function Home() {
     if (localStorage.getItem("portfolio-top-gainers") === "false") setTopGainersEnabled(false);
     const savedLang = localStorage.getItem("portfolio-language") as Language | null;
     if (savedLang === "en" || savedLang === "sv") setLanguage(savedLang);
+
+    // Register service worker for push notifications
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").then(async (reg) => {
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) setPushEnabled(true);
+      }).catch(() => {});
+    }
 
     fetch("/api/user/settings")
       .then((r) => r.json())
@@ -588,6 +597,8 @@ export default function Home() {
                 body: JSON.stringify({ reportEmail: email }),
               }).catch(() => {});
             }}
+            pushEnabled={pushEnabled}
+            onPushChange={setPushEnabled}
           />
         </div>
 

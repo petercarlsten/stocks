@@ -27,6 +27,7 @@ interface User {
   reportEmail?: string;
   reportCurrency?: string;
   preferences?: UserPreferences;
+  pushSubscription?: object;
   createdAt?: string;
   lastLoginAt?: string;
   lastSeenAt?: string;
@@ -152,6 +153,29 @@ export function setPreferences(username: string, prefs: UserPreferences) {
   if (idx === -1) return;
   users[idx] = { ...users[idx], preferences: { ...users[idx].preferences, ...prefs } };
   writeUsers(users);
+}
+
+export function getPushSubscription(username: string): object | null {
+  return readUsers().find((u) => u.username === username)?.pushSubscription ?? null;
+}
+
+export function setPushSubscription(username: string, subscription: object | null) {
+  const users = readUsers();
+  const idx = users.findIndex((u) => u.username === username);
+  if (idx === -1) return;
+  if (subscription === null) {
+    const { pushSubscription: _, ...rest } = users[idx];
+    users[idx] = rest as typeof users[number];
+  } else {
+    users[idx] = { ...users[idx], pushSubscription: subscription };
+  }
+  writeUsers(users);
+}
+
+export function getAllPushSubscriptions(): { username: string; subscription: object }[] {
+  return readUsers()
+    .filter((u) => u.pushSubscription)
+    .map((u) => ({ username: u.username, subscription: u.pushSubscription! }));
 }
 
 export function isAdmin(username: string): boolean {

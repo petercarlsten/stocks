@@ -195,11 +195,14 @@ interface Props {
   onLanguageChange: (v: Language) => void;
   reportEmail: string;
   onReportEmailChange: (email: string) => void;
+  pushEnabled: boolean;
+  onPushChange: (v: boolean) => void;
 }
 
-export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange }: Props) {
+export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange }: Props) {
   const t = useTranslation();
   const [sendState, setSendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [pushTestState, setPushTestState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [pwState, setPwState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [pwError, setPwError] = useState("");
   const [currentPw, setCurrentPw] = useState("");
@@ -371,6 +374,54 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
                 {sendState === "sending" ? t.sending : sendState === "sent" ? t.sent : sendState === "error" ? t.sendError : t.sendReportNow}
               </button>
             </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">Push notifications</label>
+            <div className="flex items-center justify-between">
+              <p className="text-gray-600 text-xs">Monthly portfolio summary on your device</p>
+              <button
+                onClick={async () => {
+                  if (!pushEnabled) {
+                    const perm = await Notification.requestPermission();
+                    if (perm !== "granted") return;
+                    const reg = await navigator.serviceWorker.ready;
+                    const sub = await reg.pushManager.subscribe({
+                      userVisibleOnly: true,
+                      applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+                    });
+                    await fetch("/api/push/subscribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sub) });
+                    onPushChange(true);
+                  } else {
+                    const reg = await navigator.serviceWorker.ready;
+                    const sub = await reg.pushManager.getSubscription();
+                    if (sub) await sub.unsubscribe();
+                    await fetch("/api/push/subscribe", { method: "DELETE" });
+                    onPushChange(false);
+                  }
+                }}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${pushEnabled ? "bg-indigo-500" : "bg-gray-300"}`}
+              >
+                <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${pushEnabled ? "translate-x-4" : "translate-x-0.5"}`} />
+              </button>
+            </div>
+            {pushEnabled && (
+              <button
+                onClick={async () => {
+                  if (pushTestState === "sending") return;
+                  setPushTestState("sending");
+                  try {
+                    const res = await fetch("/api/push/test", { method: "POST" });
+                    setPushTestState(res.ok ? "sent" : "error");
+                  } catch { setPushTestState("error"); }
+                  setTimeout(() => setPushTestState("idle"), 3000);
+                }}
+                className="text-xs text-indigo-600 hover:text-indigo-800 disabled:opacity-40 self-start"
+                disabled={pushTestState === "sending"}
+              >
+                {pushTestState === "sending" ? "Sending…" : pushTestState === "sent" ? "Sent!" : pushTestState === "error" ? "Error" : "Send test notification"}
+              </button>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
