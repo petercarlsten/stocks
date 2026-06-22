@@ -333,6 +333,9 @@ export default function Home() {
         @media (max-width: 639px) {
           .stocks-grid { grid-template-columns: 1fr !important; }
         }
+        @media (min-width: 640px) and (max-width: 1023px) {
+          .stocks-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+        }
       `}</style>
       <div className="max-w-screen-xl mx-auto">
         <div className="flex flex-wrap items-start gap-3 sm:gap-6 mb-4 sm:mb-6">
@@ -508,8 +511,8 @@ export default function Home() {
               ) : null;
             })()}
           </div>
-          {leaderboardEnabled && <div className="hidden sm:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} /></div>}
-          {topGainersEnabled && <div className="hidden sm:block"><TopGainers /></div>}
+          {leaderboardEnabled && <div className="hidden lg:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} /></div>}
+          {topGainersEnabled && <div className="hidden lg:block"><TopGainers /></div>}
           <div className="shrink-0 pt-1 flex flex-row sm:flex-col gap-2 ml-auto sm:ml-0">
             <button
               onClick={() => setSettingsOpen(true)}
@@ -579,8 +582,8 @@ export default function Home() {
           {loading && <span className="text-gray-400 text-sm self-center">{t.loading}</span>}
         </div>
 
-        {/* Leaderboard + Top Gainers shown below search on mobile */}
-        <div className="flex flex-wrap gap-3 mb-4 sm:hidden">
+        {/* Leaderboard + Top Gainers shown below search on mobile and tablet */}
+        <div className="flex flex-wrap gap-3 mb-4 lg:hidden">
           {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} />}
           {topGainersEnabled && <TopGainers />}
         </div>

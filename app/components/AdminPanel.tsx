@@ -7,12 +7,20 @@ interface UserInfo {
   createdAt: string | null;
   lastLoginAt: string | null;
   lastSeenAt: string | null;
+  lastSeenDevice: string | null;
   loginCount: number;
 }
 
 interface Props {
   open: boolean;
   onClose: () => void;
+}
+
+function deviceColor(device: string): string {
+  if (device === "iPhone" || device === "Android Phone") return "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
+  if (device === "iPad" || device === "Android Tablet") return "bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300";
+  if (device === "Mac" || device === "Windows" || device === "Linux") return "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300";
+  return "bg-gray-100 text-gray-500";
 }
 
 function fmtDate(iso: string | null) {
@@ -70,6 +78,7 @@ export default function AdminPanel({ open, onClose }: Props) {
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Joined</th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Last login</th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Last seen</th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Device</th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Logins</th>
                 <th className="px-4 py-3"></th>
               </tr>
@@ -91,6 +100,13 @@ export default function AdminPanel({ open, onClose }: Props) {
                   <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{fmtDate(u.createdAt)}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{fmtDateTime(u.lastLoginAt)}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{fmtDateTime(u.lastSeenAt)}</td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap">
+                    {u.lastSeenDevice ? (
+                      <span className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full font-medium ${deviceColor(u.lastSeenDevice)}`}>
+                        {u.lastSeenDevice}
+                      </span>
+                    ) : <span className="text-gray-400">—</span>}
+                  </td>
                   <td className="px-4 py-3 text-gray-500 text-xs text-right">{u.loginCount}</td>
                   <td className="px-4 py-3 text-right">
                     {confirm === u.username ? (

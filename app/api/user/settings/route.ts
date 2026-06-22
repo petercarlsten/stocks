@@ -3,11 +3,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getReportEmail, setReportEmail, getReportCurrency, setReportCurrency, updateLastSeen, isAdmin } from "@/lib/users";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   const username = session?.user?.name ?? null;
   if (!username) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  updateLastSeen(username);
+  const ua = req.headers.get("user-agent") ?? undefined;
+  updateLastSeen(username, ua);
   return NextResponse.json({
     reportEmail: getReportEmail(username),
     reportCurrency: getReportCurrency(username),

@@ -19,6 +19,7 @@ interface User {
   createdAt?: string;
   lastLoginAt?: string;
   lastSeenAt?: string;
+  lastSeenDevice?: string;
   loginCount?: number;
 }
 
@@ -96,11 +97,25 @@ export function setReportEmail(username: string, email: string) {
   writeUsers(users);
 }
 
-export function updateLastSeen(username: string) {
+export function parseDevice(ua: string): string {
+  if (!ua) return "Unknown";
+  if (/iPad/.test(ua)) return "iPad";
+  if (/iPhone/.test(ua)) return "iPhone";
+  if (/Android/.test(ua) && /Mobile/.test(ua)) return "Android Phone";
+  if (/Android/.test(ua)) return "Android Tablet";
+  if (/Windows/.test(ua)) return "Windows";
+  if (/Macintosh|Mac OS X/.test(ua)) return "Mac";
+  if (/Linux/.test(ua)) return "Linux";
+  return "Unknown";
+}
+
+export function updateLastSeen(username: string, ua?: string) {
   const users = readUsers();
   const idx = users.findIndex((u) => u.username.toLowerCase() === username.toLowerCase());
   if (idx === -1) return;
-  users[idx] = { ...users[idx], lastSeenAt: new Date().toISOString() };
+  const update: Partial<User> = { lastSeenAt: new Date().toISOString() };
+  if (ua) update.lastSeenDevice = parseDevice(ua);
+  users[idx] = { ...users[idx], ...update };
   writeUsers(users);
 }
 
