@@ -478,9 +478,10 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         </div>
         {(purchases ?? []).map((p, i) => {
           const remaining = remainingPerLot[i] ?? p.shares;
-          const reduced = remaining < p.shares;
+          const fullySold = remaining === 0 && p.shares > 0;
+          const partialSold = remaining > 0 && remaining < p.shares;
           return (
-          <div key={i} className="flex items-center gap-2 mb-1">
+          <div key={i} className={`flex items-center gap-2 mb-1 ${fullySold ? "opacity-50" : ""}`}>
             <input
               type="date"
               value={p.date ?? ""}
@@ -493,7 +494,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               }}
               className="w-32 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
-            <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0">
               <input
                 type="number"
                 min="0"
@@ -503,13 +504,14 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                   const v = parseFloat(e.target.value);
                   onPurchasesChange((purchases ?? []).map((pp, j) => j === i ? { ...pp, shares: isNaN(v) ? 0 : Math.max(0, v) } : pp));
                 }}
-                className="w-20 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className={`w-20 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${fullySold ? "line-through text-gray-400" : "text-gray-900"}`}
                 placeholder={t.shares}
               />
-              {reduced && (
-                <span className="text-gray-400 text-xs mt-0.5 pl-0.5">
-                  {remaining > 0 ? `${remaining} left` : "fully sold"}
-                </span>
+              {partialSold && (
+                <span className="text-red-500 text-xs font-semibold whitespace-nowrap">→ {remaining}</span>
+              )}
+              {fullySold && (
+                <span className="text-red-500 text-xs font-semibold whitespace-nowrap">sold</span>
               )}
             </div>
             <button
@@ -533,11 +535,14 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
 
       {/* Sales section */}
       {((sales ?? []).length > 0 || totalPurchasedShares > 0) && (
-        <div className="pt-2 border-t border-gray-100">
+        <div className="pt-2 border-t-2 border-red-100 mt-1">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-gray-600 text-xs">Sales</span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-4 rounded-full bg-red-400 inline-block"></span>
+              <span className="text-red-500 text-xs font-semibold uppercase tracking-wide">Sales</span>
+            </div>
             {totalSoldShares > 0 && (
-              <span className="text-gray-500 text-xs">{totalSoldShares} sold · {totalShares} remaining</span>
+              <span className="text-gray-500 text-xs">{totalSoldShares} sold · {totalShares} left</span>
             )}
           </div>
           {(() => {
