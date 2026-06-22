@@ -9,6 +9,16 @@ function ensureDir() {
   if (!fs.existsSync(DIR)) fs.mkdirSync(DIR, { recursive: true });
 }
 
+export interface UserPreferences {
+  currency?: string;
+  theme?: "light" | "dark";
+  funnyMode?: string;
+  newsEnabled?: boolean;
+  leaderboardEnabled?: boolean;
+  topGainersEnabled?: boolean;
+  language?: string;
+}
+
 interface User {
   id: string;
   username: string;
@@ -16,6 +26,7 @@ interface User {
   provider?: "google";
   reportEmail?: string;
   reportCurrency?: string;
+  preferences?: UserPreferences;
   createdAt?: string;
   lastLoginAt?: string;
   lastSeenAt?: string;
@@ -128,6 +139,18 @@ export function setReportCurrency(username: string, currency: string) {
   const idx = users.findIndex((u) => u.username === username);
   if (idx === -1) return;
   users[idx] = { ...users[idx], reportCurrency: currency || undefined };
+  writeUsers(users);
+}
+
+export function getPreferences(username: string): UserPreferences {
+  return readUsers().find((u) => u.username === username)?.preferences ?? {};
+}
+
+export function setPreferences(username: string, prefs: UserPreferences) {
+  const users = readUsers();
+  const idx = users.findIndex((u) => u.username === username);
+  if (idx === -1) return;
+  users[idx] = { ...users[idx], preferences: { ...users[idx].preferences, ...prefs } };
   writeUsers(users);
 }
 

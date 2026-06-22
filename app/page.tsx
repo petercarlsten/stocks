@@ -111,19 +111,12 @@ export default function Home() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [confirmRemoveSymbol, setConfirmRemoveSymbol] = useState<string | null>(null);
 
-  // Load saved preferences
+  // Load saved preferences — localStorage first (instant), then server overrides
   useEffect(() => {
-    const saved = localStorage.getItem("portfolio-currency");
-    if (saved) {
-      setCurrency(saved);
-      fetch("/api/user/settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reportCurrency: saved }),
-      }).catch(() => {});
-    }
     const savedTheme = localStorage.getItem("portfolio-theme") as "light" | "dark" | null;
     if (savedTheme) setTheme(savedTheme);
+    const savedCurrency = localStorage.getItem("portfolio-currency");
+    if (savedCurrency) setCurrency(savedCurrency);
     const savedFunnyMode = localStorage.getItem("portfolio-funny-mode") as FunnyMode | null;
     if (savedFunnyMode) setFunnyMode(savedFunnyMode);
     else if (localStorage.getItem("portfolio-trump") === "false") setFunnyMode("off");
@@ -132,9 +125,24 @@ export default function Home() {
     if (localStorage.getItem("portfolio-top-gainers") === "false") setTopGainersEnabled(false);
     const savedLang = localStorage.getItem("portfolio-language") as Language | null;
     if (savedLang === "en" || savedLang === "sv") setLanguage(savedLang);
+
     fetch("/api/user/settings")
       .then((r) => r.json())
-      .then((d) => { if (d.reportEmail) setReportEmail(d.reportEmail); if (d.isAdmin) setIsAdminUser(true); })
+      .then((d) => {
+        if (d.reportEmail) setReportEmail(d.reportEmail);
+        if (d.isAdmin) setIsAdminUser(true);
+        // Server preferences override localStorage — this is the source of truth
+        const p = d.preferences ?? {};
+        if (p.currency) { setCurrency(p.currency); localStorage.setItem("portfolio-currency", p.currency); }
+        if (p.theme === "light" || p.theme === "dark") { setTheme(p.theme); localStorage.setItem("portfolio-theme", p.theme); }
+        if (p.funnyMode) { setFunnyMode(p.funnyMode as FunnyMode); localStorage.setItem("portfolio-funny-mode", p.funnyMode); }
+        if (typeof p.newsEnabled === "boolean") { setNewsEnabled(p.newsEnabled); localStorage.setItem("portfolio-news", String(p.newsEnabled)); }
+        if (typeof p.leaderboardEnabled === "boolean") { setLeaderboardEnabled(p.leaderboardEnabled); localStorage.setItem("portfolio-leaderboard", String(p.leaderboardEnabled)); }
+        if (typeof p.topGainersEnabled === "boolean") { setTopGainersEnabled(p.topGainersEnabled); localStorage.setItem("portfolio-top-gainers", String(p.topGainersEnabled)); }
+        if (p.language === "en" || p.language === "sv") { setLanguage(p.language as Language); localStorage.setItem("portfolio-language", p.language); }
+        // Also sync reportCurrency with currency if set
+        if (d.reportCurrency && !p.currency) { setCurrency(d.reportCurrency); localStorage.setItem("portfolio-currency", d.reportCurrency); }
+      })
       .catch(() => {});
   }, []);
 
@@ -278,6 +286,14 @@ export default function Home() {
       return arrayMove(prev, oldIndex, newIndex);
     });
   }, []);
+
+  function savePrefs(patch: Record<string, unknown>) {
+    fetch("/api/user/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ preferences: patch }),
+    }).catch(() => {});
+  }
 
   const cols = stocks.length <= 2 ? stocks.length || 1 : Math.min(stocks.length, 3);
   const t = translations[language];
@@ -550,19 +566,19 @@ export default function Home() {
             open={settingsOpen}
             onClose={() => setSettingsOpen(false)}
             currency={currency}
-            onCurrencyChange={setCurrency}
+            onCurrencyChange={(v) => { setCurrency(v); savePrefs({ currency: v }); }}
             theme={theme}
-            onThemeChange={setTheme}
+            onThemeChange={(v) => { setTheme(v); savePrefs({ theme: v }); }}
             funnyMode={funnyMode}
-            onFunnyModeChange={(v) => { setFunnyMode(v); localStorage.setItem("portfolio-funny-mode", v); }}
+            onFunnyModeChange={(v) => { setFunnyMode(v); localStorage.setItem("portfolio-funny-mode", v); savePrefs({ funnyMode: v }); }}
             newsEnabled={newsEnabled}
-            onNewsChange={(v) => { setNewsEnabled(v); localStorage.setItem("portfolio-news", String(v)); }}
+            onNewsChange={(v) => { setNewsEnabled(v); localStorage.setItem("portfolio-news", String(v)); savePrefs({ newsEnabled: v }); }}
             leaderboardEnabled={leaderboardEnabled}
-            onLeaderboardChange={(v) => { setLeaderboardEnabled(v); localStorage.setItem("portfolio-leaderboard", String(v)); }}
+            onLeaderboardChange={(v) => { setLeaderboardEnabled(v); localStorage.setItem("portfolio-leaderboard", String(v)); savePrefs({ leaderboardEnabled: v }); }}
             topGainersEnabled={topGainersEnabled}
-            onTopGainersChange={(v) => { setTopGainersEnabled(v); localStorage.setItem("portfolio-top-gainers", String(v)); }}
+            onTopGainersChange={(v) => { setTopGainersEnabled(v); localStorage.setItem("portfolio-top-gainers", String(v)); savePrefs({ topGainersEnabled: v }); }}
             language={language}
-            onLanguageChange={(v) => { setLanguage(v); localStorage.setItem("portfolio-language", v); }}
+            onLanguageChange={(v) => { setLanguage(v); localStorage.setItem("portfolio-language", v); savePrefs({ language: v }); }}
             reportEmail={reportEmail}
             onReportEmailChange={(email) => {
               setReportEmail(email);

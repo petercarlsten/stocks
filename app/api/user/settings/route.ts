@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getReportEmail, setReportEmail, getReportCurrency, setReportCurrency, updateLastSeen, isAdmin } from "@/lib/users";
+import { getReportEmail, setReportEmail, getReportCurrency, setReportCurrency, updateLastSeen, isAdmin, getPreferences, setPreferences } from "@/lib/users";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
     reportEmail: getReportEmail(username),
     reportCurrency: getReportCurrency(username),
     isAdmin: isAdmin(username),
+    preferences: getPreferences(username),
   });
 }
 
@@ -23,5 +24,6 @@ export async function PUT(req: NextRequest) {
   const body = await req.json();
   if (typeof body.reportEmail === "string") setReportEmail(username, body.reportEmail.trim());
   if (typeof body.reportCurrency === "string") setReportCurrency(username, body.reportCurrency.trim());
+  if (body.preferences && typeof body.preferences === "object") setPreferences(username, body.preferences);
   return NextResponse.json({ ok: true });
 }
