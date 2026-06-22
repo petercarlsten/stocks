@@ -235,26 +235,30 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
 
   const purchaseDatesOnChart = useMemo(() => {
     if (!purchases || data.length === 0) return [];
-    const multi = purchases.filter(p => p.date).length > 1;
-    return purchases
-      .map((p, i) => {
-        if (!p.date || p.date < data[0].date || p.date > data[data.length - 1].date) return null;
-        const chartDate = (data.find((d) => d.date >= p.date!) ?? data[0])?.date;
-        return { chartDate, label: multi ? `B${i + 1}` : "B" };
-      })
-      .filter(Boolean) as { chartDate: string; label: string }[];
+    const byDate = new Map<string, number>();
+    purchases.forEach((p) => {
+      if (!p.date || p.date < data[0].date || p.date > data[data.length - 1].date) return;
+      const chartDate = (data.find((d) => d.date >= p.date!) ?? data[0])?.date;
+      byDate.set(chartDate, (byDate.get(chartDate) ?? 0) + 1);
+    });
+    return Array.from(byDate.entries()).map(([chartDate, count]) => ({
+      chartDate,
+      label: count > 1 ? `B×${count}` : "B",
+    }));
   }, [purchases, data]);
 
   const saleDatesOnChart = useMemo(() => {
     if (!sales || data.length === 0) return [];
-    const multi = sales.filter(s => s.date).length > 1;
-    return sales
-      .map((s, i) => {
-        if (!s.date || s.date < data[0].date || s.date > data[data.length - 1].date) return null;
-        const chartDate = (data.find((d) => d.date >= s.date!) ?? data[0])?.date;
-        return { chartDate, label: multi ? `S${i + 1}` : "S" };
-      })
-      .filter(Boolean) as { chartDate: string; label: string }[];
+    const byDate = new Map<string, number>();
+    sales.forEach((s) => {
+      if (!s.date || s.date < data[0].date || s.date > data[data.length - 1].date) return;
+      const chartDate = (data.find((d) => d.date >= s.date!) ?? data[0])?.date;
+      byDate.set(chartDate, (byDate.get(chartDate) ?? 0) + 1);
+    });
+    return Array.from(byDate.entries()).map(([chartDate, count]) => ({
+      chartDate,
+      label: count > 1 ? `S×${count}` : "S",
+    }));
   }, [sales, data]);
 
   const positionValue = totalShares > 0 ? totalShares * last : null;

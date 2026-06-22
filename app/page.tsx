@@ -68,6 +68,30 @@ const SUFFIX_CURRENCY: Record<string, string> = {
   ".NS": "INR",
 };
 
+function calcFifoRealizedGain(
+  purchases: Purchase[],
+  sales: Sale[]
+): number {
+  if (!purchases.length || !sales.length) return 0;
+  const lots = purchases
+    .filter((p) => p.date && p.price != null)
+    .sort((a, b) => (a.date! < b.date! ? -1 : 1))
+    .map((p) => ({ remaining: p.shares, price: p.price! }));
+  let realized = 0;
+  for (const sale of sales) {
+    if (!sale.price) continue;
+    let toSell = sale.shares;
+    for (const lot of lots) {
+      if (toSell <= 0) break;
+      const used = Math.min(toSell, lot.remaining);
+      realized += used * (sale.price - lot.price);
+      lot.remaining -= used;
+      toSell -= used;
+    }
+  }
+  return realized;
+}
+
 function inferCurrency(symbol: string): string {
   const dotIdx = symbol.lastIndexOf(".");
   const suffix = dotIdx >= 0 ? symbol.slice(dotIdx) : "";
@@ -515,27 +539,33 @@ const cutoff1yr = new Date();
               const cutoff1yrStr = cutoff1yr.toISOString().split("T")[0];
               const cutoff1yrEndStr = new Date(cutoff1yr.getTime() + 10 * 86400000).toISOString().split("T")[0];
 
-              let total = 0, total30d = 0, total1yr = 0;
+              let total = 0, total30d = 0, total1yr = 0, totalRealized = 0;
               let has30d = false, has1yr = false;
 
               for (const s of stocks) {
-                const totalShares = (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0);
-                if (totalShares <= 0) continue;
+                const totalSold = (s.sales ?? []).reduce((sum, sale) => sum + sale.shares, 0);
+                const totalShares = Math.max(0, (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0) - totalSold);
+                if (totalShares <= 0 && !(s.sales ?? []).length) continue;
                 // Convert from ticker's native currency to portfolio currency
                 const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
                 const toPortfolio = exchangeRate / tickerRate;
 
                 const price = s.data[s.data.length - 1]?.close ?? 0;
-                total += totalShares * price * toPortfolio;
+                if (totalShares > 0) total += totalShares * price * toPortfolio;
 
-                const past30 = s.data.filter((d) => d.date <= cutoffStr);
-                const price30d = past30.length > 0 ? past30[past30.length - 1].close : null;
-                if (price30d !== null) { total30d += totalShares * price30d * toPortfolio; has30d = true; }
+                if (totalShares > 0) {
+                  const past30 = s.data.filter((d) => d.date <= cutoffStr);
+                  const price30d = past30.length > 0 ? past30[past30.length - 1].close : null;
+                  if (price30d !== null) { total30d += totalShares * price30d * toPortfolio; has30d = true; }
 
-                // Find closest trading day at or just after the 1-year mark (handles weekends/holidays)
-                const near1yr = s.data.filter((d) => d.date >= cutoff1yrStr && d.date <= cutoff1yrEndStr);
-                const price1yr = near1yr.length > 0 ? near1yr[0].close : null;
-                if (price1yr !== null) { total1yr += totalShares * price1yr * toPortfolio; has1yr = true; }
+                  // Find closest trading day at or just after the 1-year mark (handles weekends/holidays)
+                  const near1yr = s.data.filter((d) => d.date >= cutoff1yrStr && d.date <= cutoff1yrEndStr);
+                  const price1yr = near1yr.length > 0 ? near1yr[0].close : null;
+                  if (price1yr !== null) { total1yr += totalShares * price1yr * toPortfolio; has1yr = true; }
+                }
+
+                const realized = calcFifoRealizedGain(s.purchases ?? [], s.sales ?? []);
+                totalRealized += realized * toPortfolio;
               }
 
               const change30d = has30d && total30d > 0 ? ((total - total30d) / total30d) * 100 : null;
@@ -576,11 +606,23 @@ const cutoff1yr = new Date();
                       </GainHover>
                     </div>
                   )}
+                  {totalRealized !== 0 && (
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-gray-600 text-xs w-24 shrink-0">Realized (FIFO)</span>
+                      <GainHover isPositive={totalRealized >= 0}>
+                        <TrumpHover isNegative={totalRealized < 0}>
+                          <span className={`text-sm font-medium whitespace-nowrap ${totalRealized >= 0 ? "text-green-600" : "text-red-500"}`}>
+                            {totalRealized >= 0 ? "+" : ""}{fmt(totalRealized)}
+                          </span>
+                        </TrumpHover>
+                      </GainHover>
+                    </div>
+                  )}
                 </div>
               ) : null;
             })()}
           </div>
-          {leaderboardEnabled && <div className="hidden lg:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} /></div>}
+          {leaderboardEnabled && <div className="hidden lg:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, sales: s.sales, currency: s.currency }))} usdRates={usdRates} /></div>}
           {topGainersEnabled && <div className="hidden lg:block"><TopGainers /></div>}
           <div className="shrink-0 pt-1 flex flex-row sm:flex-col gap-2 ml-auto sm:ml-0">
             <button
@@ -669,7 +711,7 @@ const cutoff1yr = new Date();
 
         {/* Leaderboard + Top Gainers shown below search on mobile and tablet */}
         <div className="flex flex-wrap gap-3 mb-4 lg:hidden">
-          {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} />}
+          {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, sales: s.sales, currency: s.currency }))} usdRates={usdRates} />}
           {topGainersEnabled && <TopGainers />}
         </div>
 
@@ -684,7 +726,8 @@ const cutoff1yr = new Date();
             <SortableContext items={stocks.map((s) => s.symbol)} strategy={rectSortingStrategy}>
               {(() => {
                 const totalPortfolioValue = stocks.reduce((sum, s) => {
-                  const sh = (s.purchases ?? []).reduce((a, p) => a + p.shares, 0);
+                  const sold = (s.sales ?? []).reduce((a, sale) => a + sale.shares, 0);
+                  const sh = Math.max(0, (s.purchases ?? []).reduce((a, p) => a + p.shares, 0) - sold);
                   if (sh <= 0) return sum;
                   const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
                   return sum + sh * (s.data[s.data.length - 1]?.close ?? 0) * (exchangeRate / tickerRate);
@@ -695,7 +738,8 @@ const cutoff1yr = new Date();
                     style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
                   >
                     {stocks.map((s, i) => {
-                      const sh = (s.purchases ?? []).reduce((a, p) => a + p.shares, 0);
+                      const soldSh = (s.sales ?? []).reduce((a, sale) => a + sale.shares, 0);
+                      const sh = Math.max(0, (s.purchases ?? []).reduce((a, p) => a + p.shares, 0) - soldSh);
                       const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
                       const posVal = sh > 0 ? sh * (s.data[s.data.length - 1]?.close ?? 0) * (exchangeRate / tickerRate) : 0;
                       const portfolioPct = totalPortfolioValue > 0 && posVal > 0 ? (posVal / totalPortfolioValue) * 100 : undefined;
