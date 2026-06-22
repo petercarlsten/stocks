@@ -47,9 +47,9 @@ function migrateStock(s: StockData & { shares?: number; purchaseDate?: string; p
   return { ...rest, purchases: [{ date: purchaseDate, shares: shares ?? 0, price: purchasePrice }] };
 }
 
-const COLORS = ["#6366F1", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#EC4899", "#14B8A6", "#F97316", "#A855F7", "#EAB308", "#06B6D4", "#84CC16"];
+const COLORS = ["#6366F1","#10B981","#F59E0B","#EF4444","#3B82F6","#EC4899","#14B8A6","#F97316","#A855F7","#EAB308","#06B6D4","#84CC16","#E11D48","#0EA5E9","#D97706","#7C3AED","#059669","#DC2626","#2563EB","#C026D3","#16A34A","#EA580C","#4F46E5","#0D9488","#B45309","#9333EA","#15803D","#BE123C","#0284C7","#A16207"];
 
-const MAX_STOCKS = 12;
+const MAX_STOCKS = 30;
 const LEGACY_KEY = "saved-stocks-v2";
 
 const SUFFIX_CURRENCY: Record<string, string> = {
@@ -281,7 +281,7 @@ export default function Home() {
   }, [stocks, refreshing]);
 
   const addStockBySymbol = useCallback(async (symbol: string) => {
-    if (stocks.length >= MAX_STOCKS) { setError("Maximum 9 stocks reached."); return; }
+    if (stocks.length >= MAX_STOCKS) { setError("Maximum 30 stocks reached."); return; }
     if (stocks.find((s) => s.symbol === symbol)) { setError(`${symbol} is already added.`); return; }
 
     setLoading(true);
