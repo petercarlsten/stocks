@@ -68,6 +68,24 @@ const SUFFIX_CURRENCY: Record<string, string> = {
   ".NS": "INR",
 };
 
+function calcFifoRemainingCostBasis(purchases: Purchase[], sales: Sale[]): number | null {
+  const pricedLots = purchases
+    .filter((p) => p.date && p.price != null && p.shares > 0)
+    .sort((a, b) => (a.date! < b.date! ? -1 : 1))
+    .map((p) => ({ remaining: p.shares, price: p.price! }));
+  if (!pricedLots.length) return null;
+  for (const sale of [...sales].sort((a, b) => a.date.localeCompare(b.date))) {
+    let toSell = sale.shares;
+    for (const lot of pricedLots) {
+      if (toSell <= 0) break;
+      const used = Math.min(toSell, lot.remaining);
+      lot.remaining -= used;
+      toSell -= used;
+    }
+  }
+  return pricedLots.reduce((sum, lot) => sum + lot.remaining * lot.price, 0);
+}
+
 function calcFifoRealizedGain(
   purchases: Purchase[],
   sales: Sale[]
@@ -564,11 +582,10 @@ const cutoff1yr = new Date();
                   const price1yr = near1yr.length > 0 ? near1yr[0].close : null;
                   if (price1yr !== null) { total1yr += totalShares * price1yr * toPortfolio; has1yr = true; }
 
-                  // Cost basis of currently held shares (for total return since purchase)
-                  const pricedPurchases = (s.purchases ?? []).filter((p) => p.price != null && p.shares > 0);
-                  if (pricedPurchases.length > 0 && totalPurchasedShares > 0) {
-                    const avgCost = pricedPurchases.reduce((sum, p) => sum + p.shares * p.price!, 0) / totalPurchasedShares;
-                    totalCostBasis += avgCost * totalShares * toPortfolio;
+                  // FIFO cost basis of currently held shares
+                  const fifoCostBasis = calcFifoRemainingCostBasis(s.purchases ?? [], s.sales ?? []);
+                  if (fifoCostBasis !== null) {
+                    totalCostBasis += fifoCostBasis * toPortfolio;
                     hasCostBasis = true;
                   }
                 }
