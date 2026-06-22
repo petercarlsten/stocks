@@ -536,15 +536,8 @@ export default function Home() {
                 </div>
               ) : null;
             })()}
-          {/* On desktop: show leaderboard inside left column when top gainers is off */}
-          {leaderboardEnabled && !topGainersEnabled && (
-            <div className="hidden lg:block mt-3">
-              <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} />
-            </div>
-          )}
           </div>
-          {/* On desktop: show leaderboard in sidebar only when top gainers is also on */}
-          {leaderboardEnabled && topGainersEnabled && <div className="hidden lg:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} /></div>}
+          {leaderboardEnabled && <div className="hidden lg:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} /></div>}
           {topGainersEnabled && <div className="hidden lg:block"><TopGainers /></div>}
           <div className="shrink-0 pt-1 flex flex-row sm:flex-col gap-2 ml-auto sm:ml-0">
             <button
