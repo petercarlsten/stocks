@@ -557,7 +557,7 @@ const cutoff1yr = new Date();
               const cutoff1yrStr = cutoff1yr.toISOString().split("T")[0];
               const cutoff1yrEndStr = new Date(cutoff1yr.getTime() + 10 * 86400000).toISOString().split("T")[0];
 
-              let total = 0, total30d = 0, total1yr = 0, totalRealized = 0, totalCostBasis = 0;
+              let total = 0, total30d = 0, total1yr = 0, totalRealized = 0, totalCostBasis = 0, totalEverInvested = 0;
               let has30d = false, has1yr = false, hasCostBasis = false;
 
               for (const s of stocks) {
@@ -582,12 +582,15 @@ const cutoff1yr = new Date();
                   const price1yr = near1yr.length > 0 ? near1yr[0].close : null;
                   if (price1yr !== null) { total1yr += totalShares * price1yr * toPortfolio; has1yr = true; }
 
-                  // FIFO cost basis of currently held shares
+                  // FIFO cost basis of currently held shares (for unrealized gain calc)
                   const fifoCostBasis = calcFifoRemainingCostBasis(s.purchases ?? [], s.sales ?? []);
                   if (fifoCostBasis !== null) {
                     totalCostBasis += fifoCostBasis * toPortfolio;
                     hasCostBasis = true;
                   }
+                  // Total ever invested across all purchases including sold ones
+                  const pricedPurchases = (s.purchases ?? []).filter((p) => p.price != null && p.shares > 0);
+                  totalEverInvested += pricedPurchases.reduce((sum, p) => sum + p.shares * p.price!, 0) * toPortfolio;
                 }
 
                 const realized = calcFifoRealizedGain(s.purchases ?? [], s.sales ?? []);
@@ -632,14 +635,15 @@ const cutoff1yr = new Date();
                       </GainHover>
                     </div>
                   )}
-                  {hasCostBasis && (() => {
+                  {hasCostBasis && totalEverInvested > 0 && (() => {
                     const profit = (total - totalCostBasis) + totalRealized;
+                    const returnPct = (profit / totalEverInvested) * 100;
                     const positive = profit >= 0;
                     return (
                       <div className="flex flex-col gap-1 mt-0.5 pt-1.5 border-t border-gray-100">
                         <div className="flex items-baseline gap-2">
-                          <span className="text-gray-600 text-xs w-24 shrink-0">Money in</span>
-                          <span className="text-gray-700 text-sm font-medium whitespace-nowrap">{fmt(totalCostBasis)}</span>
+                          <span className="text-gray-600 text-xs w-24 shrink-0">Total invested</span>
+                          <span className="text-gray-700 text-sm font-medium whitespace-nowrap">{fmt(totalEverInvested)}</span>
                         </div>
                         <div className="flex items-baseline gap-2">
                           <span className="text-gray-600 text-xs w-24 shrink-0">You made</span>
@@ -647,6 +651,7 @@ const cutoff1yr = new Date();
                             <TrumpHover isNegative={!positive}>
                               <span className={`text-sm font-semibold whitespace-nowrap ${positive ? "text-green-600" : "text-red-500"}`}>
                                 {positive ? "+" : ""}{fmt(profit)}
+                                <span className="font-normal text-xs ml-1">({positive ? "+" : ""}{returnPct.toFixed(1)}%)</span>
                               </span>
                             </TrumpHover>
                           </GainHover>
