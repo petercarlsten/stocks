@@ -9,7 +9,17 @@ interface UserInfo {
   lastSeenAt: string | null;
   lastSeenDevice: string | null;
   loginCount: number;
+  theme: "light" | "dark" | null;
+  funnyMode: string | null;
 }
+
+const FUNNY_LABELS: Record<string, string> = {
+  "trump-wolf": "🎩 Trump",
+  cats: "🐱 Cats",
+  dogs: "🐶 Dogs",
+  chuck: "🥋 Chuck",
+  off: "Off",
+};
 
 interface Props {
   open: boolean;
@@ -97,6 +107,18 @@ export default function AdminPanel({ open, onClose }: Props) {
                 <div className="text-xs text-gray-500">Joined: {fmtDate(u.createdAt)} · {u.loginCount} logins</div>
                 <div className="text-xs text-gray-500">Last login: {fmtDateTime(u.lastLoginAt)}</div>
                 <div className="text-xs text-gray-500">Last seen: {fmtDateTime(u.lastSeenAt)}</div>
+                <div className="flex items-center gap-2 mt-0.5">
+                  {u.theme && (
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                      {u.theme === "dark" ? "🌙 Dark" : "☀️ Light"}
+                    </span>
+                  )}
+                  {u.funnyMode && u.funnyMode !== "off" && (
+                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                      {FUNNY_LABELS[u.funnyMode] ?? u.funnyMode}
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center justify-between mt-0.5">
                   {u.lastSeenDevice ? (
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${deviceColor(u.lastSeenDevice)}`}>
@@ -129,6 +151,7 @@ export default function AdminPanel({ open, onClose }: Props) {
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Joined</th>
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Last seen</th>
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Device</th>
+                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Theme</th>
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Logins</th>
                   <th className="px-4 py-3"></th>
                 </tr>
@@ -155,6 +178,21 @@ export default function AdminPanel({ open, onClose }: Props) {
                           {u.lastSeenDevice}
                         </span>
                       ) : <span className="text-gray-400">—</span>}
+                    </td>
+                    <td className="px-4 py-3 text-xs whitespace-nowrap">
+                      <div className="flex items-center gap-1">
+                        {u.theme && (
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                            {u.theme === "dark" ? "🌙 Dark" : "☀️ Light"}
+                          </span>
+                        )}
+                        {u.funnyMode && u.funnyMode !== "off" && (
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
+                            {FUNNY_LABELS[u.funnyMode] ?? u.funnyMode}
+                          </span>
+                        )}
+                        {!u.theme && !u.funnyMode && <span className="text-gray-400">—</span>}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-gray-500 text-xs text-right">{u.loginCount}</td>
                     <td className="px-4 py-3 text-right">

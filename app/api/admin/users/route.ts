@@ -21,6 +21,8 @@ export async function GET() {
     lastSeenAt: u.lastSeenAt ?? null,
     lastSeenDevice: u.lastSeenDevice ?? null,
     loginCount: u.loginCount ?? 0,
+    theme: u.preferences?.theme ?? null,
+    funnyMode: u.preferences?.funnyMode ?? null,
   }));
   return NextResponse.json({ users });
 }
