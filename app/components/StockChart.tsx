@@ -51,6 +51,34 @@ interface Props {
   tickerCurrency?: string;
 }
 
+function calcFifoGainsPerSale(purchases: Purchase[], sales: Sale[]): (number | null)[] {
+  const lots = purchases
+    .filter((p) => p.date && p.price != null && p.shares > 0)
+    .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""))
+    .map((p) => ({ remaining: p.shares, price: p.price! }));
+
+  const indexed = sales.map((s, origIdx) => ({ ...s, origIdx }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const result: (number | null)[] = new Array(sales.length).fill(null);
+  for (const sale of indexed) {
+    if (!sale.price || !sale.shares) continue;
+    let toSell = sale.shares;
+    let gain = 0;
+    let matched = false;
+    for (const lot of lots) {
+      if (toSell <= 0 || lot.remaining <= 0) continue;
+      const used = Math.min(toSell, lot.remaining);
+      gain += used * (sale.price - lot.price);
+      lot.remaining -= used;
+      toSell -= used;
+      matched = true;
+    }
+    if (matched) result[sale.origIdx] = gain;
+  }
+  return result;
+}
+
 function calcFifoRealizedGain(purchases: Purchase[], sales: Sale[]): number | null {
   const salesWithPrice = sales.filter((s) => s.price != null && s.shares > 0);
   if (!salesWithPrice.length) return null;
@@ -508,10 +536,13 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                 placeholder={t.shares}
               />
               {partialSold && (
-                <span className="text-red-500 text-xs font-semibold whitespace-nowrap">→ {remaining}</span>
+                <span className="text-xs whitespace-nowrap">
+                  <span className="text-gray-400">{p.shares - remaining} sold, </span>
+                  <span className="text-indigo-600 font-semibold">{remaining} holding</span>
+                </span>
               )}
               {fullySold && (
-                <span className="text-red-500 text-xs font-semibold whitespace-nowrap">sold</span>
+                <span className="text-red-500 text-xs font-semibold whitespace-nowrap">all sold</span>
               )}
             </div>
             <button
@@ -558,37 +589,49 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               </div>
             );
           })()}
-          {(sales ?? []).map((s, i) => (
-            <div key={i} className="flex items-center gap-2 mb-1">
-              <input
-                type="date"
-                value={s.date}
-                max={today}
-                onChange={(e) => onSalesChange((sales ?? []).map((ss, j) => j === i ? { ...ss, date: e.target.value } : ss))}
-                className="w-32 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-red-400"
-              />
-              <input
-                type="number"
-                min="0"
-                step="any"
-                value={s.shares || ""}
-                onChange={(e) => {
-                  const v = parseFloat(e.target.value);
-                  onSalesChange((sales ?? []).map((ss, j) => j === i ? { ...ss, shares: isNaN(v) ? 0 : Math.max(0, v) } : ss));
-                }}
-                className="w-20 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-red-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                placeholder={t.shares}
-              />
-              <span className="text-gray-400 text-xs w-20 truncate">
-                {s.price != null ? fmt(s.price) : "…"}
-              </span>
-              <button
-                onClick={() => onSalesChange((sales ?? []).filter((_, j) => j !== i))}
-                className="text-gray-300 hover:text-red-400 text-base leading-none shrink-0"
-                title={t.remove}
-              >×</button>
-            </div>
-          ))}
+          {(() => {
+            const saleGains = calcFifoGainsPerSale(purchases ?? [], sales ?? []);
+            return (sales ?? []).map((s, i) => {
+              const gain = saleGains[i];
+              return (
+              <div key={i} className="flex items-start gap-2 mb-1.5">
+                <input
+                  type="date"
+                  value={s.date}
+                  max={today}
+                  onChange={(e) => onSalesChange((sales ?? []).map((ss, j) => j === i ? { ...ss, date: e.target.value } : ss))}
+                  className="w-32 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-red-400"
+                />
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={s.shares || ""}
+                      onChange={(e) => {
+                        const v = parseFloat(e.target.value);
+                        onSalesChange((sales ?? []).map((ss, j) => j === i ? { ...ss, shares: isNaN(v) ? 0 : Math.max(0, v) } : ss));
+                      }}
+                      className="w-20 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-red-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      placeholder={t.shares}
+                    />
+                    <span className="text-gray-500 text-xs">@ {s.price != null ? fmt(s.price) : "…"}</span>
+                  </div>
+                  {gain !== null && (
+                    <span className="text-xs font-semibold" style={{ color: gain >= 0 ? "#16a34a" : "#ef4444" }}>
+                      {gain >= 0 ? "+" : ""}{fmt(gain)} {gain >= 0 ? "profit" : "loss"}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => onSalesChange((sales ?? []).filter((_, j) => j !== i))}
+                  className="text-gray-300 hover:text-red-400 text-base leading-none shrink-0 mt-0.5"
+                  title={t.remove}
+                >×</button>
+              </div>
+            );});
+          })()}
           <button
             onClick={() => onSalesChange([...(sales ?? []), { date: today, shares: 0 }])}
             className="text-red-400 hover:text-red-600 text-xs mt-0.5"
