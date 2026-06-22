@@ -6,12 +6,35 @@ import type { YearlyReportData, YearlyStockReport } from "./email";
 const YahooFinance = require("yahoo-finance2").default;
 const yf = new YahooFinance({ suppressNotices: ["ripHistorical", "yahooSurvey"] });
 
-interface StoredPurchase { shares: number; }
+interface StoredPurchase { date?: string; shares: number; price?: number; }
+interface StoredSale { date?: string; shares: number; price?: number; }
 interface StoredStock {
   symbol: string;
   name: string;
   currency?: string;
   purchases?: StoredPurchase[];
+  sales?: StoredSale[];
+}
+
+function calcFifoRealizedGain(purchases: StoredPurchase[], sales: StoredSale[]): number {
+  if (!purchases.length || !sales.length) return 0;
+  const lots = purchases
+    .filter((p) => p.date && p.price != null)
+    .sort((a, b) => (a.date! < b.date! ? -1 : 1))
+    .map((p) => ({ remaining: p.shares, price: p.price! }));
+  let realized = 0;
+  for (const sale of sales) {
+    if (!sale.price) continue;
+    let toSell = sale.shares;
+    for (const lot of lots) {
+      if (toSell <= 0) break;
+      const used = Math.min(toSell, lot.remaining);
+      realized += used * (sale.price - lot.price);
+      lot.remaining -= used;
+      toSell -= used;
+    }
+  }
+  return realized;
 }
 
 async function fetchRates(): Promise<Record<string, number>> {
@@ -43,11 +66,14 @@ export async function buildYearlyReportData(username: string): Promise<YearlyRep
         const priceStart = quotes[0].close;
         const priceEnd   = quotes[quotes.length - 1].close;
         const changeYr   = ((priceEnd - priceStart) / priceStart) * 100;
-        const totalShares = (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0);
+        const totalPurchased = (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0);
+        const totalSold = (s.sales ?? []).reduce((sum, sale) => sum + sale.shares, 0);
+        const totalShares = Math.max(0, totalPurchased - totalSold);
         const positionValue = totalShares > 0 ? totalShares * priceEnd : null;
         const earningsYr    = totalShares > 0 ? totalShares * (priceEnd - priceStart) : null;
+        const realizedGain  = calcFifoRealizedGain(s.purchases ?? [], s.sales ?? []);
 
-        return { symbol: s.symbol, name: s.name, currentPrice: priceEnd, changeYr, positionValue, earningsYr, currency: s.currency ?? "USD" } as YearlyStockReport;
+        return { symbol: s.symbol, name: s.name, currentPrice: priceEnd, changeYr, positionValue, earningsYr, realizedGain: realizedGain || null, currency: s.currency ?? "USD" } as YearlyStockReport;
       } catch {
         return null;
       }
@@ -64,11 +90,14 @@ export async function buildYearlyReportData(username: string): Promise<YearlyRep
   const reportCurrency = getReportCurrency(username);
   const displayRate = rates[reportCurrency] ?? 1;
 
-  let total = 0, totalStart = 0, hasData = false;
+  let total = 0, totalStart = 0, hasData = false, totalRealized = 0;
 
   for (const r of stockResults) {
     const toDisplay = displayRate / (rates[r.currency] ?? 1);
-    const shares = rawStocks.find((s) => s.symbol === r.symbol)?.purchases?.reduce((sum, p) => sum + p.shares, 0) ?? 0;
+    const raw = rawStocks.find((s) => s.symbol === r.symbol);
+    const totalPurchased = raw?.purchases?.reduce((sum, p) => sum + p.shares, 0) ?? 0;
+    const totalSold = (raw?.sales ?? []).reduce((sum, sale) => sum + sale.shares, 0);
+    const shares = Math.max(0, totalPurchased - totalSold);
     if (shares > 0 && r.currentPrice > 0) {
       total += shares * r.currentPrice * toDisplay;
       if (r.changeYr !== null) {
@@ -77,6 +106,7 @@ export async function buildYearlyReportData(username: string): Promise<YearlyRep
         hasData = true;
       }
     }
+    if (r.realizedGain) totalRealized += r.realizedGain * toDisplay;
   }
 
   const totalChangeYrPct   = hasData && totalStart > 0 ? ((total - totalStart) / totalStart) * 100 : null;
@@ -88,6 +118,7 @@ export async function buildYearlyReportData(username: string): Promise<YearlyRep
     totalValueUSD: total > 0 ? total : null,
     totalChangeYrPct,
     totalEarningsYrUSD,
+    totalRealizedGainUSD: totalRealized || null,
     currency: reportCurrency,
     stocks: stockResults,
   };

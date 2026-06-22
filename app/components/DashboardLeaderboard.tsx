@@ -11,11 +11,18 @@ interface Purchase {
   price?: number;
 }
 
+interface Sale {
+  date?: string;
+  shares: number;
+  price?: number;
+}
+
 interface StockData {
   symbol: string;
   name: string;
   data: { date: string; close: number }[];
   purchases?: Purchase[];
+  sales?: Sale[];
   currency?: string;
 }
 
@@ -47,10 +54,11 @@ export default function DashboardLeaderboard({ stocks, usdRates = {}, className 
         .filter((p): p is { date: string; shares: number; price: number } => !!p.date && p.price != null)
         .sort((a, b) => a.date.localeCompare(b.date));
       if (priced.length === 0) return [];
-      const totalShares = priced.reduce((sum, p) => sum + p.shares, 0);
+      const totalSold = (s.sales ?? []).reduce((sum, sale) => sum + sale.shares, 0);
+      const totalShares = Math.max(0, priced.reduce((sum, p) => sum + p.shares, 0) - totalSold);
       if (totalShares <= 0) return [];
       const totalCost = priced.reduce((sum, p) => sum + p.shares * p.price, 0);
-      const avgCost = totalCost / totalShares;
+      const avgCost = totalCost / (totalShares + totalSold);
       const current = s.data[s.data.length - 1]?.close ?? 0;
       const pctGain = avgCost > 0 ? ((current - avgCost) / avgCost) * 100 : 0;
       const valueGain = totalShares * (current - avgCost);

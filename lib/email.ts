@@ -10,6 +10,7 @@ export interface StockReport {
   currentPrice: number;
   change30d: number | null;
   positionValue: number | null;
+  realizedGain?: number | null;
   currency: string;
 }
 
@@ -19,6 +20,7 @@ export interface ReportData {
   totalValueUSD: number | null;
   totalChange30dPct: number | null;
   totalEarnings30dUSD: number | null;
+  totalRealizedGainUSD?: number | null;
   currency: string;
   stocks: StockReport[];
 }
@@ -50,6 +52,7 @@ function buildHtml(data: ReportData): string {
         <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;text-align:right;color:#374151;font-size:13px;white-space:nowrap">${s.currentPrice > 0 ? fmt(s.currentPrice, s.currency) : "—"}</td>
         <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:700;color:${pctColor(s.change30d)};font-size:13px">${fmtPct(s.change30d)}</td>
         <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;text-align:right;color:#374151;font-size:13px;white-space:nowrap">${s.positionValue !== null ? fmt(s.positionValue, s.currency) : "—"}</td>
+        <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;text-align:right;font-size:13px;white-space:nowrap;color:${s.realizedGain != null ? pctColor(s.realizedGain) : "#9ca3af"}">${s.realizedGain != null ? `${s.realizedGain >= 0 ? "+" : ""}${fmt(s.realizedGain, s.currency)}` : "—"}</td>
       </tr>`
     )
     .join("");
@@ -61,6 +64,7 @@ function buildHtml(data: ReportData): string {
             <td style="vertical-align:top">
               <p style="margin:0 0 4px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600">Portfolio value</p>
               <p style="margin:0;color:#111827;font-size:26px;font-weight:800">${fmt(data.totalValueUSD, data.currency)}</p>
+              ${data.totalRealizedGainUSD != null ? `<p style="margin:6px 0 0;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600">Realized (FIFO)</p><p style="margin:2px 0 0;font-size:14px;font-weight:700;color:${pctColor(data.totalRealizedGainUSD)}">${data.totalRealizedGainUSD >= 0 ? "+" : ""}${fmt(data.totalRealizedGainUSD, data.currency)}</p>` : ""}
             </td>
             ${
               data.totalChange30dPct !== null
@@ -121,6 +125,7 @@ function buildHtml(data: ReportData): string {
               <th style="padding:10px 14px;text-align:right;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Price</th>
               <th style="padding:10px 14px;text-align:right;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.05em">30-Day %</th>
               <th style="padding:10px 14px;text-align:right;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Current Value</th>
+              <th style="padding:10px 14px;text-align:right;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Realized (FIFO)</th>
             </tr>
           </thead>
           <tbody>${stockRows}</tbody>
@@ -155,6 +160,7 @@ export interface YearlyStockReport {
   changeYr: number | null;
   positionValue: number | null;
   earningsYr: number | null;
+  realizedGain?: number | null;
   currency: string;
 }
 
@@ -164,6 +170,7 @@ export interface YearlyReportData {
   totalValueUSD: number | null;
   totalChangeYrPct: number | null;
   totalEarningsYrUSD: number | null;
+  totalRealizedGainUSD?: number | null;
   currency: string;
   stocks: YearlyStockReport[];
 }
@@ -177,6 +184,7 @@ function buildYearlyHtml(data: YearlyReportData): string {
         <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;text-align:right;color:#374151;font-size:13px;white-space:nowrap">${s.currentPrice > 0 ? fmt(s.currentPrice, s.currency) : "—"}</td>
         <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:700;color:${pctColor(s.changeYr)};font-size:13px">${fmtPct(s.changeYr)}</td>
         <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;text-align:right;color:#374151;font-size:13px;white-space:nowrap">${s.positionValue !== null ? fmt(s.positionValue, s.currency) : "—"}</td>
+        <td style="padding:10px 14px;border-bottom:1px solid #f3f4f6;text-align:right;font-size:13px;white-space:nowrap;color:${s.realizedGain != null ? pctColor(s.realizedGain) : "#9ca3af"}">${s.realizedGain != null ? `${s.realizedGain >= 0 ? "+" : ""}${fmt(s.realizedGain, s.currency)}` : "—"}</td>
       </tr>`
     )
     .join("");
@@ -188,6 +196,7 @@ function buildYearlyHtml(data: YearlyReportData): string {
             <td style="vertical-align:top">
               <p style="margin:0 0 4px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600">Portfolio value</p>
               <p style="margin:0;color:#111827;font-size:26px;font-weight:800">${fmt(data.totalValueUSD, data.currency)}</p>
+              ${data.totalRealizedGainUSD != null ? `<p style="margin:6px 0 0;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600">Realized (FIFO)</p><p style="margin:2px 0 0;font-size:14px;font-weight:700;color:${pctColor(data.totalRealizedGainUSD)}">${data.totalRealizedGainUSD >= 0 ? "+" : ""}${fmt(data.totalRealizedGainUSD, data.currency)}</p>` : ""}
             </td>
             ${
               data.totalChangeYrPct !== null
@@ -250,6 +259,7 @@ function buildYearlyHtml(data: YearlyReportData): string {
               <th style="padding:10px 14px;text-align:right;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Year-end Price</th>
               <th style="padding:10px 14px;text-align:right;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.05em">1-Year %</th>
               <th style="padding:10px 14px;text-align:right;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Current Value</th>
+              <th style="padding:10px 14px;text-align:right;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Realized (FIFO)</th>
             </tr>
           </thead>
           <tbody>${stockRows}</tbody>
