@@ -107,6 +107,25 @@ const CHUCK_QUOTES_POSITIVE = [
   "Death and taxes are certain. Chuck Norris gains are more certain.",
   "Chuck Norris counted to infinity. Twice. Both times it was green.",
   "Chuck Norris doesn't need compound interest. Numbers fear him.",
+  "Chuck Norris's tax return is just a thank-you note.",
+  "Chuck Norris doesn't use limit orders. The market accepts any price he names.",
+  "Analysts upgraded this stock after Chuck glanced at it.",
+  "Chuck Norris's portfolio has never loaded a red candlestick.",
+  "The Fed raised rates. Chuck raised them back.",
+  "Chuck Norris once bought a penny stock. It became the Dow.",
+  "Portfolio managers dream of returns like this. Chuck calls it Tuesday.",
+  "Chuck Norris doesn't do dollar-cost averaging. He does roundhouse-cost averaging.",
+  "This gain was inevitable. Chuck willed it into existence.",
+  "Chuck Norris doesn't have a watchlist. Stocks beg to be on it.",
+  "The market opened green because Chuck said good morning.",
+  "Chuck Norris's dividends pay Chuck Norris.",
+  "This ticker saw Chuck coming and acted accordingly.",
+  "Chuck Norris invented the bull market. The bear market apologised.",
+  "Hedge funds hedge against everything. Except Chuck Norris.",
+  "Chuck Norris's net worth has a net worth.",
+  "Chuck Norris once shorted a stock. The entire sector recovered out of fear.",
+  "Your gain today? Chuck Norris called that 'floor'.",
+  "Chuck Norris doesn't rebalance. The universe rebalances around him.",
 ];
 
 const CHUCK_GIFS_POSITIVE = [
@@ -138,7 +157,7 @@ interface Props {
   children: React.ReactNode;
 }
 
-export default function WolfHover({ isPositive, children }: Props) {
+export default function GainHover({ isPositive, children }: Props) {
   const { funnyMode } = useSettings();
   const [show, setShow] = useState(false);
   const [below, setBelow] = useState(false);
@@ -150,7 +169,7 @@ export default function WolfHover({ isPositive, children }: Props) {
 
   function handleMouseEnter() {
     if (!active) return;
-    if (funnyMode === "trump-wolf") {
+    if (funnyMode === "trump") {
       quoteRef.current = TRUMP_QUOTES_POSITIVE[Math.floor(Math.random() * TRUMP_QUOTES_POSITIVE.length)];
     } else if (funnyMode === "dogs") {
       quoteRef.current = DOG_QUOTES_HAPPY[Math.floor(Math.random() * DOG_QUOTES_HAPPY.length)];
@@ -174,7 +193,7 @@ export default function WolfHover({ isPositive, children }: Props) {
   return (
     <span ref={triggerRef} className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={() => setShow(false)}>
       {children}
-      {show && funnyMode === "trump-wolf" && (
+      {show && funnyMode === "trump" && (
         <span
           className={`trump-popup absolute left-1/2 z-50 pointer-events-none flex items-center gap-1 ${posClass}`}
           style={{ width: 90 }}

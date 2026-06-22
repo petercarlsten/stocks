@@ -1,7 +1,7 @@
 "use client";
 
 import TrumpHover from "./TrumpHover";
-import WolfHover from "./WolfHover";
+import GainHover from "./GainHover";
 import { formatCurrency } from "../lib/formatCurrency";
 import { useTranslation } from "./SettingsContext";
 
@@ -80,13 +80,13 @@ export default function DashboardLeaderboard({ stocks, usdRates = {}, className 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="text-gray-900 text-sm font-medium truncate" title={s.name}>{s.name}</span>
-                    <WolfHover isPositive={positive}>
+                    <GainHover isPositive={positive}>
                       <TrumpHover isNegative={!positive}>
                         <span className={`text-sm font-semibold shrink-0 ${gainColor}`}>
                           {sign}{s.pctGain.toFixed(1)}%
                         </span>
                       </TrumpHover>
-                    </WolfHover>
+                    </GainHover>
                   </div>
                   <div className="flex items-baseline justify-between gap-2 mt-0.5">
                     <span className="text-gray-700 text-xs tabular-nums">

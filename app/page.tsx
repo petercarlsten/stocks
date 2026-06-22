@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import TrumpHover from "./components/TrumpHover";
-import WolfHover from "./components/WolfHover";
+import GainHover from "./components/GainHover";
 import SettingsPanel from "./components/SettingsPanel";
 import AdminPanel from "./components/AdminPanel";
 import { SettingsContext, type FunnyMode, type Language } from "./components/SettingsContext";
@@ -101,7 +101,7 @@ export default function Home() {
   const [exchangeRate, setExchangeRate] = useState(1);
   const [usdRates, setUsdRates] = useState<Record<string, number>>({ USD: 1 });
   const [theme, setTheme] = useState<"light" | "dark">("dark");
-  const [funnyMode, setFunnyMode] = useState<FunnyMode>("trump-wolf");
+  const [funnyMode, setFunnyMode] = useState<FunnyMode>("trump");
   const [newsEnabled, setNewsEnabled] = useState(true);
   const [leaderboardEnabled, setLeaderboardEnabled] = useState(true);
   const [topGainersEnabled, setTopGainersEnabled] = useState(true);
@@ -118,7 +118,8 @@ export default function Home() {
     if (savedTheme) setTheme(savedTheme);
     const savedCurrency = localStorage.getItem("portfolio-currency");
     if (savedCurrency) setCurrency(savedCurrency);
-    const savedFunnyMode = localStorage.getItem("portfolio-funny-mode") as FunnyMode | null;
+    const rawFunnyMode = localStorage.getItem("portfolio-funny-mode");
+    const savedFunnyMode = (rawFunnyMode === "trump-wolf" ? "trump" : rawFunnyMode) as FunnyMode | null;
     if (savedFunnyMode) setFunnyMode(savedFunnyMode);
     else if (localStorage.getItem("portfolio-trump") === "false") setFunnyMode("off");
     if (localStorage.getItem("portfolio-news") === "false") setNewsEnabled(false);
@@ -144,7 +145,7 @@ export default function Home() {
         const p = d.preferences ?? {};
         if (p.currency) { setCurrency(p.currency); localStorage.setItem("portfolio-currency", p.currency); }
         if (p.theme === "light" || p.theme === "dark") { setTheme(p.theme); localStorage.setItem("portfolio-theme", p.theme); }
-        if (p.funnyMode) { setFunnyMode(p.funnyMode as FunnyMode); localStorage.setItem("portfolio-funny-mode", p.funnyMode); }
+        if (p.funnyMode) { const fm = p.funnyMode === "trump-wolf" ? "trump" : p.funnyMode; setFunnyMode(fm as FunnyMode); localStorage.setItem("portfolio-funny-mode", fm); }
         if (typeof p.newsEnabled === "boolean") { setNewsEnabled(p.newsEnabled); localStorage.setItem("portfolio-news", String(p.newsEnabled)); }
         if (typeof p.leaderboardEnabled === "boolean") { setLeaderboardEnabled(p.leaderboardEnabled); localStorage.setItem("portfolio-leaderboard", String(p.leaderboardEnabled)); }
         if (typeof p.topGainersEnabled === "boolean") { setTopGainersEnabled(p.topGainersEnabled); localStorage.setItem("portfolio-top-gainers", String(p.topGainersEnabled)); }
@@ -334,14 +335,24 @@ export default function Home() {
     )}
     <main className="min-h-screen page-bg text-gray-900 p-3 sm:p-6">
       <style>{`
+        @keyframes logo-gradient {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        @keyframes badge-glow {
+          0%, 100% { box-shadow: 0 8px 30px -4px rgba(99,102,241,0.55), 0 0 0 0 rgba(99,102,241,0); }
+          50% { box-shadow: 0 8px 40px -4px rgba(99,102,241,0.8), 0 0 30px 4px rgba(16,185,129,0.25); }
+        }
         .logo-text {
-          background: linear-gradient(135deg, #6366f1 0%, #a855f7 40%, #10b981 100%);
+          background: linear-gradient(135deg, #6366f1 0%, #a855f7 35%, #10b981 65%, #6366f1 100%);
+          background-size: 300% 300%;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+          animation: logo-gradient 5s ease infinite;
         }
         .logo-badge {
-          box-shadow: 0 8px 24px -4px rgba(99,102,241,0.4);
+          animation: badge-glow 3s ease-in-out infinite;
         }
         .logo-underline {
           background: linear-gradient(90deg, #6366f1, #a855f7 50%, #10b981);
@@ -418,7 +429,7 @@ export default function Home() {
                     <path d="M 12,20.5 Q 15,19 18,20.5" stroke="#78350f" strokeWidth="1.6" fill="none" strokeLinecap="round"/>
                     <path d="M 22,20.5 Q 25,19 28,20.5" stroke="#78350f" strokeWidth="1.6" fill="none" strokeLinecap="round"/>
                   </svg>
-                ) : funnyMode === "trump-wolf" ? (
+                ) : funnyMode === "trump" ? (
                   /* Trump face: iconic swept hair + orange face */
                   <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
                     <path d="M 8,22 Q 6,6 16,3 Q 22,0 30,4 Q 36,9 35,18 Q 31,8 20,7 Q 11,7 8,22 Z" fill="#fbbf24"/>
@@ -505,25 +516,25 @@ const cutoff1yr = new Date();
                   {change1yr !== null && gain1yr !== null && (
                     <div className="flex items-baseline gap-2">
                       <span className="text-gray-600 text-xs w-24 shrink-0">{change1yr >= 0 ? t.lastYearGain : t.lastYearLoss}</span>
-                      <WolfHover isPositive={change1yr >= 0}>
+                      <GainHover isPositive={change1yr >= 0}>
                         <TrumpHover isNegative={change1yr < 0}>
-                          <span className={`text-sm font-medium ${change1yr >= 0 ? "text-green-600" : "text-red-500"}`}>
+                          <span className={`text-sm font-medium whitespace-nowrap ${change1yr >= 0 ? "text-green-600" : "text-red-500"}`}>
                             {change1yr >= 0 ? "+" : ""}{fmt(gain1yr)} ({change1yr >= 0 ? "+" : ""}{change1yr.toFixed(2)}%)
                           </span>
                         </TrumpHover>
-                      </WolfHover>
+                      </GainHover>
                     </div>
                   )}
                   {change30d !== null && gain30d !== null && (
                     <div className="flex items-baseline gap-2">
                       <span className="text-gray-600 text-xs w-24 shrink-0">{change30d >= 0 ? t.lastNDaysGain(30) : t.lastNDaysLoss(30)}</span>
-                      <WolfHover isPositive={change30d >= 0}>
+                      <GainHover isPositive={change30d >= 0}>
                         <TrumpHover isNegative={change30d < 0}>
-                          <span className={`text-sm font-medium ${change30d >= 0 ? "text-green-600" : "text-red-500"}`}>
+                          <span className={`text-sm font-medium whitespace-nowrap ${change30d >= 0 ? "text-green-600" : "text-red-500"}`}>
                             {change30d >= 0 ? "+" : ""}{fmt(gain30d)} ({change30d >= 0 ? "+" : ""}{change30d.toFixed(2)}%)
                           </span>
                         </TrumpHover>
-                      </WolfHover>
+                      </GainHover>
                     </div>
                   )}
                 </div>

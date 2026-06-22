@@ -323,7 +323,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
             <div className="grid grid-cols-3 rounded-lg overflow-hidden border border-gray-300">
               {([
                 ["off", "Off"],
-                ["trump-wolf", "🎩 Trump"],
+                ["trump", "🎩 Trump"],
                 ["cats", "🐱 Cats"],
                 ["dogs", "🐶 Dogs"],
                 ["chuck", "🥋 Chuck"],

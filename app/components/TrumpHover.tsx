@@ -113,6 +113,25 @@ const CHUCK_QUOTES_NEGATIVE = [
   "The stock didn't fall. It dropped to avoid Chuck's gaze.",
   "Chuck Norris has already roundhouse kicked the CEO.",
   "Chuck Norris counted to infinity. Twice. Your portfolio can't even count to green.",
+  "Chuck Norris doesn't check stop-losses. He checks on them personally.",
+  "This stock is red. Chuck is redder.",
+  "Chuck Norris's portfolio has one rule: never be red. Your portfolio missed the memo.",
+  "The market correction is coming. Chuck Norris is already there.",
+  "Chuck Norris once saw a red candle. The candle apologised.",
+  "Your broker is hiding this from Chuck Norris for your safety.",
+  "Chuck Norris doesn't diversify. He doesn't need to. You clearly did.",
+  "A loss this size would make Chuck Norris disappointed. That's worse than angry.",
+  "Chuck Norris roundhouse kicked this chart and it still fell. Impressive, actually.",
+  "Chuck Norris doesn't have losing trades. He has opportunities for vengeance.",
+  "The bear market will answer to Chuck Norris. Individually.",
+  "Chuck Norris once held a falling knife. The knife bled.",
+  "Your portfolio is down. Chuck Norris is on a plane.",
+  "Chuck Norris doesn't margin call. He makes house calls.",
+  "This red number is temporary. Chuck Norris's disapproval is not.",
+  "Chuck Norris stared at your P&L. It got worse.",
+  "Chuck Norris doesn't fear volatility. Volatility fears Chuck Norris.",
+  "The stock went south. Chuck Norris is already there waiting.",
+  "Chuck Norris once had a bad trade. The exchange never mentioned it again.",
 ];
 
 const CHUCK_GIFS_NEGATIVE = [
@@ -185,7 +204,7 @@ export default function TrumpHover({ isNegative, children }: Props) {
   return (
     <span ref={triggerRef} className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={() => setShow(false)}>
       {children}
-      {show && funnyMode === "trump-wolf" && (
+      {show && funnyMode === "trump" && (
         <span
           className={`trump-popup absolute left-1/2 z-50 pointer-events-none flex items-center gap-1 ${posClass}`}
           style={{ width: 90 }}

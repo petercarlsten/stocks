@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import TrumpHover from "./TrumpHover";
-import WolfHover from "./WolfHover";
+import GainHover from "./GainHover";
 import { ALL_CURRENCIES } from "./SettingsPanel";
 import { formatCurrency } from "../lib/formatCurrency";
 import { useTranslation } from "./SettingsContext";
@@ -215,7 +215,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         )}
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
-            <WolfHover isPositive={positive}>
+            <GainHover isPositive={positive}>
               <TrumpHover isNegative={!positive}>
                 <span
                   className="text-sm font-medium shrink-0 cursor-default"
@@ -226,7 +226,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                   {positive ? "+" : ""}{change.toFixed(2)}%
                 </span>
               </TrumpHover>
-            </WolfHover>
+            </GainHover>
             <span
               className="text-gray-900 font-bold text-sm truncate cursor-default"
               title={name}

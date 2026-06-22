@@ -14,7 +14,7 @@ interface UserInfo {
 }
 
 const FUNNY_LABELS: Record<string, string> = {
-  "trump-wolf": "🎩 Trump",
+  "trump": "🎩 Trump",
   cats: "🐱 Cats",
   dogs: "🐶 Dogs",
   chuck: "🥋 Chuck",
