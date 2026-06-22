@@ -55,7 +55,7 @@ export default function DashboardLeaderboard({ stocks, className }: Props) {
       const valueGain = totalShares * (current - avgCost);
       return [{ ...s, current, avgCost, pctGain, valueGain, totalShares, currency: s.currency ?? "USD", pricedPurchases: priced }];
     })
-    .sort((a, b) => b.pctGain - a.pctGain);
+    .sort((a, b) => b.valueGain - a.valueGain);
 
   return (
     <div className={className ?? "bg-white rounded-xl p-4 w-96 shrink-0 border border-gray-200 shadow-sm"}>
