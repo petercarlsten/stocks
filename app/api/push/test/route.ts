@@ -28,7 +28,7 @@ export async function POST() {
   const body = [
     `Portfolio: ${valueStr}`,
     changePct ? `30-day: ${changePct}${gainStr}` : null,
-    topGainer ? `Best: ${topGainer.symbol} +${topGainer.change30d?.toFixed(2)}%` : null,
+    topGainer ? `Best: ${topGainer.name.length > 20 ? topGainer.name.slice(0, 20) + "…" : topGainer.name} +${topGainer.change30d?.toFixed(2)}%` : null,
   ].filter(Boolean).join(" · ");
 
   await sendPushNotification(subscription, {
