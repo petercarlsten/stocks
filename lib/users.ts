@@ -33,6 +33,8 @@ interface User {
   lastSeenAt?: string;
   lastSeenDevice?: string;
   loginCount?: number;
+  failedAttempts?: number;
+  lockedUntil?: number | null;
 }
 
 function readUsers(): User[] {
@@ -176,6 +178,36 @@ export function getAllPushSubscriptions(): { username: string; subscription: obj
   return readUsers()
     .filter((u) => u.pushSubscription)
     .map((u) => ({ username: u.username, subscription: u.pushSubscription! }));
+}
+
+const MAX_FAILED = 5;
+const LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
+
+export function recordFailedLogin(username: string): void {
+  const users = readUsers();
+  const idx = users.findIndex((u) => u.username.toLowerCase() === username.toLowerCase());
+  if (idx === -1) return;
+  const attempts = (users[idx].failedAttempts ?? 0) + 1;
+  users[idx] = {
+    ...users[idx],
+    failedAttempts: attempts,
+    lockedUntil: attempts >= MAX_FAILED ? Date.now() + LOCKOUT_MS : users[idx].lockedUntil ?? null,
+  };
+  writeUsers(users);
+}
+
+export function clearFailedLogins(username: string): void {
+  const users = readUsers();
+  const idx = users.findIndex((u) => u.username.toLowerCase() === username.toLowerCase());
+  if (idx === -1) return;
+  users[idx] = { ...users[idx], failedAttempts: 0, lockedUntil: null };
+  writeUsers(users);
+}
+
+export function isLockedOut(username: string): boolean {
+  const user = readUsers().find((u) => u.username.toLowerCase() === username.toLowerCase());
+  if (!user?.lockedUntil) return false;
+  return Date.now() < user.lockedUntil;
 }
 
 export function isAdmin(username: string): boolean {

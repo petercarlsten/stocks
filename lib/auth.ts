@@ -1,7 +1,8 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { findByUsername, verifyPassword, findOrCreateGoogleUser, recordLogin } from "./users";
+import { findByUsername, verifyPassword, findOrCreateGoogleUser, recordLogin, recordFailedLogin, clearFailedLogins, isLockedOut } from "./users";
+import { isIPRateLimited, recordIPAttempt, clearIPAttempts } from "./loginRateLimit";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -15,12 +16,34 @@ export const authOptions: NextAuthOptions = {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
+        const ip = (req.headers?.["x-forwarded-for"] as string | undefined)?.split(",")[0].trim()
+          ?? "unknown";
+
+        if (isIPRateLimited(ip)) return null;
+
         if (!credentials?.username || !credentials?.password) return null;
+
+        if (isLockedOut(credentials.username)) {
+          recordIPAttempt(ip);
+          return null;
+        }
+
         const user = findByUsername(credentials.username);
-        if (!user) return null;
+        if (!user) {
+          recordIPAttempt(ip);
+          return null;
+        }
+
         const ok = await verifyPassword(credentials.password, user.passwordHash ?? "");
-        if (!ok) return null;
+        if (!ok) {
+          recordIPAttempt(ip);
+          recordFailedLogin(credentials.username);
+          return null;
+        }
+
+        clearIPAttempts(ip);
+        clearFailedLogins(credentials.username);
         return { id: user.id, name: user.username };
       },
     }),
