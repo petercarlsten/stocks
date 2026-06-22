@@ -110,16 +110,16 @@ const CHUCK_QUOTES_POSITIVE = [
 ];
 
 const CHUCK_GIFS_POSITIVE = [
-  "https://media.tenor.com/g39A1y1HfO0AAAAd/chuck-norris-walker-texas-ranger.gif",
-  "https://media.tenor.com/tXIXAn5StkcAAAAd/chuck-norris-chuck.gif",
-  "https://media.tenor.com/FgGLhTw6LxQAAAAd/you-betcha-chuck-norris.gif",
-  "https://media.tenor.com/__BnyxGGE4sAAAAd/chuck-norris-thumbs-up.gif",
-  "https://media.tenor.com/TGH4D9JDwrAAAAAd/chuck-norris-thumbs-up.gif",
-  "https://media.tenor.com/M0WuyPtHC1MAAAAd/thumbs-up-chuck-norris.gif",
-  "https://media.tenor.com/1vySVcQqUmsAAAAd/chuck-norris-approves.gif",
-  "https://media.tenor.com/1chQnZduRjkAAAAd/chuck-norris-approved.gif",
-  "https://media.tenor.com/73MRNyoVo4gAAAAd/chuck-norris-thumbs-up.gif",
-  "https://media.tenor.com/vop9IBDVjSwAAAAd/chuck-norris.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-smiling-thumbs-up-owgk5ob751ld37az.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-big-laugh-while-doing-endorsement-sevl8f2iasuyvn1x.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-smiling-to-sylvester-in-expendables-e7xhfmm8dcvcicu3.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-signing-autograph-on-car-jyisqlwoep68tzzb.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-thumbs-up-and-down-233l5orexlav8a2s.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-deal-with-it-movie-clip-3f96861ny4egiioq.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-wearing-cowboy-hat-in-dessert-y3h58juys4abwpj2.gif",
+  "https://gifdb.com/images/thumbnail/different-shots-of-chuck-norris-zlumll0cdn0nvrjw.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-close-up-shot-bdc1hxyiyh0r2fon.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-comments-you-ve-got-attitude-problem-muekrxrwc02yj6hc.gif",
 ];
 
 const HAPPY_CAT_GIFS = [

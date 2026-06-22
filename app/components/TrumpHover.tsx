@@ -116,11 +116,21 @@ const CHUCK_QUOTES_NEGATIVE = [
 ];
 
 const CHUCK_GIFS_NEGATIVE = [
-  "https://media.tenor.com/3zURMzv9NbsAAAAd/walker-texas-ranger-chuck-norris.gif",
-  "https://media.tenor.com/GdF28omU-1YAAAAd/chuck-norris-kick-action.gif",
-  "https://media.tenor.com/nJxUQsqEBm0AAAAd/chuck-norris-walker-texas-ranger.gif",
-  "https://media.tenor.com/S1wsC7mkb8IAAAAd/chuck-norris-kick.gif",
-  "https://media.tenor.com/1XMpa_oblwAAAAAd/punch-chuck-norris.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-rapid-punches-yybw46sgaw3cbf8o.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-one-punch-knock-out-din47zx1i43drolk.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-doing-round-kick-to-opponent-91cci2crzrqdxznm.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-forward-flying-kick-wy8h1peuh1d9soew.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-hitting-enemy-with-flying-kick-h6bu3miq0a1advjs.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-throwing-away-opponent-fvzimirul1cooxwg.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-knocking-out-enemy-xlvgs5pteeb6wcpy.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-firing-machine-gun-in-movie-scene-njyvay3rr71uq8wn.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-rapid-gun-fire-f1b8by3dof3j9ou5.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-firing-grenade-launcher-6ihsyxite0fbwx3k.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-firing-guns-through-motorcycle-ynckikl11yhah3ry.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-kung-fu-fighting-with-bruce-lee-1w3jaddpljsz3a33.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-running-amuck-kicking-out-tv-wtbgwcmimkqeox96.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-drive-by-shooting-uutxgv8y7q8al1cm.gif",
+  "https://gifdb.com/images/thumbnail/chuck-norris-escaping-bomb-explosion-mp52jzbxrinvyud5.gif",
 ];
 
 const SAD_DOG_GIFS = [
