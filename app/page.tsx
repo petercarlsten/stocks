@@ -109,6 +109,7 @@ export default function Home() {
   const [reportEmail, setReportEmail] = useState("");
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [confirmRemoveSymbol, setConfirmRemoveSymbol] = useState<string | null>(null);
 
   // Load saved preferences
   useEffect(() => {
@@ -627,7 +628,7 @@ export default function Home() {
                           data={chartData}
                           color={COLORS[i % COLORS.length]}
                           purchases={s.purchases}
-                          onRemove={() => removeStock(s.symbol)}
+                          onRemove={() => setConfirmRemoveSymbol(s.symbol)}
                           onPurchasesChange={(p) => updatePurchases(s.symbol, p)}
                           theme={theme}
                           portfolioPct={portfolioPct}
@@ -651,6 +652,28 @@ export default function Home() {
       </div>
     </main>
     <AdminPanel open={adminOpen} onClose={() => setAdminOpen(false)} />
+    {confirmRemoveSymbol && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setConfirmRemoveSymbol(null)}>
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6 flex flex-col gap-4 max-w-xs w-full" onClick={(e) => e.stopPropagation()}>
+          <p className="text-gray-900 dark:text-white font-semibold text-base">Remove {confirmRemoveSymbol}?</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">This will remove the chart and all purchase data for this stock.</p>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => setConfirmRemoveSymbol(null)}
+              className="px-4 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => { removeStock(confirmRemoveSymbol); setConfirmRemoveSymbol(null); }}
+              className="px-4 py-2 text-sm rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     </SettingsContext.Provider>
   );
 }
