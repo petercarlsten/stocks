@@ -59,6 +59,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const [holdings, setHoldings] = useState<{ name: string; pct: number }[] | null>(null);
   const [showHoldings, setShowHoldings] = useState(false);
   const [showGains, setShowGains] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const fetchedRef = useRef(false);
   const holdingsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [cardCurrency, setCardCurrency] = useState(tickerCurrency);
@@ -246,12 +247,29 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
             )}
           </div>
         </div>
-        <button
-          onClick={onRemove}
-          className="text-gray-400 hover:text-gray-600 text-lg leading-none shrink-0"
-        >
-          ×
-        </button>
+        {confirmRemove ? (
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={onRemove}
+              className="text-xs text-white bg-red-500 hover:bg-red-600 px-2 py-0.5 rounded font-medium"
+            >
+              Remove
+            </button>
+            <button
+              onClick={() => setConfirmRemove(false)}
+              className="text-xs text-gray-400 hover:text-gray-600 px-1"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmRemove(true)}
+            className="text-gray-400 hover:text-gray-600 text-lg leading-none shrink-0"
+          >
+            ×
+          </button>
+        )}
       </div>
       <div className="flex items-baseline gap-3 flex-wrap">
         <div className="text-2xl font-bold tracking-tight" style={{ color: gainColor }}>
