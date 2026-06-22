@@ -60,6 +60,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const [showHoldings, setShowHoldings] = useState(false);
   const [showGains, setShowGains] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const confirmRef = useRef<HTMLDivElement>(null);
   const fetchedRef = useRef(false);
   const holdingsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [cardCurrency, setCardCurrency] = useState(tickerCurrency);
@@ -129,6 +130,21 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [purchases, data, symbol]);
+
+  useEffect(() => {
+    if (!confirmRemove) return;
+    function handleOutside(e: MouseEvent | TouchEvent) {
+      if (confirmRef.current && !confirmRef.current.contains(e.target as Node)) {
+        setConfirmRemove(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("touchstart", handleOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("touchstart", handleOutside);
+    };
+  }, [confirmRemove]);
 
   async function handleNameEnter() {
     if (holdings !== null && holdings.length === 0) return; // known empty — skip
@@ -247,29 +263,33 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
             )}
           </div>
         </div>
-        {confirmRemove ? (
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              onClick={onRemove}
-              className="text-xs text-white bg-red-500 hover:bg-red-600 px-2 py-0.5 rounded font-medium"
-            >
-              Remove
-            </button>
-            <button
-              onClick={() => setConfirmRemove(false)}
-              className="text-xs text-gray-400 hover:text-gray-600 px-1"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
+        <div className="relative shrink-0">
           <button
             onClick={() => setConfirmRemove(true)}
-            className="text-gray-400 hover:text-gray-600 text-lg leading-none shrink-0"
+            className="text-gray-400 hover:text-gray-600 text-lg leading-none"
           >
             ×
           </button>
-        )}
+          {confirmRemove && (
+            <div ref={confirmRef} className="absolute right-0 top-6 z-20 flex flex-col items-end gap-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2 min-w-max">
+              <span className="text-xs text-gray-500 px-1">Remove {symbol}?</span>
+              <div className="flex gap-1">
+                <button
+                  onClick={onRemove}
+                  className="text-xs text-white bg-red-500 hover:bg-red-600 px-2 py-1 rounded font-medium"
+                >
+                  Remove
+                </button>
+                <button
+                  onClick={() => setConfirmRemove(false)}
+                  className="text-xs text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       <div className="flex items-baseline gap-3 flex-wrap">
         <div className="text-2xl font-bold tracking-tight" style={{ color: gainColor }}>
