@@ -119,10 +119,8 @@ const CHUCK_GIFS_NEGATIVE = [
   "https://media.tenor.com/3zURMzv9NbsAAAAd/walker-texas-ranger-chuck-norris.gif",
   "https://media.tenor.com/GdF28omU-1YAAAAd/chuck-norris-kick-action.gif",
   "https://media.tenor.com/nJxUQsqEBm0AAAAd/chuck-norris-walker-texas-ranger.gif",
-  "https://media.tenor.com/3zURMzv9NbsAAAAd/walker-texas-ranger-chuck-norris.gif",
-  "https://media.tenor.com/GdF28omU-1YAAAAd/chuck-norris-kick-action.gif",
-  "https://media.tenor.com/nJxUQsqEBm0AAAAd/chuck-norris-walker-texas-ranger.gif",
-  "https://media.tenor.com/3zURMzv9NbsAAAAd/walker-texas-ranger-chuck-norris.gif",
+  "https://media.tenor.com/S1wsC7mkb8IAAAAd/chuck-norris-kick.gif",
+  "https://media.tenor.com/1XMpa_oblwAAAAAd/punch-chuck-norris.gif",
 ];
 
 const SAD_DOG_GIFS = [

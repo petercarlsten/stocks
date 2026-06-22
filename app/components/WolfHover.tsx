@@ -118,6 +118,8 @@ const CHUCK_GIFS_POSITIVE = [
   "https://media.tenor.com/M0WuyPtHC1MAAAAd/thumbs-up-chuck-norris.gif",
   "https://media.tenor.com/1vySVcQqUmsAAAAd/chuck-norris-approves.gif",
   "https://media.tenor.com/1chQnZduRjkAAAAd/chuck-norris-approved.gif",
+  "https://media.tenor.com/73MRNyoVo4gAAAAd/chuck-norris-thumbs-up.gif",
+  "https://media.tenor.com/vop9IBDVjSwAAAAd/chuck-norris.gif",
 ];
 
 const HAPPY_CAT_GIFS = [
