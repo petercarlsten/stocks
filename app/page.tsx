@@ -30,6 +30,12 @@ interface Purchase {
   price?: number;
 }
 
+interface Sale {
+  date: string;
+  shares: number;
+  price?: number;
+}
+
 interface StockData {
   symbol: string;
   name: string;
@@ -37,6 +43,7 @@ interface StockData {
   data: { date: string; close: number }[];
   currency?: string;
   purchases?: Purchase[];
+  sales?: Sale[];
 }
 
 // Migrate old single-purchase format to the purchases array
@@ -305,6 +312,14 @@ export default function Home() {
       if (s.symbol !== symbol) return s;
       const next = typeof updater === "function" ? updater(s.purchases ?? []) : updater;
       return { ...s, purchases: next };
+    }));
+  }, []);
+
+  const updateSales = useCallback((symbol: string, updater: Sale[] | ((prev: Sale[]) => Sale[])) => {
+    setStocks((prev) => prev.map((s) => {
+      if (s.symbol !== symbol) return s;
+      const next = typeof updater === "function" ? updater(s.sales ?? []) : updater;
+      return { ...s, sales: next };
     }));
   }, []);
 
@@ -696,8 +711,10 @@ const cutoff1yr = new Date();
                           data={chartData}
                           color={COLORS[i % COLORS.length]}
                           purchases={s.purchases}
+                          sales={s.sales}
                           onRemove={() => setConfirmRemoveSymbol(s.symbol)}
                           onPurchasesChange={(p) => updatePurchases(s.symbol, p)}
+                          onSalesChange={(sl) => updateSales(s.symbol, sl)}
                           theme={theme}
                           portfolioPct={portfolioPct}
                           tickerCurrency={s.currency ?? "USD"}

@@ -28,6 +28,12 @@ export interface Purchase {
   price?: number;
 }
 
+export interface Sale {
+  date: string;
+  shares: number;
+  price?: number;
+}
+
 interface Props {
   symbol: string;
   name: string;
@@ -36,11 +42,37 @@ interface Props {
   onRemove: () => void;
   color: string;
   purchases?: Purchase[];
+  sales?: Sale[];
   onPurchasesChange: (updater: Purchase[] | ((prev: Purchase[]) => Purchase[])) => void;
+  onSalesChange: (updater: Sale[] | ((prev: Sale[]) => Sale[])) => void;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
   theme?: "light" | "dark";
   portfolioPct?: number;
   tickerCurrency?: string;
+}
+
+function calcFifoRealizedGain(purchases: Purchase[], sales: Sale[]): number | null {
+  const salesWithPrice = sales.filter((s) => s.price != null && s.shares > 0);
+  if (!salesWithPrice.length) return null;
+  const purchasesWithPrice = purchases.filter((p) => p.price != null && p.shares > 0);
+  if (!purchasesWithPrice.length) return null;
+
+  const lots = [...purchasesWithPrice]
+    .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""))
+    .map((p) => ({ remaining: p.shares, price: p.price! }));
+
+  let gain = 0;
+  for (const sale of salesWithPrice) {
+    let toSell = sale.shares;
+    for (const lot of lots) {
+      if (toSell <= 0 || lot.remaining <= 0) continue;
+      const used = Math.min(toSell, lot.remaining);
+      gain += (sale.price! - lot.price) * used;
+      lot.remaining -= used;
+      toSell -= used;
+    }
+  }
+  return gain;
 }
 
 function formatEarningsDate(dateStr: string): string {
@@ -54,7 +86,7 @@ function fmtDate(dateStr?: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD" }: Props) {
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, sales, onPurchasesChange, onSalesChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD" }: Props) {
   const t = useTranslation();
   const [holdings, setHoldings] = useState<{ name: string; pct: number }[] | null>(null);
   const [showHoldings, setShowHoldings] = useState(false);
@@ -176,7 +208,9 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const today = new Date().toISOString().split("T")[0];
   const earningsIsFuture = earningsDate ? earningsDate > today : false;
 
-  const totalShares = (purchases ?? []).reduce((sum, p) => sum + (p.shares || 0), 0);
+  const totalPurchasedShares = (purchases ?? []).reduce((sum, p) => sum + (p.shares || 0), 0);
+  const totalSoldShares = (sales ?? []).reduce((sum, s) => sum + (s.shares || 0), 0);
+  const totalShares = Math.max(0, totalPurchasedShares - totalSoldShares);
 
   const purchaseDatesOnChart = useMemo(() => {
     if (!purchases || data.length === 0) return [];
@@ -189,6 +223,18 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
       })
       .filter(Boolean) as { chartDate: string; label: string }[];
   }, [purchases, data]);
+
+  const saleDatesOnChart = useMemo(() => {
+    if (!sales || data.length === 0) return [];
+    const multi = sales.filter(s => s.date).length > 1;
+    return sales
+      .map((s, i) => {
+        if (!s.date || s.date < data[0].date || s.date > data[data.length - 1].date) return null;
+        const chartDate = (data.find((d) => d.date >= s.date!) ?? data[0])?.date;
+        return { chartDate, label: multi ? `S${i + 1}` : "S" };
+      })
+      .filter(Boolean) as { chartDate: string; label: string }[];
+  }, [sales, data]);
 
   const positionValue = totalShares > 0 ? totalShares * last : null;
   const absChange = last - first;
@@ -301,12 +347,22 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           )}
           {purchaseDatesOnChart.map((p, i) => (
             <ReferenceLine
-              key={i}
+              key={`b${i}`}
               x={p.chartDate}
               stroke="#6366f1"
               strokeDasharray="4 3"
               strokeWidth={1.5}
               label={{ value: p.label, position: "top", fill: "#6366f1", fontSize: 10 }}
+            />
+          ))}
+          {saleDatesOnChart.map((s, i) => (
+            <ReferenceLine
+              key={`s${i}`}
+              x={s.chartDate}
+              stroke="#ef4444"
+              strokeDasharray="4 3"
+              strokeWidth={1.5}
+              label={{ value: s.label, position: "top", fill: "#ef4444", fontSize: 10 }}
             />
           ))}
           <Line
@@ -323,6 +379,12 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           <span className="flex items-center gap-1.5 text-xs text-gray-600">
             <span className="inline-block w-4 border-t-2 border-dashed border-indigo-400"></span>
             {t.purchaseDate}
+          </span>
+        )}
+        {(sales ?? []).length > 0 && (
+          <span className="flex items-center gap-1.5 text-xs text-gray-600">
+            <span className="inline-block w-4 border-t-2 border-dashed border-red-400"></span>
+            Sale date
           </span>
         )}
         {earningsDate && (
@@ -414,6 +476,62 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         >{t.addPurchase}</button>
       </div>
 
+      {/* Sales section */}
+      {((sales ?? []).length > 0 || totalPurchasedShares > 0) && (
+        <div className="pt-2 border-t border-gray-100">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-gray-600 text-xs">Sales</span>
+            {totalSoldShares > 0 && (
+              <span className="text-gray-500 text-xs">{totalSoldShares} sold · {totalShares} remaining</span>
+            )}
+          </div>
+          {(sales ?? []).map((s, i) => (
+            <div key={i} className="flex items-center gap-2 mb-1">
+              <input
+                type="date"
+                value={s.date}
+                max={today}
+                onChange={(e) => onSalesChange((sales ?? []).map((ss, j) => j === i ? { ...ss, date: e.target.value } : ss))}
+                className="w-32 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-red-400"
+              />
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={s.shares || ""}
+                onChange={(e) => {
+                  const v = parseFloat(e.target.value);
+                  onSalesChange((sales ?? []).map((ss, j) => j === i ? { ...ss, shares: isNaN(v) ? 0 : Math.max(0, v) } : ss));
+                }}
+                className="w-20 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-red-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                placeholder={t.shares}
+              />
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={s.price ?? ""}
+                onChange={(e) => {
+                  const v = parseFloat(e.target.value);
+                  onSalesChange((sales ?? []).map((ss, j) => j === i ? { ...ss, price: isNaN(v) ? undefined : v } : ss));
+                }}
+                className="w-24 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-red-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                placeholder="Sale price"
+              />
+              <button
+                onClick={() => onSalesChange((sales ?? []).filter((_, j) => j !== i))}
+                className="text-gray-300 hover:text-red-400 text-base leading-none shrink-0"
+                title={t.remove}
+              >×</button>
+            </div>
+          ))}
+          <button
+            onClick={() => onSalesChange([...(sales ?? []), { date: today, shares: 0 }])}
+            className="text-red-400 hover:text-red-600 text-xs mt-0.5"
+          >+ Record sale</button>
+        </div>
+      )}
+
       {/* Gains tooltip — appears over chart when hovering the % badge */}
       {showGains && (
         <div
@@ -453,6 +571,21 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                 </span>
               </div>
             )}
+            {(() => {
+              const realized = calcFifoRealizedGain(purchases ?? [], sales ?? []);
+              if (realized === null) return null;
+              return (
+                <div
+                  className="flex justify-between gap-4 text-xs pt-1.5 border-t"
+                  style={{ borderColor: dark ? "#374151" : "#e5e7eb" }}
+                >
+                  <span style={{ color: dark ? "#6b7280" : "#475569" }}>Realized (FIFO)</span>
+                  <span style={{ color: realized >= 0 ? "#16a34a" : "#ef4444" }}>
+                    {realized >= 0 ? "+" : ""}{fmt(realized)}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

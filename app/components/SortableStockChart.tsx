@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import StockChart, { Purchase } from "./StockChart";
+import StockChart, { Purchase, Sale } from "./StockChart";
 
 interface DataPoint {
   date: string;
@@ -17,7 +17,9 @@ interface Props {
   onRemove: () => void;
   color: string;
   purchases?: Purchase[];
+  sales?: Sale[];
   onPurchasesChange: (updater: Purchase[] | ((prev: Purchase[]) => Purchase[])) => void;
+  onSalesChange: (updater: Sale[] | ((prev: Sale[]) => Sale[])) => void;
   theme?: "light" | "dark";
   portfolioPct?: number;
   tickerCurrency?: string;
