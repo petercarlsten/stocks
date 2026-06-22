@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface UserInfo {
   username: string;
@@ -38,6 +38,7 @@ export default function AdminPanel({ open, onClose }: Props) {
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<string | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -45,6 +46,14 @@ export default function AdminPanel({ open, onClose }: Props) {
       .then((r) => r.json())
       .then((d) => setUsers(d.users ?? []));
   }, [open]);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) onClose();
+    }
+    if (open) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open, onClose]);
 
   async function handleDelete(username: string) {
     setDeleting(username);
@@ -61,18 +70,22 @@ export default function AdminPanel({ open, onClose }: Props) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-3 pt-12 sm:items-center sm:p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-auto flex flex-col max-h-[85vh] sm:max-h-[90vh]">
-        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-100 shrink-0">
-          <h2 className="text-base sm:text-lg font-bold text-gray-900">Admin — Accounts</h2>
+    <>
+      <div className="fixed inset-0 bg-black/20 z-40" />
+      <div
+        ref={panelRef}
+        className="fixed top-0 right-0 h-full w-full sm:w-[580px] bg-white border-l border-gray-200 z-50 flex flex-col shadow-xl"
+      >
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200 shrink-0">
+          <h2 className="text-gray-900 font-bold text-lg">Admin — Accounts</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
         </div>
 
-        <div className="overflow-y-auto flex-1">
+        <div className="flex-1 overflow-y-auto">
           {/* Mobile card layout */}
-          <div className="sm:hidden flex flex-col divide-y divide-gray-100">
+          <div className="sm:hidden flex flex-col divide-y divide-gray-100 px-6 py-4 gap-0">
             {users.map((u) => (
-              <div key={u.username} className="px-4 py-3 flex flex-col gap-1">
+              <div key={u.username} className="py-4 flex flex-col gap-1.5">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-gray-900 text-sm truncate">{u.username}</span>
                   {u.provider === "google" ? (
@@ -81,15 +94,10 @@ export default function AdminPanel({ open, onClose }: Props) {
                     <span className="shrink-0 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">Password</span>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-gray-500">
-                  <span>Joined: {fmtDate(u.createdAt)}</span>
-                  <span>Logins: {u.loginCount}</span>
-                </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-gray-500">
-                  <span>Last login: {fmtDateTime(u.lastLoginAt)}</span>
-                  <span>Last seen: {fmtDateTime(u.lastSeenAt)}</span>
-                </div>
-                <div className="flex items-center justify-between mt-1">
+                <div className="text-xs text-gray-500">Joined: {fmtDate(u.createdAt)} · {u.loginCount} logins</div>
+                <div className="text-xs text-gray-500">Last login: {fmtDateTime(u.lastLoginAt)}</div>
+                <div className="text-xs text-gray-500">Last seen: {fmtDateTime(u.lastSeenAt)}</div>
+                <div className="flex items-center justify-between mt-0.5">
                   {u.lastSeenDevice ? (
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${deviceColor(u.lastSeenDevice)}`}>
                       {u.lastSeenDevice}
@@ -113,13 +121,12 @@ export default function AdminPanel({ open, onClose }: Props) {
 
           {/* Desktop table layout */}
           <div className="hidden sm:block overflow-x-auto">
-            <table className="w-full min-w-[700px] text-sm">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 text-left">
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Auth</th>
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Joined</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Last login</th>
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Last seen</th>
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Device</th>
                   <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Logins</th>
@@ -129,7 +136,7 @@ export default function AdminPanel({ open, onClose }: Props) {
               <tbody className="divide-y divide-gray-100">
                 {users.map((u) => (
                   <tr key={u.username} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-800 font-medium max-w-[160px] truncate">{u.username}</td>
+                    <td className="px-4 py-3 text-gray-800 font-medium max-w-[140px] truncate">{u.username}</td>
                     <td className="px-4 py-3">
                       {u.provider === "google" ? (
                         <span className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
@@ -141,7 +148,6 @@ export default function AdminPanel({ open, onClose }: Props) {
                       )}
                     </td>
                     <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{fmtDate(u.createdAt)}</td>
-                    <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{fmtDateTime(u.lastLoginAt)}</td>
                     <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{fmtDateTime(u.lastSeenAt)}</td>
                     <td className="px-4 py-3 text-xs whitespace-nowrap">
                       {u.lastSeenDevice ? (
@@ -171,6 +177,6 @@ export default function AdminPanel({ open, onClose }: Props) {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
