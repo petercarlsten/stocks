@@ -445,17 +445,13 @@ export default function Home() {
               cutoff.setDate(cutoff.getDate() - 30);
               const cutoffStr = cutoff.toISOString().split("T")[0];
 
-              const cutoff7d = new Date();
-              cutoff7d.setDate(cutoff7d.getDate() - 7);
-              const cutoff7dStr = cutoff7d.toISOString().split("T")[0];
-
-              const cutoff1yr = new Date();
+const cutoff1yr = new Date();
               cutoff1yr.setFullYear(cutoff1yr.getFullYear() - 1);
               const cutoff1yrStr = cutoff1yr.toISOString().split("T")[0];
               const cutoff1yrEndStr = new Date(cutoff1yr.getTime() + 10 * 86400000).toISOString().split("T")[0];
 
-              let total = 0, total30d = 0, total7d = 0, total1yr = 0;
-              let has30d = false, has7d = false, has1yr = false;
+              let total = 0, total30d = 0, total1yr = 0;
+              let has30d = false, has1yr = false;
 
               for (const s of stocks) {
                 const totalShares = (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0);
@@ -471,10 +467,6 @@ export default function Home() {
                 const price30d = past30.length > 0 ? past30[past30.length - 1].close : null;
                 if (price30d !== null) { total30d += totalShares * price30d * toPortfolio; has30d = true; }
 
-                const past7 = s.data.filter((d) => d.date <= cutoff7dStr);
-                const price7d = past7.length > 0 ? past7[past7.length - 1].close : null;
-                if (price7d !== null) { total7d += totalShares * price7d * toPortfolio; has7d = true; }
-
                 // Find closest trading day at or just after the 1-year mark (handles weekends/holidays)
                 const near1yr = s.data.filter((d) => d.date >= cutoff1yrStr && d.date <= cutoff1yrEndStr);
                 const price1yr = near1yr.length > 0 ? near1yr[0].close : null;
@@ -482,10 +474,8 @@ export default function Home() {
               }
 
               const change30d = has30d && total30d > 0 ? ((total - total30d) / total30d) * 100 : null;
-              const change7d  = has7d  && total7d  > 0 ? ((total - total7d)  / total7d)  * 100 : null;
               const change1yr = has1yr && total1yr > 0 ? ((total - total1yr) / total1yr) * 100 : null;
               const gain30d   = has30d ? total - total30d : null;
-              const gain7d    = has7d  ? total - total7d  : null;
               const gain1yr   = has1yr ? total - total1yr : null;
               const fmt = (v: number) => formatCurrency(v, currency, 0);
 
@@ -516,18 +506,6 @@ export default function Home() {
                         <TrumpHover isNegative={change30d < 0}>
                           <span className={`text-sm font-medium ${change30d >= 0 ? "text-green-600" : "text-red-500"}`}>
                             {change30d >= 0 ? "+" : ""}{fmt(gain30d)} ({change30d >= 0 ? "+" : ""}{change30d.toFixed(2)}%)
-                          </span>
-                        </TrumpHover>
-                      </WolfHover>
-                    </div>
-                  )}
-                  {change7d !== null && gain7d !== null && (
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-gray-600 text-xs w-24 shrink-0">{change7d >= 0 ? t.lastNDaysGain(7) : t.lastNDaysLoss(7)}</span>
-                      <WolfHover isPositive={change7d >= 0}>
-                        <TrumpHover isNegative={change7d < 0}>
-                          <span className={`text-sm font-medium ${change7d >= 0 ? "text-green-600" : "text-red-500"}`}>
-                            {change7d >= 0 ? "+" : ""}{fmt(gain7d)} ({change7d >= 0 ? "+" : ""}{change7d.toFixed(2)}%)
                           </span>
                         </TrumpHover>
                       </WolfHover>
