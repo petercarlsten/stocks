@@ -51,7 +51,9 @@ interface Props {
   tickerCurrency?: string;
 }
 
-function calcFifoGainsPerSale(purchases: Purchase[], sales: Sale[]): (number | null)[] {
+interface SaleResult { gain: number; costBasis: number; sharesSold: number; }
+
+function calcFifoGainsPerSale(purchases: Purchase[], sales: Sale[]): (SaleResult | null)[] {
   const lots = purchases
     .filter((p) => p.date && p.price != null && p.shares > 0)
     .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""))
@@ -60,21 +62,23 @@ function calcFifoGainsPerSale(purchases: Purchase[], sales: Sale[]): (number | n
   const indexed = sales.map((s, origIdx) => ({ ...s, origIdx }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
-  const result: (number | null)[] = new Array(sales.length).fill(null);
+  const result: (SaleResult | null)[] = new Array(sales.length).fill(null);
   for (const sale of indexed) {
     if (!sale.price || !sale.shares) continue;
     let toSell = sale.shares;
     let gain = 0;
-    let matched = false;
+    let costBasis = 0;
+    let sharesSold = 0;
     for (const lot of lots) {
       if (toSell <= 0 || lot.remaining <= 0) continue;
       const used = Math.min(toSell, lot.remaining);
       gain += used * (sale.price - lot.price);
+      costBasis += used * lot.price;
       lot.remaining -= used;
       toSell -= used;
-      matched = true;
+      sharesSold += used;
     }
-    if (matched) result[sale.origIdx] = gain;
+    if (sharesSold > 0) result[sale.origIdx] = { gain, costBasis, sharesSold };
   }
   return result;
 }
@@ -592,7 +596,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           {(() => {
             const saleGains = calcFifoGainsPerSale(purchases ?? [], sales ?? []);
             return (sales ?? []).map((s, i) => {
-              const gain = saleGains[i];
+              const saleResult = saleGains[i];
               return (
               <div key={i} className="flex items-start gap-2 mb-1.5">
                 <input
@@ -618,9 +622,12 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                     />
                     <span className="text-gray-500 text-xs">@ {s.price != null ? fmt(s.price) : "…"}</span>
                   </div>
-                  {gain !== null && (
-                    <span className="text-xs font-semibold" style={{ color: gain >= 0 ? "#16a34a" : "#ef4444" }}>
-                      {gain >= 0 ? "+" : ""}{fmt(gain)} {gain >= 0 ? "profit" : "loss"}
+                  {saleResult !== null && s.price != null && (
+                    <span className="text-xs tabular-nums">
+                      <span className="text-gray-400">paid {fmt(saleResult.costBasis)} → got {fmt(saleResult.sharesSold * s.price)} → </span>
+                      <span className="font-semibold" style={{ color: saleResult.gain >= 0 ? "#16a34a" : "#ef4444" }}>
+                        {saleResult.gain >= 0 ? "+" : ""}{fmt(saleResult.gain)} {saleResult.gain >= 0 ? "made" : "lost"}
+                      </span>
                     </span>
                   )}
                 </div>
