@@ -633,31 +633,20 @@ const cutoff1yr = new Date();
                     </div>
                   )}
                   {hasCostBasis && (() => {
-                    const unrealized = total - totalCostBasis;
-                    const totalReturn = unrealized + totalRealized;
-                    const positive = totalReturn >= 0;
+                    const profit = (total - totalCostBasis) + totalRealized;
+                    const positive = profit >= 0;
                     return (
-                      <div className="flex flex-col gap-0.5 mt-0.5 pt-1 border-t border-gray-100">
+                      <div className="flex flex-col gap-1 mt-0.5 pt-1.5 border-t border-gray-100">
                         <div className="flex items-baseline gap-2">
-                          <span className="text-gray-500 text-xs w-24 shrink-0">Unrealized</span>
-                          <span className={`text-xs font-medium whitespace-nowrap ${unrealized >= 0 ? "text-green-600" : "text-red-500"}`}>
-                            {unrealized >= 0 ? "+" : ""}{fmt(unrealized)}
-                          </span>
+                          <span className="text-gray-600 text-xs w-24 shrink-0">Money in</span>
+                          <span className="text-gray-700 text-sm font-medium whitespace-nowrap">{fmt(totalCostBasis)}</span>
                         </div>
-                        {totalRealized !== 0 && (
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-gray-500 text-xs w-24 shrink-0">Realized</span>
-                            <span className={`text-xs font-medium whitespace-nowrap ${totalRealized >= 0 ? "text-green-600" : "text-red-500"}`}>
-                              {totalRealized >= 0 ? "+" : ""}{fmt(totalRealized)}
-                            </span>
-                          </div>
-                        )}
                         <div className="flex items-baseline gap-2">
-                          <span className="text-gray-600 text-xs w-24 shrink-0 font-semibold">Total return</span>
+                          <span className="text-gray-600 text-xs w-24 shrink-0">You made</span>
                           <GainHover isPositive={positive}>
                             <TrumpHover isNegative={!positive}>
                               <span className={`text-sm font-semibold whitespace-nowrap ${positive ? "text-green-600" : "text-red-500"}`}>
-                                {positive ? "+" : ""}{fmt(totalReturn)}
+                                {positive ? "+" : ""}{fmt(profit)}
                               </span>
                             </TrumpHover>
                           </GainHover>
