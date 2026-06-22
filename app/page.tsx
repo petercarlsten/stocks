@@ -543,8 +543,8 @@ const cutoff1yr = new Date();
               let has30d = false, has1yr = false;
 
               for (const s of stocks) {
-                const totalSold = (s.sales ?? []).reduce((sum, sale) => sum + sale.shares, 0);
-                const totalShares = Math.max(0, (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0) - totalSold);
+                const totalSoldShares = (s.sales ?? []).reduce((sum, sale) => sum + sale.shares, 0);
+                const totalShares = Math.max(0, (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0) - totalSoldShares);
                 if (totalShares <= 0 && !(s.sales ?? []).length) continue;
                 // Convert from ticker's native currency to portfolio currency
                 const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
