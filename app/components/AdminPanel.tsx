@@ -74,7 +74,7 @@ export default function AdminPanel({ open, onClose }: Props) {
       <div className="fixed inset-0 bg-black/20 z-40" />
       <div
         ref={panelRef}
-        className="fixed top-0 right-0 h-full w-full sm:w-[580px] bg-white border-l border-gray-200 z-50 flex flex-col shadow-xl"
+        className="fixed top-0 left-0 right-0 h-full bg-white border-l border-gray-200 z-50 flex flex-col shadow-xl sm:left-auto sm:w-[580px] sm:max-w-full"
       >
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200 shrink-0">
           <h2 className="text-gray-900 font-bold text-lg">Admin — Accounts</h2>
