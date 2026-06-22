@@ -3,7 +3,7 @@
 import { createContext, useContext } from "react";
 import { translations, type Language } from "../lib/translations";
 
-export type FunnyMode = "trump-wolf" | "cats" | "dogs" | "off";
+export type FunnyMode = "trump-wolf" | "cats" | "dogs" | "chuck" | "off";
 export type { Language };
 
 interface SettingsCtx {

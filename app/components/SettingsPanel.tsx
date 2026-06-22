@@ -320,17 +320,18 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
 
           <div className="flex flex-col gap-2">
             <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">Funny reactions</label>
-            <div className="grid grid-cols-2 rounded-lg overflow-hidden border border-gray-300">
+            <div className="grid grid-cols-3 rounded-lg overflow-hidden border border-gray-300">
               {([
                 ["off", "Off"],
                 ["trump-wolf", "🎩 Trump"],
                 ["cats", "🐱 Cats"],
                 ["dogs", "🐶 Dogs"],
-              ] as const).map(([mode, label]) => (
+                ["chuck", "🥋 Chuck"],
+              ] as const).map(([mode, label], i) => (
                 <button
                   key={mode}
                   onClick={() => onFunnyModeChange(mode)}
-                  className={`py-2 text-sm font-medium transition-colors border-gray-300 [&:nth-child(1)]:border-b [&:nth-child(2)]:border-b [&:nth-child(1)]:border-r [&:nth-child(3)]:border-r ${
+                  className={`py-2 text-sm font-medium transition-colors border-gray-300 ${i < 3 ? "border-b" : ""} ${i % 3 !== 2 ? "border-r" : ""} ${
                     funnyMode === mode
                       ? "bg-indigo-600 text-white"
                       : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600"

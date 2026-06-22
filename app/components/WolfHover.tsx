@@ -83,6 +83,43 @@ const HAPPY_DOG_GIFS = [
   "https://gifdb.com/images/thumbnail/happy-dog-eating-pizza-50a9sujbh45j9s7q.gif",
 ];
 
+const CHUCK_QUOTES_POSITIVE = [
+  "Chuck Norris doesn't buy low and sell high. Stocks rise when he buys.",
+  "The market was scared of Chuck. It went up.",
+  "Chuck Norris doesn't diversify. The portfolio diversifies itself.",
+  "These gains? Chuck Norris sneezed near this ticker.",
+  "Chuck Norris doesn't predict the market. The market predicts Chuck.",
+  "Interest compounds for others. For Chuck, it apologizes.",
+  "Chuck Norris once stared at a red stock. It turned green.",
+  "The bulls run because Chuck is behind them.",
+  "Chuck Norris doesn't have a broker. Brokers have Chuck.",
+  "This stock heard Chuck was watching. It performed.",
+  "Wall Street feared Chuck. The Dow rose.",
+  "Chuck Norris roundhouse kicked inflation. It worked.",
+  "Chuck doesn't check the market. The market checks with Chuck.",
+  "Warren Buffett has a Chuck Norris poster on his wall.",
+  "Chuck Norris can make money in a bear market. Bears don't argue.",
+  "The S&P 500 is just Chuck Norris's savings account.",
+  "Green candles only. Chuck demanded it.",
+  "Chuck Norris invested once. The stock split out of respect.",
+  "Even the shorts covered when Chuck bought in.",
+  "Chuck Norris's portfolio doesn't dip. Gravity doesn't apply.",
+  "Death and taxes are certain. Chuck Norris gains are more certain.",
+  "Chuck Norris counted to infinity. Twice. Both times it was green.",
+  "Chuck Norris doesn't need compound interest. Numbers fear him.",
+];
+
+const CHUCK_GIFS_POSITIVE = [
+  "https://media.giphy.com/media/xT9IgG50Lg7rusRgqA/giphy.gif",
+  "https://media.giphy.com/media/5GoVLqeAOo6PK/giphy.gif",
+  "https://media.giphy.com/media/l0MYruglSEPU9QKGQ/giphy.gif",
+  "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif",
+  "https://media.giphy.com/media/26tP4gFBQewkLnMv6/giphy.gif",
+  "https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif",
+  "https://media.giphy.com/media/3oEjHFOscgNwdpfAGY/giphy.gif",
+  "https://media.giphy.com/media/l0HlCUsHEUVIuXsc0/giphy.gif",
+];
+
 const HAPPY_CAT_GIFS = [
   "https://gifdb.com/images/thumbnail/happy-cat-sassy-head-bobbing-uhryv4lr7t7dgfpp.gif",
   "https://gifdb.com/images/thumbnail/happy-cat-funny-smiling-grin-2cxp5723g93tahsv.gif",
@@ -116,6 +153,9 @@ export default function WolfHover({ isPositive, children }: Props) {
     } else if (funnyMode === "dogs") {
       quoteRef.current = DOG_QUOTES_HAPPY[Math.floor(Math.random() * DOG_QUOTES_HAPPY.length)];
       gifRef.current = HAPPY_DOG_GIFS[Math.floor(Math.random() * HAPPY_DOG_GIFS.length)];
+    } else if (funnyMode === "chuck") {
+      quoteRef.current = CHUCK_QUOTES_POSITIVE[Math.floor(Math.random() * CHUCK_QUOTES_POSITIVE.length)];
+      gifRef.current = CHUCK_GIFS_POSITIVE[Math.floor(Math.random() * CHUCK_GIFS_POSITIVE.length)];
     } else {
       quoteRef.current = CAT_QUOTES[Math.floor(Math.random() * CAT_QUOTES.length)];
       gifRef.current = HAPPY_CAT_GIFS[Math.floor(Math.random() * HAPPY_CAT_GIFS.length)];
@@ -154,6 +194,18 @@ export default function WolfHover({ isPositive, children }: Props) {
           </span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={gifRef.current} alt={funnyMode === "dogs" ? "Happy dog" : "Happy cat"} className="w-28 rounded-xl shadow-2xl" />
+        </span>
+      )}
+      {show && funnyMode === "chuck" && (
+        <span
+          className={`trump-popup absolute left-1/2 z-50 pointer-events-none flex items-center gap-1 ${posClass}`}
+          style={{ width: 120 }}
+        >
+          <span className="block bg-gray-800 text-orange-400 text-xs font-semibold rounded-lg px-3 py-2 shadow-xl text-center leading-snug border border-orange-900">
+            &ldquo;{quoteRef.current}&rdquo;
+          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={gifRef.current} alt="Chuck Norris" className="w-28 rounded-xl shadow-2xl" />
         </span>
       )}
     </span>

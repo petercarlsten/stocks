@@ -89,6 +89,43 @@ const DOG_QUOTES_SAD = [
   "no zoomies today",
 ];
 
+const CHUCK_QUOTES_NEGATIVE = [
+  "Chuck Norris is aware of this loss. Be afraid.",
+  "Chuck Norris doesn't lose money. He lends it to gravity.",
+  "Whoever shorted this will answer to Chuck Norris.",
+  "Red numbers? Chuck Norris calls those 'motivation'.",
+  "Chuck Norris doesn't cut losses. Losses cut themselves.",
+  "This would NOT happen if Chuck was your broker.",
+  "Chuck Norris roundhouse kicked your portfolio. Unintentionally.",
+  "Bears run the market today. Chuck runs the bears.",
+  "This loss will be investigated. By Chuck Norris.",
+  "Chuck Norris doesn't believe in stop-losses. Stops believe in Chuck.",
+  "The market is down. Chuck is on his way.",
+  "Chuck Norris once lost a trade. It didn't happen again.",
+  "Your portfolio is red. Chuck's patience is wearing thin.",
+  "This stock surrendered. Smart move.",
+  "Chuck Norris stared at this chart. It flinched.",
+  "Losses like this only happen when Chuck isn't watching.",
+  "Chuck Norris doesn't panic sell. He calmly destroys the exchange.",
+  "Chuck Norris once had a red portfolio. It was the market's last mistake.",
+  "This decline fears Chuck more than you do.",
+  "Chuck Norris doesn't need a bull market. He IS the bull.",
+  "The stock didn't fall. It dropped to avoid Chuck's gaze.",
+  "Chuck Norris has already roundhouse kicked the CEO.",
+  "Chuck Norris counted to infinity. Twice. Your portfolio can't even count to green.",
+];
+
+const CHUCK_GIFS_NEGATIVE = [
+  "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif",
+  "https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif",
+  "https://media.giphy.com/media/26tknCqiJrBQG6bxC/giphy.gif",
+  "https://media.giphy.com/media/3oEjHFOscgNwdpfAGY/giphy.gif",
+  "https://media.giphy.com/media/l0HlCUsHEUVIuXsc0/giphy.gif",
+  "https://media.giphy.com/media/3o6fJ6PIyNe3IgCmKY/giphy.gif",
+  "https://media.giphy.com/media/l0HlvtIPzPdt2usKs/giphy.gif",
+  "https://media.giphy.com/media/26tknCqiJrBQG6bxC/giphy.gif",
+];
+
 const SAD_DOG_GIFS = [
   "https://gifdb.com/images/thumbnail/sad-dog-boxer-t04yw3khyjv1a9r1.gif",
   "https://gifdb.com/images/thumbnail/sad-dog-pug-w5cej36jsji5akks.gif",
@@ -123,6 +160,9 @@ export default function TrumpHover({ isNegative, children }: Props) {
     } else if (funnyMode === "dogs") {
       quoteRef.current = DOG_QUOTES_SAD[Math.floor(Math.random() * DOG_QUOTES_SAD.length)];
       gifRef.current = SAD_DOG_GIFS[Math.floor(Math.random() * SAD_DOG_GIFS.length)];
+    } else if (funnyMode === "chuck") {
+      quoteRef.current = CHUCK_QUOTES_NEGATIVE[Math.floor(Math.random() * CHUCK_QUOTES_NEGATIVE.length)];
+      gifRef.current = CHUCK_GIFS_NEGATIVE[Math.floor(Math.random() * CHUCK_GIFS_NEGATIVE.length)];
     } else {
       quoteRef.current = TRUMP_QUOTES[Math.floor(Math.random() * TRUMP_QUOTES.length)];
     }
@@ -172,6 +212,18 @@ export default function TrumpHover({ isNegative, children }: Props) {
           </span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={gifRef.current} alt="Sad dog" className="w-24 rounded-xl shadow-2xl" />
+        </span>
+      )}
+      {show && funnyMode === "chuck" && (
+        <span
+          className={`trump-popup absolute left-1/2 z-50 pointer-events-none flex items-center gap-1 ${posClass}`}
+          style={{ width: 110 }}
+        >
+          <span className="block bg-gray-800 text-orange-400 text-xs font-semibold rounded-lg px-3 py-2 shadow-xl text-center leading-snug border border-orange-900">
+            &ldquo;{quoteRef.current}&rdquo;
+          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={gifRef.current} alt="Chuck Norris" className="w-24 rounded-xl shadow-2xl" />
         </span>
       )}
     </span>
