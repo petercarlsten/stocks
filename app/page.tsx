@@ -539,12 +539,13 @@ const cutoff1yr = new Date();
               const cutoff1yrStr = cutoff1yr.toISOString().split("T")[0];
               const cutoff1yrEndStr = new Date(cutoff1yr.getTime() + 10 * 86400000).toISOString().split("T")[0];
 
-              let total = 0, total30d = 0, total1yr = 0, totalRealized = 0;
-              let has30d = false, has1yr = false;
+              let total = 0, total30d = 0, total1yr = 0, totalRealized = 0, totalCostBasis = 0;
+              let has30d = false, has1yr = false, hasCostBasis = false;
 
               for (const s of stocks) {
                 const totalSoldShares = (s.sales ?? []).reduce((sum, sale) => sum + sale.shares, 0);
-                const totalShares = Math.max(0, (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0) - totalSoldShares);
+                const totalPurchasedShares = (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0);
+                const totalShares = Math.max(0, totalPurchasedShares - totalSoldShares);
                 if (totalShares <= 0 && !(s.sales ?? []).length) continue;
                 // Convert from ticker's native currency to portfolio currency
                 const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
@@ -562,6 +563,14 @@ const cutoff1yr = new Date();
                   const near1yr = s.data.filter((d) => d.date >= cutoff1yrStr && d.date <= cutoff1yrEndStr);
                   const price1yr = near1yr.length > 0 ? near1yr[0].close : null;
                   if (price1yr !== null) { total1yr += totalShares * price1yr * toPortfolio; has1yr = true; }
+
+                  // Cost basis of currently held shares (for total return since purchase)
+                  const pricedPurchases = (s.purchases ?? []).filter((p) => p.price != null && p.shares > 0);
+                  if (pricedPurchases.length > 0 && totalPurchasedShares > 0) {
+                    const avgCost = pricedPurchases.reduce((sum, p) => sum + p.shares * p.price!, 0) / totalPurchasedShares;
+                    totalCostBasis += avgCost * totalShares * toPortfolio;
+                    hasCostBasis = true;
+                  }
                 }
 
                 const realized = calcFifoRealizedGain(s.purchases ?? [], s.sales ?? []);
@@ -606,19 +615,39 @@ const cutoff1yr = new Date();
                       </GainHover>
                     </div>
                   )}
-                  {gain1yr !== null && totalRealized !== 0 && (
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-gray-600 text-xs w-24 shrink-0">Total return</span>
-                      <GainHover isPositive={(gain1yr + totalRealized) >= 0}>
-                        <TrumpHover isNegative={(gain1yr + totalRealized) < 0}>
-                          <span className={`text-sm font-medium whitespace-nowrap ${(gain1yr + totalRealized) >= 0 ? "text-green-600" : "text-red-500"}`}>
-                            {(gain1yr + totalRealized) >= 0 ? "+" : ""}{fmt(gain1yr + totalRealized)}
-                            <span className="text-gray-500 font-normal text-xs ml-1">(1yr + realized)</span>
+                  {hasCostBasis && (() => {
+                    const unrealized = total - totalCostBasis;
+                    const totalReturn = unrealized + totalRealized;
+                    const positive = totalReturn >= 0;
+                    return (
+                      <div className="flex flex-col gap-0.5 mt-0.5 pt-1 border-t border-gray-100">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-gray-500 text-xs w-24 shrink-0">Unrealized</span>
+                          <span className={`text-xs font-medium whitespace-nowrap ${unrealized >= 0 ? "text-green-600" : "text-red-500"}`}>
+                            {unrealized >= 0 ? "+" : ""}{fmt(unrealized)}
                           </span>
-                        </TrumpHover>
-                      </GainHover>
-                    </div>
-                  )}
+                        </div>
+                        {totalRealized !== 0 && (
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-gray-500 text-xs w-24 shrink-0">Realized</span>
+                            <span className={`text-xs font-medium whitespace-nowrap ${totalRealized >= 0 ? "text-green-600" : "text-red-500"}`}>
+                              {totalRealized >= 0 ? "+" : ""}{fmt(totalRealized)}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-gray-600 text-xs w-24 shrink-0 font-semibold">Total return</span>
+                          <GainHover isPositive={positive}>
+                            <TrumpHover isNegative={!positive}>
+                              <span className={`text-sm font-semibold whitespace-nowrap ${positive ? "text-green-600" : "text-red-500"}`}>
+                                {positive ? "+" : ""}{fmt(totalReturn)}
+                              </span>
+                            </TrumpHover>
+                          </GainHover>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               ) : null;
             })()}
