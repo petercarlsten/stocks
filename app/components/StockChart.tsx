@@ -247,6 +247,25 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
     }));
   }, [purchases, data]);
 
+  // FIFO remaining shares per purchase lot (by original index)
+  const remainingPerLot = useMemo(() => {
+    const lots = (purchases ?? []).map((p, i) => ({ i, date: p.date ?? "", remaining: p.shares }));
+    if (!(sales ?? []).length) return lots.map((l) => l.remaining);
+    const sorted = [...lots].sort((a, b) => a.date.localeCompare(b.date));
+    for (const sale of (sales ?? [])) {
+      let toSell = sale.shares;
+      for (const lot of sorted) {
+        if (toSell <= 0) break;
+        const used = Math.min(toSell, lot.remaining);
+        lot.remaining -= used;
+        toSell -= used;
+      }
+    }
+    const result = new Array(lots.length).fill(0);
+    for (const lot of sorted) result[lot.i] = lot.remaining;
+    return result;
+  }, [purchases, sales]);
+
   const saleDatesOnChart = useMemo(() => {
     if (!sales || data.length === 0) return [];
     const byDate = new Map<string, number>();
@@ -457,7 +476,10 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           )}
           </div>
         </div>
-        {(purchases ?? []).map((p, i) => (
+        {(purchases ?? []).map((p, i) => {
+          const remaining = remainingPerLot[i] ?? p.shares;
+          const reduced = remaining < p.shares;
+          return (
           <div key={i} className="flex items-center gap-2 mb-1">
             <input
               type="date"
@@ -471,18 +493,25 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               }}
               className="w-32 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
-            <input
-              type="number"
-              min="0"
-              step="any"
-              value={p.shares || ""}
-              onChange={(e) => {
-                const v = parseFloat(e.target.value);
-                onPurchasesChange((purchases ?? []).map((pp, j) => j === i ? { ...pp, shares: isNaN(v) ? 0 : Math.max(0, v) } : pp));
-              }}
-              className="w-20 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              placeholder={t.shares}
-            />
+            <div className="flex flex-col min-w-0">
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={p.shares || ""}
+                onChange={(e) => {
+                  const v = parseFloat(e.target.value);
+                  onPurchasesChange((purchases ?? []).map((pp, j) => j === i ? { ...pp, shares: isNaN(v) ? 0 : Math.max(0, v) } : pp));
+                }}
+                className="w-20 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                placeholder={t.shares}
+              />
+              {reduced && (
+                <span className="text-gray-400 text-xs mt-0.5 pl-0.5">
+                  {remaining > 0 ? `${remaining} left` : "fully sold"}
+                </span>
+              )}
+            </div>
             <button
               onClick={() => {
                 const key = `${i}:${p.date ?? ""}`;
@@ -494,7 +523,8 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               title={t.remove}
             >×</button>
           </div>
-        ))}
+          );
+        })}
         <button
           onClick={() => onPurchasesChange([...(purchases ?? []), { date: today, shares: 0 }])}
           className="text-indigo-500 hover:text-indigo-700 text-xs mt-0.5"
@@ -510,6 +540,19 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               <span className="text-gray-500 text-xs">{totalSoldShares} sold · {totalShares} remaining</span>
             )}
           </div>
+          {(() => {
+            const totalProceeds = (sales ?? []).reduce((sum, s) => s.price != null ? sum + s.shares * s.price : sum, 0);
+            const fifoGain = calcFifoRealizedGain(purchases ?? [], sales ?? []);
+            if (!totalProceeds) return null;
+            return (
+              <div className="flex gap-4 mb-1.5 text-xs tabular-nums">
+                <span className="text-gray-500">Proceeds: <span className="text-gray-700">{fmt(totalProceeds)}</span></span>
+                {fifoGain !== null && (
+                  <span className="text-gray-500">Gain: <span style={{ color: fifoGain >= 0 ? "#16a34a" : "#ef4444" }}>{fifoGain >= 0 ? "+" : ""}{fmt(fifoGain)}</span></span>
+                )}
+              </div>
+            );
+          })()}
           {(sales ?? []).map((s, i) => (
             <div key={i} className="flex items-center gap-2 mb-1">
               <input
