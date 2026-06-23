@@ -443,96 +443,21 @@ export default function Home() {
               <div className="logo-badge relative bg-gradient-to-br from-indigo-600 via-violet-600 to-emerald-500 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex items-center justify-center overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent pointer-events-none"/>
                 <div className="logo-live-dot absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-emerald-300"/>
-                {funnyMode === "cats" ? (
-                  /* Cat face */
-                  <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
-                    <polygon points="7,22 11,6 19,16" fill="white" opacity="0.95"/>
-                    <polygon points="33,22 29,6 21,16" fill="white" opacity="0.95"/>
-                    <polygon points="9,21 12,9 18,16" fill="#f9a8d4" opacity="0.7"/>
-                    <polygon points="31,21 28,9 22,16" fill="#f9a8d4" opacity="0.7"/>
-                    <circle cx="20" cy="26" r="13" fill="white" opacity="0.95"/>
-                    <ellipse cx="14" cy="24" rx="2.2" ry="2.8" fill="#4f46e5"/>
-                    <ellipse cx="26" cy="24" rx="2.2" ry="2.8" fill="#4f46e5"/>
-                    <circle cx="14.7" cy="23" r="0.8" fill="white"/>
-                    <circle cx="26.7" cy="23" r="0.8" fill="white"/>
-                    <polygon points="20,28 18.2,30.5 21.8,30.5" fill="#f9a8d4"/>
-                    <path d="M 16,31.5 Q 20,34 24,31.5" stroke="#9ca3af" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-                    <line x1="2" y1="26" x2="15" y2="27.5" stroke="white" strokeWidth="1.1" opacity="0.7"/>
-                    <line x1="2" y1="29.5" x2="15" y2="29" stroke="white" strokeWidth="1.1" opacity="0.7"/>
-                    <line x1="38" y1="26" x2="25" y2="27.5" stroke="white" strokeWidth="1.1" opacity="0.7"/>
-                    <line x1="38" y1="29.5" x2="25" y2="29" stroke="white" strokeWidth="1.1" opacity="0.7"/>
-                  </svg>
-                ) : funnyMode === "dogs" ? (
-                  /* Dog face with tongue */
-                  <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
-                    <ellipse cx="7" cy="23" rx="6" ry="11" fill="white" opacity="0.75"/>
-                    <ellipse cx="33" cy="23" rx="6" ry="11" fill="white" opacity="0.75"/>
-                    <circle cx="20" cy="19" r="14" fill="white" opacity="0.95"/>
-                    <circle cx="14" cy="16" r="3" fill="#4f46e5"/>
-                    <circle cx="26" cy="16" r="3" fill="#4f46e5"/>
-                    <circle cx="15" cy="15" r="1" fill="white"/>
-                    <circle cx="27" cy="15" r="1" fill="white"/>
-                    <ellipse cx="20" cy="24" rx="6" ry="4.5" fill="white" opacity="0.6"/>
-                    <ellipse cx="20" cy="22.5" rx="3.5" ry="2.5" fill="#1f2937"/>
-                    <path d="M 16,27 Q 20,30 24,27" stroke="#6b7280" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-                    <ellipse cx="20" cy="30" rx="3" ry="2.5" fill="#f87171" opacity="0.95"/>
-                    <ellipse cx="20" cy="31.5" rx="2" ry="1.2" fill="#ef4444" opacity="0.7"/>
-                  </svg>
-                ) : funnyMode === "chuck" ? (
-                  /* Chuck Norris: cowboy hat + beard */
-                  <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
-                    {/* Cowboy hat brim */}
-                    <ellipse cx="20" cy="12" rx="16" ry="3.5" fill="#92400e"/>
-                    {/* Hat crown */}
-                    <rect x="11" y="3" width="18" height="10" rx="3" fill="#78350f"/>
-                    {/* Hat band */}
-                    <rect x="11" y="10" width="18" height="2.5" fill="#451a03"/>
-                    {/* Face */}
-                    <ellipse cx="20" cy="27" rx="12" ry="12" fill="#fcd9a0"/>
-                    {/* Beard */}
-                    <ellipse cx="20" cy="33" rx="9" ry="6" fill="#92400e"/>
-                    <ellipse cx="20" cy="29" rx="7" ry="5" fill="#a16207"/>
-                    {/* Mustache */}
-                    <path d="M 14,26 Q 17,28 20,26 Q 23,28 26,26" fill="#78350f"/>
-                    {/* Eyes */}
-                    <ellipse cx="15" cy="23" rx="2" ry="1.8" fill="#1c1917"/>
-                    <ellipse cx="25" cy="23" rx="2" ry="1.8" fill="#1c1917"/>
-                    <circle cx="15.6" cy="22.4" r="0.7" fill="white"/>
-                    <circle cx="25.6" cy="22.4" r="0.7" fill="white"/>
-                    {/* Eyebrows */}
-                    <path d="M 12,20.5 Q 15,19 18,20.5" stroke="#78350f" strokeWidth="1.6" fill="none" strokeLinecap="round"/>
-                    <path d="M 22,20.5 Q 25,19 28,20.5" stroke="#78350f" strokeWidth="1.6" fill="none" strokeLinecap="round"/>
-                  </svg>
-                ) : funnyMode === "trump" ? (
-                  /* Trump face: iconic swept hair + orange face */
-                  <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
-                    <path d="M 8,22 Q 6,6 16,3 Q 22,0 30,4 Q 36,9 35,18 Q 31,8 20,7 Q 11,7 8,22 Z" fill="#fbbf24"/>
-                    <path d="M 30,4 Q 37,10 36,20 Q 34,12 29,9 Z" fill="#f59e0b"/>
-                    <ellipse cx="20" cy="27" rx="13" ry="13" fill="#fed7aa"/>
-                    <path d="M 8,23 Q 7,12 15,8 Q 12,11 11,18 Z" fill="#f59e0b"/>
-                    <ellipse cx="14.5" cy="25" rx="2.5" ry="2" fill="#bfdbfe"/>
-                    <ellipse cx="25.5" cy="25" rx="2.5" ry="2" fill="#bfdbfe"/>
-                    <path d="M 11,22 Q 14.5,20 18,22" stroke="#92400e" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-                    <path d="M 22,22 Q 25.5,20 29,22" stroke="#92400e" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-                    <path d="M 15,32 Q 20,30.5 25,32" stroke="#c2410c" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
-                  </svg>
-                ) : (
-                  /* Charging bull — Wall Street style */
-                  <svg width="60" height="46" viewBox="0 0 100 66" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M 10,30 C 4,18 4,8 8,2" stroke="white" strokeWidth="5" strokeLinecap="round" fill="none"/>
-                    <circle cx="8" cy="1" r="4.5" fill="white"/>
-                    <ellipse cx="44" cy="44" rx="34" ry="20" fill="white"/>
-                    <ellipse cx="66" cy="26" rx="18" ry="13" fill="white"/>
-                    <ellipse cx="82" cy="48" rx="14" ry="10" transform="rotate(-18 82 48)" fill="white"/>
-                    <ellipse cx="90" cy="54" rx="8" ry="6" fill="white"/>
-                    <path d="M 84,38 C 90,28 96,20 94,12" stroke="white" strokeWidth="5.5" strokeLinecap="round" fill="none"/>
-                    <path d="M 76,34 C 80,24 86,16 84,8" stroke="white" strokeWidth="4.5" strokeLinecap="round" fill="none"/>
-                    <path d="M 72,60 C 76,63 80,66 84,66" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
-                    <path d="M 80,62 C 83,64 86,66 88,64" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
-                    <path d="M 26,60 C 22,63 18,66 14,66" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
-                    <path d="M 36,62 C 32,64 28,66 25,65" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
-                  </svg>
-                )}
+                {/* Charging bull — Wall Street style */}
+                <svg width="60" height="46" viewBox="0 0 100 66" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M 10,30 C 4,18 4,8 8,2" stroke="white" strokeWidth="5" strokeLinecap="round" fill="none"/>
+                  <circle cx="8" cy="1" r="4.5" fill="white"/>
+                  <ellipse cx="44" cy="44" rx="34" ry="20" fill="white"/>
+                  <ellipse cx="66" cy="26" rx="18" ry="13" fill="white"/>
+                  <ellipse cx="82" cy="48" rx="14" ry="10" transform="rotate(-18 82 48)" fill="white"/>
+                  <ellipse cx="90" cy="54" rx="8" ry="6" fill="white"/>
+                  <path d="M 84,38 C 90,28 96,20 94,12" stroke="white" strokeWidth="5.5" strokeLinecap="round" fill="none"/>
+                  <path d="M 76,34 C 80,24 86,16 84,8" stroke="white" strokeWidth="4.5" strokeLinecap="round" fill="none"/>
+                  <path d="M 72,60 C 76,63 80,66 84,66" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
+                  <path d="M 80,62 C 83,64 86,66 88,64" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
+                  <path d="M 26,60 C 22,63 18,66 14,66" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
+                  <path d="M 36,62 C 32,64 28,66 25,65" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
+                </svg>
               </div>
               </div>
               <div>
