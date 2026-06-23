@@ -95,6 +95,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const [pullY, setPullY] = useState(0);
+  const touchStartY = useRef(0);
   const initializedFor = useRef<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [currency, setCurrency] = useState("USD");
@@ -360,7 +362,32 @@ export default function Home() {
         </p>
       </div>
     )}
-    <main className="min-h-screen page-bg text-gray-900 p-3 sm:p-6">
+    <main
+      className="min-h-screen page-bg text-gray-900 p-3 sm:p-6"
+      onTouchStart={(e) => { touchStartY.current = e.touches[0].clientY; }}
+      onTouchMove={(e) => {
+        if (refreshing) return;
+        const delta = e.touches[0].clientY - touchStartY.current;
+        if (window.scrollY === 0 && delta > 0) setPullY(Math.min(delta, 80));
+      }}
+      onTouchEnd={() => {
+        if (pullY >= 60) handleRefresh();
+        setPullY(0);
+      }}
+    >
+      {pullY > 0 && (
+        <div
+          className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center transition-all"
+          style={{ height: pullY, background: "transparent" }}
+        >
+          <div className={`flex items-center gap-2 text-xs text-indigo-600 ${pullY >= 60 ? "opacity-100" : "opacity-50"}`}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={pullY >= 60 ? { transform: "rotate(180deg)" } : {}}>
+              <path d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+            {pullY >= 60 ? "Release to refresh" : "Pull to refresh"}
+          </div>
+        </div>
+      )}
       <style>{`
         @keyframes logo-gradient {
           0%, 100% { background-position: 0% 50%; }
