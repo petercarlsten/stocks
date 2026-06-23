@@ -28,12 +28,6 @@ export interface Purchase {
   price?: number;
 }
 
-export interface Sale {
-  date: string;
-  shares: number;
-  price?: number;
-}
-
 interface Props {
   symbol: string;
   name: string;
@@ -42,69 +36,12 @@ interface Props {
   onRemove: () => void;
   color: string;
   purchases?: Purchase[];
-  sales?: Sale[];
   onPurchasesChange: (updater: Purchase[] | ((prev: Purchase[]) => Purchase[])) => void;
-  onSalesChange: (updater: Sale[] | ((prev: Sale[]) => Sale[])) => void;
+  onCurrencyChange?: (currency: string) => void;
   dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
   theme?: "light" | "dark";
   portfolioPct?: number;
   tickerCurrency?: string;
-}
-
-interface SaleResult { gain: number; costBasis: number; sharesSold: number; }
-
-function calcFifoGainsPerSale(purchases: Purchase[], sales: Sale[]): (SaleResult | null)[] {
-  const lots = purchases
-    .filter((p) => p.date && p.price != null && p.shares > 0)
-    .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""))
-    .map((p) => ({ remaining: p.shares, price: p.price! }));
-
-  const indexed = sales.map((s, origIdx) => ({ ...s, origIdx }))
-    .sort((a, b) => a.date.localeCompare(b.date));
-
-  const result: (SaleResult | null)[] = new Array(sales.length).fill(null);
-  for (const sale of indexed) {
-    if (!sale.price || !sale.shares) continue;
-    let toSell = sale.shares;
-    let gain = 0;
-    let costBasis = 0;
-    let sharesSold = 0;
-    for (const lot of lots) {
-      if (toSell <= 0 || lot.remaining <= 0) continue;
-      const used = Math.min(toSell, lot.remaining);
-      gain += used * (sale.price - lot.price);
-      costBasis += used * lot.price;
-      lot.remaining -= used;
-      toSell -= used;
-      sharesSold += used;
-    }
-    if (sharesSold > 0) result[sale.origIdx] = { gain, costBasis, sharesSold };
-  }
-  return result;
-}
-
-function calcFifoRealizedGain(purchases: Purchase[], sales: Sale[]): number | null {
-  const salesWithPrice = sales.filter((s) => s.price != null && s.shares > 0);
-  if (!salesWithPrice.length) return null;
-  const purchasesWithPrice = purchases.filter((p) => p.price != null && p.shares > 0);
-  if (!purchasesWithPrice.length) return null;
-
-  const lots = [...purchasesWithPrice]
-    .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""))
-    .map((p) => ({ remaining: p.shares, price: p.price! }));
-
-  let gain = 0;
-  for (const sale of salesWithPrice) {
-    let toSell = sale.shares;
-    for (const lot of lots) {
-      if (toSell <= 0 || lot.remaining <= 0) continue;
-      const used = Math.min(toSell, lot.remaining);
-      gain += (sale.price! - lot.price) * used;
-      lot.remaining -= used;
-      toSell -= used;
-    }
-  }
-  return gain;
 }
 
 function formatEarningsDate(dateStr: string): string {
@@ -118,7 +55,7 @@ function fmtDate(dateStr?: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, sales, onPurchasesChange, onSalesChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD" }: Props) {
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD" }: Props) {
   const t = useTranslation();
   const [holdings, setHoldings] = useState<{ name: string; pct: number }[] | null>(null);
   const [showHoldings, setShowHoldings] = useState(false);
@@ -129,6 +66,8 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const [cardExRate, setCardExRate] = useState(1);
   const [currencyQuery, setCurrencyQuery] = useState("");
   const [currencyOpen, setCurrencyOpen] = useState(false);
+  const [nativeCurrencyOpen, setNativeCurrencyOpen] = useState(false);
+  const [nativeCurrencyQuery, setNativeCurrencyQuery] = useState("");
   const usdRatesRef = useRef<Record<string, number>>({ USD: 1 });
   const fetchingRef = useRef(new Set<string>());
   const failedRef = useRef(new Set<string>());
@@ -140,6 +79,14 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
       (c) => c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)
     );
   }, [currencyQuery]);
+
+  const filteredNativeCurrencies = useMemo(() => {
+    const q = nativeCurrencyQuery.toLowerCase().trim();
+    if (!q) return ALL_CURRENCIES;
+    return ALL_CURRENCIES.filter(
+      (c) => c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)
+    );
+  }, [nativeCurrencyQuery]);
 
   const applyRate = useCallback((display: string, ticker: string, rates: Record<string, number>) => {
     if (display === ticker) { setCardExRate(1); return; }
@@ -190,29 +137,8 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         .finally(() => fetchingRef.current.delete(key));
     });
 
-    (sales ?? []).forEach((s, i) => {
-      if (!s.date || s.price != null) return;
-      const key = `s${i}:${s.date}`;
-      if (fetchingRef.current.has(key) || failedRef.current.has(key)) return;
-      fetchingRef.current.add(key);
-
-      if (data.length > 0 && s.date >= data[0].date && s.date <= data[data.length - 1].date) {
-        const pt = data.find((d) => d.date >= s.date!) ?? data[0];
-        onSalesChange((prev) => prev.map((ss, j) => j === i ? { ...ss, price: pt.close } : ss));
-        fetchingRef.current.delete(key);
-        return;
-      }
-
-      fetch(`/api/price?symbol=${encodeURIComponent(symbol)}&date=${s.date}`)
-        .then((r) => r.ok ? r.json() : Promise.reject())
-        .then((d) => {
-          onSalesChange((prev) => prev.map((ss, j) => j === i && ss.price == null ? { ...ss, price: d.price } : ss));
-        })
-        .catch(() => { failedRef.current.add(key); })
-        .finally(() => fetchingRef.current.delete(key));
-    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [purchases, sales, data, symbol]);
+  }, [purchases, data, symbol]);
 
   async function handleNameEnter() {
     if (holdings !== null && holdings.length === 0) return; // known empty — skip
@@ -262,8 +188,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const earningsIsFuture = earningsDate ? earningsDate > today : false;
 
   const totalPurchasedShares = (purchases ?? []).reduce((sum, p) => sum + (p.shares || 0), 0);
-  const totalSoldShares = (sales ?? []).reduce((sum, s) => sum + (s.shares || 0), 0);
-  const totalShares = Math.max(0, totalPurchasedShares - totalSoldShares);
+  const totalShares = totalPurchasedShares;
 
   const purchaseDatesOnChart = useMemo(() => {
     if (!purchases || data.length === 0) return [];
@@ -279,38 +204,6 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
     }));
   }, [purchases, data]);
 
-  // FIFO remaining shares per purchase lot (by original index)
-  const remainingPerLot = useMemo(() => {
-    const lots = (purchases ?? []).map((p, i) => ({ i, date: p.date ?? "", remaining: p.shares }));
-    if (!(sales ?? []).length) return lots.map((l) => l.remaining);
-    const sorted = [...lots].sort((a, b) => a.date.localeCompare(b.date));
-    for (const sale of (sales ?? [])) {
-      let toSell = sale.shares;
-      for (const lot of sorted) {
-        if (toSell <= 0) break;
-        const used = Math.min(toSell, lot.remaining);
-        lot.remaining -= used;
-        toSell -= used;
-      }
-    }
-    const result = new Array(lots.length).fill(0);
-    for (const lot of sorted) result[lot.i] = lot.remaining;
-    return result;
-  }, [purchases, sales]);
-
-  const saleDatesOnChart = useMemo(() => {
-    if (!sales || data.length === 0) return [];
-    const byDate = new Map<string, number>();
-    sales.forEach((s) => {
-      if (!s.date || s.date < data[0].date || s.date > data[data.length - 1].date) return;
-      const chartDate = (data.find((d) => d.date >= s.date!) ?? data[0])?.date;
-      byDate.set(chartDate, (byDate.get(chartDate) ?? 0) + 1);
-    });
-    return Array.from(byDate.entries()).map(([chartDate, count]) => ({
-      chartDate,
-      label: count > 1 ? `S×${count}` : "S",
-    }));
-  }, [sales, data]);
 
   const positionValue = totalShares > 0 ? totalShares * last : null;
   const absChange = last - first;
@@ -431,16 +324,6 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               label={{ value: p.label, position: "top", fill: "#6366f1", fontSize: 10 }}
             />
           ))}
-          {saleDatesOnChart.map((s, i) => (
-            <ReferenceLine
-              key={`s${i}`}
-              x={s.chartDate}
-              stroke="#ef4444"
-              strokeDasharray="4 3"
-              strokeWidth={1.5}
-              label={{ value: s.label, position: "top", fill: "#ef4444", fontSize: 10 }}
-            />
-          ))}
           <Line
             type="monotone"
             dataKey="close"
@@ -455,12 +338,6 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           <span className="flex items-center gap-1.5 text-xs text-gray-600">
             <span className="inline-block w-4 border-t-2 border-dashed border-indigo-400"></span>
             {t.purchaseDate}
-          </span>
-        )}
-        {(sales ?? []).length > 0 && (
-          <span className="flex items-center gap-1.5 text-xs text-gray-600">
-            <span className="inline-block w-4 border-t-2 border-dashed border-red-400"></span>
-            Sale date
           </span>
         )}
         {earningsDate && (
@@ -478,42 +355,86 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               <span className="text-gray-700 text-xs">· {t.sharesTotal(totalShares)}</span>
             )}
           </div>
-          <div className="relative">
-          <input
-            type="text"
-            value={currencyQuery}
-            placeholder={cardCurrency}
-            onChange={(e) => { setCurrencyQuery(e.target.value); setCurrencyOpen(true); }}
-            onFocus={() => setCurrencyOpen(true)}
-            onBlur={() => setTimeout(() => setCurrencyOpen(false), 150)}
-            className="w-16 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder-gray-500"
-          />
-          {currencyOpen && (
-            <ul className="absolute bottom-full mb-1 right-0 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
-              {filteredCurrencies.length === 0 ? (
-                <li className="px-3 py-2 text-gray-600 text-xs">{t.noResults}</li>
-              ) : (
-                filteredCurrencies.map((c) => (
-                  <li
-                    key={c.code}
-                    onMouseDown={() => selectCurrency(c.code)}
-                    className={`flex items-center gap-2 px-3 py-1.5 cursor-pointer text-xs hover:bg-gray-50 ${c.code === cardCurrency ? "text-indigo-600 font-semibold" : "text-gray-900"}`}
-                  >
-                    <span className="shrink-0 w-8 font-mono">{c.code}</span>
-                    <span className="text-gray-700 truncate">{c.name}</span>
-                  </li>
-                ))
-              )}
-            </ul>
-          )}
+          <div className="flex items-center gap-2">
+            {onCurrencyChange && (
+              <div className="relative">
+                <button
+                  onClick={() => setNativeCurrencyOpen((o) => !o)}
+                  className="text-xs text-gray-400 hover:text-gray-600 border border-dashed border-gray-300 rounded px-1.5 py-0.5"
+                  title="Fix fund native currency"
+                >
+                  {tickerCurrency} ✎
+                </button>
+                {nativeCurrencyOpen && (
+                  <div className="absolute bottom-full mb-1 right-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg w-48">
+                    <input
+                      type="text"
+                      autoFocus
+                      value={nativeCurrencyQuery}
+                      placeholder="Search…"
+                      onChange={(e) => setNativeCurrencyQuery(e.target.value)}
+                      onBlur={() => setTimeout(() => { setNativeCurrencyOpen(false); setNativeCurrencyQuery(""); }, 150)}
+                      className="w-full px-3 py-1.5 text-xs border-b border-gray-100 focus:outline-none"
+                    />
+                    <ul className="max-h-40 overflow-y-auto">
+                      {filteredNativeCurrencies.length === 0 ? (
+                        <li className="px-3 py-2 text-gray-600 text-xs">{t.noResults}</li>
+                      ) : (
+                        filteredNativeCurrencies.map((c) => (
+                          <li
+                            key={c.code}
+                            onMouseDown={() => {
+                              onCurrencyChange(c.code);
+                              setCardCurrency(c.code);
+                              setCardExRate(1);
+                              setNativeCurrencyOpen(false);
+                              setNativeCurrencyQuery("");
+                            }}
+                            className={`flex items-center gap-2 px-3 py-1.5 cursor-pointer text-xs hover:bg-gray-50 ${c.code === tickerCurrency ? "text-indigo-600 font-semibold" : "text-gray-900"}`}
+                          >
+                            <span className="shrink-0 w-8 font-mono">{c.code}</span>
+                            <span className="text-gray-700 truncate">{c.name}</span>
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="relative">
+            <input
+              type="text"
+              value={currencyQuery}
+              placeholder={cardCurrency}
+              onChange={(e) => { setCurrencyQuery(e.target.value); setCurrencyOpen(true); }}
+              onFocus={() => setCurrencyOpen(true)}
+              onBlur={() => setTimeout(() => setCurrencyOpen(false), 150)}
+              className="w-16 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder-gray-500"
+            />
+            {currencyOpen && (
+              <ul className="absolute bottom-full mb-1 right-0 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                {filteredCurrencies.length === 0 ? (
+                  <li className="px-3 py-2 text-gray-600 text-xs">{t.noResults}</li>
+                ) : (
+                  filteredCurrencies.map((c) => (
+                    <li
+                      key={c.code}
+                      onMouseDown={() => selectCurrency(c.code)}
+                      className={`flex items-center gap-2 px-3 py-1.5 cursor-pointer text-xs hover:bg-gray-50 ${c.code === cardCurrency ? "text-indigo-600 font-semibold" : "text-gray-900"}`}
+                    >
+                      <span className="shrink-0 w-8 font-mono">{c.code}</span>
+                      <span className="text-gray-700 truncate">{c.name}</span>
+                    </li>
+                  ))
+                )}
+              </ul>
+            )}
+            </div>
           </div>
         </div>
-        {(purchases ?? []).map((p, i) => {
-          const remaining = remainingPerLot[i] ?? p.shares;
-          const fullySold = remaining === 0 && p.shares > 0;
-          const partialSold = remaining > 0 && remaining < p.shares;
-          return (
-          <div key={i} className={`flex items-center gap-2 mb-1 ${fullySold ? "opacity-50" : ""}`}>
+        {(purchases ?? []).map((p, i) => (
+          <div key={i} className="flex items-center gap-2 mb-1">
             <input
               type="date"
               value={p.date ?? ""}
@@ -526,29 +447,18 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               }}
               className="w-32 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
-            <div className="flex items-center gap-1.5 min-w-0">
-              <input
-                type="number"
-                min="0"
-                step="any"
-                value={p.shares || ""}
-                onChange={(e) => {
-                  const v = parseFloat(e.target.value);
-                  onPurchasesChange((purchases ?? []).map((pp, j) => j === i ? { ...pp, shares: isNaN(v) ? 0 : Math.max(0, v) } : pp));
-                }}
-                className={`w-20 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${fullySold ? "line-through text-gray-400" : "text-gray-900"}`}
-                placeholder={t.shares}
-              />
-              {partialSold && (
-                <span className="text-xs whitespace-nowrap">
-                  <span className="text-gray-400">{p.shares - remaining} sold, </span>
-                  <span className="text-indigo-600 font-semibold">{remaining} holding</span>
-                </span>
-              )}
-              {fullySold && (
-                <span className="text-red-500 text-xs font-semibold whitespace-nowrap">all sold</span>
-              )}
-            </div>
+            <input
+              type="number"
+              min="0"
+              step="any"
+              value={p.shares || ""}
+              onChange={(e) => {
+                const v = parseFloat(e.target.value);
+                onPurchasesChange((purchases ?? []).map((pp, j) => j === i ? { ...pp, shares: isNaN(v) ? 0 : Math.max(0, v) } : pp));
+              }}
+              className="w-20 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              placeholder={t.shares}
+            />
             <button
               onClick={() => {
                 const key = `${i}:${p.date ?? ""}`;
@@ -560,91 +470,12 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               title={t.remove}
             >×</button>
           </div>
-          );
-        })}
+        ))}
         <button
           onClick={() => onPurchasesChange([...(purchases ?? []), { date: today, shares: 0 }])}
           className="text-indigo-500 hover:text-indigo-700 text-xs mt-0.5"
         >{t.addPurchase}</button>
       </div>
-
-      {/* Sales section */}
-      {((sales ?? []).length > 0 || totalPurchasedShares > 0) && (
-        <div className="pt-2 border-t-2 border-red-100 mt-1">
-          <div className="flex items-center justify-between mb-1.5">
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-4 rounded-full bg-red-400 inline-block"></span>
-              <span className="text-red-500 text-xs font-semibold uppercase tracking-wide">Sales</span>
-            </div>
-            {totalSoldShares > 0 && (
-              <span className="text-gray-500 text-xs">{totalSoldShares} sold · {totalShares} left</span>
-            )}
-          </div>
-          {(() => {
-            const totalProceeds = (sales ?? []).reduce((sum, s) => s.price != null ? sum + s.shares * s.price : sum, 0);
-            const fifoGain = calcFifoRealizedGain(purchases ?? [], sales ?? []);
-            if (!totalProceeds) return null;
-            return (
-              <div className="flex gap-4 mb-1.5 text-xs tabular-nums">
-                <span className="text-gray-500">Proceeds: <span className="text-gray-700">{fmt(totalProceeds)}</span></span>
-                {fifoGain !== null && (
-                  <span className="text-gray-500">Gain: <span style={{ color: fifoGain >= 0 ? "#16a34a" : "#ef4444" }}>{fifoGain >= 0 ? "+" : ""}{fmt(fifoGain)}</span></span>
-                )}
-              </div>
-            );
-          })()}
-          {(() => {
-            const saleGains = calcFifoGainsPerSale(purchases ?? [], sales ?? []);
-            return (sales ?? []).map((s, i) => {
-              const saleResult = saleGains[i];
-              return (
-              <div key={i} className="flex items-start gap-2 mb-1.5">
-                <input
-                  type="date"
-                  value={s.date}
-                  max={today}
-                  onChange={(e) => onSalesChange((sales ?? []).map((ss, j) => j === i ? { ...ss, date: e.target.value } : ss))}
-                  className="w-32 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-red-400"
-                />
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="0"
-                      step="any"
-                      value={s.shares || ""}
-                      onChange={(e) => {
-                        const v = parseFloat(e.target.value);
-                        onSalesChange((sales ?? []).map((ss, j) => j === i ? { ...ss, shares: isNaN(v) ? 0 : Math.max(0, v) } : ss));
-                      }}
-                      className="w-20 bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-red-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      placeholder={t.shares}
-                    />
-                    <span className="text-gray-500 text-xs">@ {s.price != null ? fmt(s.price) : "…"}</span>
-                  </div>
-                  {saleResult !== null && s.price != null && (
-                    <span className="text-xs tabular-nums">
-                      <span className="text-gray-400">paid {fmt(saleResult.costBasis)} → got {fmt(saleResult.sharesSold * s.price)} → </span>
-                      <span className="font-semibold" style={{ color: saleResult.gain >= 0 ? "#16a34a" : "#ef4444" }}>
-                        {saleResult.gain >= 0 ? "+" : ""}{fmt(saleResult.gain)} {saleResult.gain >= 0 ? "made" : "lost"}
-                      </span>
-                    </span>
-                  )}
-                </div>
-                <button
-                  onClick={() => onSalesChange((sales ?? []).filter((_, j) => j !== i))}
-                  className="text-gray-300 hover:text-red-400 text-base leading-none shrink-0 mt-0.5"
-                  title={t.remove}
-                >×</button>
-              </div>
-            );});
-          })()}
-          <button
-            onClick={() => onSalesChange([...(sales ?? []), { date: today, shares: 0 }])}
-            className="text-red-400 hover:text-red-600 text-xs mt-0.5"
-          >+ Record sale</button>
-        </div>
-      )}
 
       {/* Gains tooltip — appears over chart when hovering the % badge */}
       {showGains && (
@@ -685,21 +516,6 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                 </span>
               </div>
             )}
-            {(() => {
-              const realized = calcFifoRealizedGain(purchases ?? [], sales ?? []);
-              if (realized === null) return null;
-              return (
-                <div
-                  className="flex justify-between gap-4 text-xs pt-1.5 border-t"
-                  style={{ borderColor: dark ? "#374151" : "#e5e7eb" }}
-                >
-                  <span style={{ color: dark ? "#6b7280" : "#475569" }}>Realized (FIFO)</span>
-                  <span style={{ color: realized >= 0 ? "#16a34a" : "#ef4444" }}>
-                    {realized >= 0 ? "+" : ""}{fmt(realized)}
-                  </span>
-                </div>
-              );
-            })()}
           </div>
         </div>
       )}

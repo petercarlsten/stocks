@@ -30,12 +30,6 @@ interface Purchase {
   price?: number;
 }
 
-interface Sale {
-  date: string;
-  shares: number;
-  price?: number;
-}
-
 interface StockData {
   symbol: string;
   name: string;
@@ -43,7 +37,6 @@ interface StockData {
   data: { date: string; close: number }[];
   currency?: string;
   purchases?: Purchase[];
-  sales?: Sale[];
 }
 
 // Migrate old single-purchase format to the purchases array
@@ -67,48 +60,6 @@ const SUFFIX_CURRENCY: Record<string, string> = {
   ".HK": "HKD", ".T": "JPY", ".AX": "AUD", ".SI": "SGD", ".KL": "MYR",
   ".NS": "INR",
 };
-
-function calcFifoRemainingCostBasis(purchases: Purchase[], sales: Sale[]): number | null {
-  const pricedLots = purchases
-    .filter((p) => p.date && p.price != null && p.shares > 0)
-    .sort((a, b) => (a.date! < b.date! ? -1 : 1))
-    .map((p) => ({ remaining: p.shares, price: p.price! }));
-  if (!pricedLots.length) return null;
-  for (const sale of [...sales].sort((a, b) => a.date.localeCompare(b.date))) {
-    let toSell = sale.shares;
-    for (const lot of pricedLots) {
-      if (toSell <= 0) break;
-      const used = Math.min(toSell, lot.remaining);
-      lot.remaining -= used;
-      toSell -= used;
-    }
-  }
-  return pricedLots.reduce((sum, lot) => sum + lot.remaining * lot.price, 0);
-}
-
-function calcFifoRealizedGain(
-  purchases: Purchase[],
-  sales: Sale[]
-): number {
-  if (!purchases.length || !sales.length) return 0;
-  const lots = purchases
-    .filter((p) => p.date && p.price != null)
-    .sort((a, b) => (a.date! < b.date! ? -1 : 1))
-    .map((p) => ({ remaining: p.shares, price: p.price! }));
-  let realized = 0;
-  for (const sale of sales) {
-    if (!sale.price) continue;
-    let toSell = sale.shares;
-    for (const lot of lots) {
-      if (toSell <= 0) break;
-      const used = Math.min(toSell, lot.remaining);
-      realized += used * (sale.price - lot.price);
-      lot.remaining -= used;
-      toSell -= used;
-    }
-  }
-  return realized;
-}
 
 function inferCurrency(symbol: string): string {
   const dotIdx = symbol.lastIndexOf(".");
@@ -357,12 +308,8 @@ export default function Home() {
     }));
   }, []);
 
-  const updateSales = useCallback((symbol: string, updater: Sale[] | ((prev: Sale[]) => Sale[])) => {
-    setStocks((prev) => prev.map((s) => {
-      if (s.symbol !== symbol) return s;
-      const next = typeof updater === "function" ? updater(s.sales ?? []) : updater;
-      return { ...s, sales: next };
-    }));
+  const updateCurrency = useCallback((symbol: string, currency: string) => {
+    setStocks((prev) => prev.map((s) => s.symbol === symbol ? { ...s, currency } : s));
   }, []);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -557,44 +504,27 @@ const cutoff1yr = new Date();
               const cutoff1yrStr = cutoff1yr.toISOString().split("T")[0];
               const cutoff1yrEndStr = new Date(cutoff1yr.getTime() + 10 * 86400000).toISOString().split("T")[0];
 
-              let total = 0, total30d = 0, total1yr = 0, totalRealized = 0, totalCostBasis = 0, totalEverInvested = 0;
-              let has30d = false, has1yr = false, hasCostBasis = false;
+              let total = 0, total30d = 0, total1yr = 0;
+              let has30d = false, has1yr = false;
 
               for (const s of stocks) {
-                const totalSoldShares = (s.sales ?? []).reduce((sum, sale) => sum + sale.shares, 0);
-                const totalPurchasedShares = (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0);
-                const totalShares = Math.max(0, totalPurchasedShares - totalSoldShares);
-                if (totalShares <= 0 && !(s.sales ?? []).length) continue;
+                const totalShares = (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0);
+                if (totalShares <= 0) continue;
                 // Convert from ticker's native currency to portfolio currency
                 const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
                 const toPortfolio = exchangeRate / tickerRate;
 
                 const price = s.data[s.data.length - 1]?.close ?? 0;
-                if (totalShares > 0) total += totalShares * price * toPortfolio;
+                total += totalShares * price * toPortfolio;
 
-                if (totalShares > 0) {
-                  const past30 = s.data.filter((d) => d.date <= cutoffStr);
-                  const price30d = past30.length > 0 ? past30[past30.length - 1].close : null;
-                  if (price30d !== null) { total30d += totalShares * price30d * toPortfolio; has30d = true; }
+                const past30 = s.data.filter((d) => d.date <= cutoffStr);
+                const price30d = past30.length > 0 ? past30[past30.length - 1].close : null;
+                if (price30d !== null) { total30d += totalShares * price30d * toPortfolio; has30d = true; }
 
-                  // Find closest trading day at or just after the 1-year mark (handles weekends/holidays)
-                  const near1yr = s.data.filter((d) => d.date >= cutoff1yrStr && d.date <= cutoff1yrEndStr);
-                  const price1yr = near1yr.length > 0 ? near1yr[0].close : null;
-                  if (price1yr !== null) { total1yr += totalShares * price1yr * toPortfolio; has1yr = true; }
-
-                  // FIFO cost basis of currently held shares (for unrealized gain calc)
-                  const fifoCostBasis = calcFifoRemainingCostBasis(s.purchases ?? [], s.sales ?? []);
-                  if (fifoCostBasis !== null) {
-                    totalCostBasis += fifoCostBasis * toPortfolio;
-                    hasCostBasis = true;
-                  }
-                  // Total ever invested across all purchases including sold ones
-                  const pricedPurchases = (s.purchases ?? []).filter((p) => p.price != null && p.shares > 0);
-                  totalEverInvested += pricedPurchases.reduce((sum, p) => sum + p.shares * p.price!, 0) * toPortfolio;
-                }
-
-                const realized = calcFifoRealizedGain(s.purchases ?? [], s.sales ?? []);
-                totalRealized += realized * toPortfolio;
+                // Find closest trading day at or just after the 1-year mark (handles weekends/holidays)
+                const near1yr = s.data.filter((d) => d.date >= cutoff1yrStr && d.date <= cutoff1yrEndStr);
+                const price1yr = near1yr.length > 0 ? near1yr[0].close : null;
+                if (price1yr !== null) { total1yr += totalShares * price1yr * toPortfolio; has1yr = true; }
               }
 
               const change30d = has30d && total30d > 0 ? ((total - total30d) / total30d) * 100 : null;
@@ -635,31 +565,11 @@ const cutoff1yr = new Date();
                       </GainHover>
                     </div>
                   )}
-                  {hasCostBasis && totalEverInvested > 0 && (() => {
-                    const profit = (total - totalCostBasis) + totalRealized;
-                    const returnPct = (profit / totalEverInvested) * 100;
-                    const positive = profit >= 0;
-                    return (
-                      <div className="flex flex-col gap-1 mt-0.5 pt-1.5 border-t border-gray-100">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-gray-600 text-xs w-24 shrink-0">You made</span>
-                          <GainHover isPositive={positive}>
-                            <TrumpHover isNegative={!positive}>
-                              <span className={`text-sm font-semibold whitespace-nowrap ${positive ? "text-green-600" : "text-red-500"}`}>
-                                {positive ? "+" : ""}{fmt(profit)}
-                                <span className="font-normal text-xs ml-1">({positive ? "+" : ""}{returnPct.toFixed(1)}%)</span>
-                              </span>
-                            </TrumpHover>
-                          </GainHover>
-                        </div>
-                      </div>
-                    );
-                  })()}
                 </div>
               ) : null;
             })()}
           </div>
-          {leaderboardEnabled && <div className="hidden lg:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, sales: s.sales, currency: s.currency }))} usdRates={usdRates} /></div>}
+          {leaderboardEnabled && <div className="hidden lg:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} /></div>}
           {topGainersEnabled && <div className="hidden lg:block"><TopGainers /></div>}
           <div className="shrink-0 pt-1 flex flex-row sm:flex-col gap-2 ml-auto sm:ml-0">
             <button
@@ -748,7 +658,7 @@ const cutoff1yr = new Date();
 
         {/* Leaderboard + Top Gainers shown below search on mobile and tablet */}
         <div className="flex flex-wrap gap-3 mb-4 lg:hidden">
-          {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, sales: s.sales, currency: s.currency }))} usdRates={usdRates} />}
+          {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} />}
           {topGainersEnabled && <TopGainers />}
         </div>
 
@@ -763,8 +673,7 @@ const cutoff1yr = new Date();
             <SortableContext items={stocks.map((s) => s.symbol)} strategy={rectSortingStrategy}>
               {(() => {
                 const totalPortfolioValue = stocks.reduce((sum, s) => {
-                  const sold = (s.sales ?? []).reduce((a, sale) => a + sale.shares, 0);
-                  const sh = Math.max(0, (s.purchases ?? []).reduce((a, p) => a + p.shares, 0) - sold);
+                  const sh = (s.purchases ?? []).reduce((a, p) => a + p.shares, 0);
                   if (sh <= 0) return sum;
                   const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
                   return sum + sh * (s.data[s.data.length - 1]?.close ?? 0) * (exchangeRate / tickerRate);
@@ -775,8 +684,7 @@ const cutoff1yr = new Date();
                     style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
                   >
                     {stocks.map((s, i) => {
-                      const soldSh = (s.sales ?? []).reduce((a, sale) => a + sale.shares, 0);
-                      const sh = Math.max(0, (s.purchases ?? []).reduce((a, p) => a + p.shares, 0) - soldSh);
+                      const sh = (s.purchases ?? []).reduce((a, p) => a + p.shares, 0);
                       const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
                       const posVal = sh > 0 ? sh * (s.data[s.data.length - 1]?.close ?? 0) * (exchangeRate / tickerRate) : 0;
                       const portfolioPct = totalPortfolioValue > 0 && posVal > 0 ? (posVal / totalPortfolioValue) * 100 : undefined;
@@ -792,10 +700,9 @@ const cutoff1yr = new Date();
                           data={chartData}
                           color={COLORS[i % COLORS.length]}
                           purchases={s.purchases}
-                          sales={s.sales}
                           onRemove={() => setConfirmRemoveSymbol(s.symbol)}
                           onPurchasesChange={(p) => updatePurchases(s.symbol, p)}
-                          onSalesChange={(sl) => updateSales(s.symbol, sl)}
+                          onCurrencyChange={(c) => updateCurrency(s.symbol, c)}
                           theme={theme}
                           portfolioPct={portfolioPct}
                           tickerCurrency={s.currency ?? "USD"}

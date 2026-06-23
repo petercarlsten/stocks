@@ -525,7 +525,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const currency = quote?.currency ?? inferCurrencyFromSuffix(upper);
+    // For non-US exchange tickers (e.g. .SI, .ST, .L), the suffix tells us the
+    // trading currency. Yahoo's quote.currency often returns the fund's underlying
+    // reporting currency (e.g. "USD" for a SGD-listed US fund), which is wrong —
+    // prices in the data are always in the local exchange currency.
+    const suffixCurrency = inferCurrencyFromSuffix(upper);
+    const currency = suffixCurrency !== "USD" ? suffixCurrency : (quote?.currency ?? "USD");
     const responseSymbol = originalISIN ?? upper;
     return NextResponse.json({ symbol: responseSymbol, name, earningsDate, data, currency });
   } catch {
