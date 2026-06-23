@@ -405,23 +405,53 @@ export default function Home() {
           50% { background-position: 100% 50%; }
         }
         @keyframes badge-glow {
-          0%, 100% { box-shadow: 0 8px 30px -4px rgba(99,102,241,0.55), 0 0 0 0 rgba(99,102,241,0); }
-          50% { box-shadow: 0 8px 40px -4px rgba(99,102,241,0.8), 0 0 30px 4px rgba(16,185,129,0.25); }
+          0%, 100% { box-shadow: 0 0 30px rgba(99,102,241,0.9), 0 8px 50px rgba(99,102,241,0.4); }
+          50% { box-shadow: 0 0 45px rgba(16,185,129,0.9), 0 8px 60px rgba(16,185,129,0.4); }
+        }
+        @keyframes logo-float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-5px); }
+        }
+        @keyframes live-blink {
+          0%, 100% { opacity: 1; box-shadow: 0 0 8px #34d399, 0 0 16px #34d399; }
+          50% { opacity: 0.25; box-shadow: 0 0 2px #34d399; }
+        }
+        @keyframes sparkle-a {
+          0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+          30%, 70% { opacity: 1; transform: scale(1) rotate(20deg); }
+        }
+        @keyframes sparkle-b {
+          0%, 20%, 100% { opacity: 0; transform: scale(0); }
+          55%, 80% { opacity: 0.9; transform: scale(1) rotate(-15deg); }
+        }
+        @keyframes sparkle-c {
+          0%, 50%, 100% { opacity: 0; transform: scale(0); }
+          68%, 85% { opacity: 0.7; transform: scale(1) rotate(10deg); }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
         }
         .logo-text {
-          background: linear-gradient(135deg, #6366f1 0%, #a855f7 35%, #10b981 65%, #6366f1 100%);
-          background-size: 300% 300%;
+          background: linear-gradient(135deg, #6366f1 0%, #a855f7 20%, #ec4899 40%, #f59e0b 60%, #10b981 80%, #6366f1 100%);
+          background-size: 400% 400%;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          animation: logo-gradient 5s ease infinite;
+          animation: logo-gradient 6s ease infinite;
         }
         .logo-badge {
-          animation: badge-glow 3s ease-in-out infinite;
+          animation: badge-glow 3s ease-in-out infinite, logo-float 4s ease-in-out infinite;
         }
         .logo-underline {
-          background: linear-gradient(90deg, #6366f1, #a855f7 50%, #10b981);
+          background: linear-gradient(90deg, transparent 0%, #6366f1 15%, #a855f7 38%, #ec4899 55%, #10b981 82%, transparent 100%);
+          background-size: 200% auto;
+          animation: shimmer 3s linear infinite;
         }
+        .logo-live-dot { animation: live-blink 1.5s ease-in-out infinite; }
+        .logo-sparkle-a { animation: sparkle-a 3s ease-in-out infinite; }
+        .logo-sparkle-b { animation: sparkle-b 4s ease-in-out 1s infinite; }
+        .logo-sparkle-c { animation: sparkle-c 5s ease-in-out 2.2s infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 639px) {
           .stocks-grid { grid-template-columns: 1fr !important; }
@@ -434,7 +464,11 @@ export default function Home() {
         <div className="flex flex-wrap items-start gap-3 sm:gap-6 mb-4 sm:mb-6">
           <div className="flex-1">
             <div className="flex items-center gap-5 mb-2">
-              <div className="logo-badge bg-gradient-to-br from-indigo-500 via-purple-500 to-emerald-500 p-2 sm:p-3 rounded-xl sm:rounded-2xl shrink-0 flex items-center justify-center">
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-500 to-emerald-500 blur-xl opacity-75 scale-110 pointer-events-none"/>
+              <div className="logo-badge relative bg-gradient-to-br from-indigo-600 via-purple-600 to-emerald-500 p-3 sm:p-5 rounded-2xl sm:rounded-3xl flex items-center justify-center border border-white/20 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent pointer-events-none"/>
+                <div className="logo-live-dot absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-300"/>
                 {funnyMode === "cats" ? (
                   /* Cat face */
                   <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
@@ -509,19 +543,44 @@ export default function Home() {
                     <path d="M 15,32 Q 20,30.5 25,32" stroke="#c2410c" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
                   </svg>
                 ) : (
-                  <svg width="44" height="30" viewBox="0 0 56 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <polyline points="2,30 12,22 22,26 34,10 46,6 54,2" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <polygon points="2,30 12,22 22,26 34,10 46,6 54,2 54,34 2,34" fill="white" opacity="0.2"/>
-                    <circle cx="54" cy="2" r="3.5" fill="white"/>
-                    <circle cx="54" cy="2" r="7" fill="white" opacity="0.15"/>
+                  <svg width="56" height="38" viewBox="0 0 64 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <linearGradient id="pcAreaGrad" x1="0" y1="0" x2="0" y2="42" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stopColor="white" stopOpacity="0.4"/>
+                        <stop offset="100%" stopColor="white" stopOpacity="0"/>
+                      </linearGradient>
+                    </defs>
+                    <line x1="0" y1="14" x2="64" y2="14" stroke="white" strokeWidth="0.5" opacity="0.12"/>
+                    <line x1="0" y1="28" x2="64" y2="28" stroke="white" strokeWidth="0.5" opacity="0.12"/>
+                    <path d="M 2,40 C 10,38 14,30 20,26 C 26,22 30,28 36,18 C 44,8 52,5 62,3 L 62,42 Z" fill="url(#pcAreaGrad)"/>
+                    <path d="M 2,40 C 10,38 14,30 20,26 C 26,22 30,28 36,18 C 44,8 52,5 62,3" stroke="white" strokeWidth="9" strokeLinecap="round" fill="none" opacity="0.08"/>
+                    <path d="M 2,40 C 10,38 14,30 20,26 C 26,22 30,28 36,18 C 44,8 52,5 62,3" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+                    <circle cx="20" cy="26" r="2.5" fill="white" opacity="0.9"/>
+                    <circle cx="36" cy="18" r="2.5" fill="white" opacity="0.9"/>
+                    <circle cx="52" cy="5" r="2.5" fill="white" opacity="0.9"/>
+                    <circle cx="62" cy="3" r="5" fill="white"/>
+                    <circle cx="62" cy="3" r="9" fill="white" opacity="0.25"/>
+                    <circle cx="62" cy="3" r="14" fill="white" opacity="0.07"/>
                   </svg>
                 )}
               </div>
+              </div>
               <div>
-                <h1 className="logo-text text-3xl sm:text-5xl font-black tracking-tight leading-none">
-                  {t.appTitle}
-                </h1>
-                <div className="logo-underline h-1 mt-2 rounded-full w-3/4" />
+                <div className="relative inline-block">
+                  <svg className="logo-sparkle-a absolute -top-3 -right-5 pointer-events-none" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M7 0L8.3 5.7L14 7L8.3 8.3L7 14L5.7 8.3L0 7L5.7 5.7Z" fill="#a855f7"/>
+                  </svg>
+                  <svg className="logo-sparkle-b absolute -top-1 right-5 pointer-events-none" width="9" height="9" viewBox="0 0 9 9" fill="none">
+                    <path d="M4.5 0L5.6 3.4L9 4.5L5.6 5.6L4.5 9L3.4 5.6L0 4.5L3.4 3.4Z" fill="#10b981"/>
+                  </svg>
+                  <svg className="logo-sparkle-c absolute top-3 -left-4 pointer-events-none" width="8" height="8" viewBox="0 0 8 8" fill="none">
+                    <path d="M4 0L4.9 3.1L8 4L4.9 4.9L4 8L3.1 4.9L0 4L3.1 3.1Z" fill="#6366f1"/>
+                  </svg>
+                  <h1 className="logo-text text-3xl sm:text-5xl font-black tracking-tight leading-none">
+                    {t.appTitle}
+                  </h1>
+                </div>
+                <div className="logo-underline h-[3px] mt-2 rounded-full" />
               </div>
             </div>
             {username && (

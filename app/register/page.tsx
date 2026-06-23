@@ -42,9 +42,54 @@ export default function RegisterPage() {
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
-        <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-600 bg-clip-text text-transparent mb-8 text-center">
-          My Portfolio
-        </h1>
+        <div className="flex flex-col items-center mb-8 gap-3">
+          <div className="relative">
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-emerald-500 blur-xl opacity-75 scale-110"/>
+            <div className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-emerald-500 p-4 rounded-2xl border border-white/20 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent pointer-events-none"/>
+              <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-300" style={{animation:"live-blink 1.5s ease-in-out infinite", boxShadow:"0 0 8px #34d399"}}/>
+              <svg width="56" height="38" viewBox="0 0 64 42" fill="none">
+                <defs>
+                  <linearGradient id="regAreaGrad" x1="0" y1="0" x2="0" y2="42" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="white" stopOpacity="0.4"/>
+                    <stop offset="100%" stopColor="white" stopOpacity="0"/>
+                  </linearGradient>
+                </defs>
+                <line x1="0" y1="14" x2="64" y2="14" stroke="white" strokeWidth="0.5" opacity="0.12"/>
+                <line x1="0" y1="28" x2="64" y2="28" stroke="white" strokeWidth="0.5" opacity="0.12"/>
+                <path d="M 2,40 C 10,38 14,30 20,26 C 26,22 30,28 36,18 C 44,8 52,5 62,3 L 62,42 Z" fill="url(#regAreaGrad)"/>
+                <path d="M 2,40 C 10,38 14,30 20,26 C 26,22 30,28 36,18 C 44,8 52,5 62,3" stroke="white" strokeWidth="9" strokeLinecap="round" fill="none" opacity="0.08"/>
+                <path d="M 2,40 C 10,38 14,30 20,26 C 26,22 30,28 36,18 C 44,8 52,5 62,3" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
+                <circle cx="20" cy="26" r="2.5" fill="white" opacity="0.9"/>
+                <circle cx="36" cy="18" r="2.5" fill="white" opacity="0.9"/>
+                <circle cx="52" cy="5" r="2.5" fill="white" opacity="0.9"/>
+                <circle cx="62" cy="3" r="5" fill="white"/>
+                <circle cx="62" cy="3" r="9" fill="white" opacity="0.25"/>
+                <circle cx="62" cy="3" r="14" fill="white" opacity="0.07"/>
+              </svg>
+            </div>
+          </div>
+          <h1 className="text-3xl font-black tracking-tight text-center" style={{
+            background: "linear-gradient(135deg, #6366f1 0%, #a855f7 20%, #ec4899 40%, #f59e0b 60%, #10b981 80%, #6366f1 100%)",
+            backgroundSize: "400% 400%",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            animation: "logo-gradient 6s ease infinite",
+          }}>
+            My Portfolio
+          </h1>
+          <style>{`
+            @keyframes logo-gradient {
+              0%, 100% { background-position: 0% 50%; }
+              50% { background-position: 100% 50%; }
+            }
+            @keyframes live-blink {
+              0%, 100% { opacity: 1; }
+              50% { opacity: 0.25; }
+            }
+          `}</style>
+        </div>
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 text-xs text-amber-800">
           <p className="font-semibold mb-1">Work in progress</p>
           <p>This tool is provided as-is for personal use. Data shown (prices, valuations, gains) may be inaccurate. The creator takes no liability for any decisions made based on information displayed here.</p>
