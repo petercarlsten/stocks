@@ -47,7 +47,7 @@ export default function RegisterPage() {
         </h1>
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 text-xs text-amber-800">
           <p className="font-semibold mb-1">Work in progress</p>
-          <p>This tool is provided as-is for personal use. Data shown (prices, valuations, gains) may be inaccurate. Peter Carlsten takes no liability for any decisions made based on information displayed here.</p>
+          <p>This tool is provided as-is for personal use. Data shown (prices, valuations, gains) may be inaccurate. The creator takes no liability for any decisions made based on information displayed here.</p>
         </div>
         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
           <h2 className="text-gray-900 font-semibold text-lg mb-5">Create account</h2>
