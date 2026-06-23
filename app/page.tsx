@@ -517,24 +517,29 @@ export default function Home() {
                     <path d="M 15,32 Q 20,30.5 25,32" stroke="#c2410c" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
                   </svg>
                 ) : (
-                  <svg width="56" height="38" viewBox="0 0 64 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <linearGradient id="pcAreaGrad" x1="0" y1="0" x2="0" y2="42" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stopColor="white" stopOpacity="0.4"/>
-                        <stop offset="100%" stopColor="white" stopOpacity="0"/>
-                      </linearGradient>
-                    </defs>
-                    <line x1="0" y1="14" x2="64" y2="14" stroke="white" strokeWidth="0.5" opacity="0.12"/>
-                    <line x1="0" y1="28" x2="64" y2="28" stroke="white" strokeWidth="0.5" opacity="0.12"/>
-                    <path d="M 2,40 C 10,38 14,30 20,26 C 26,22 30,28 36,18 C 44,8 52,5 62,3 L 62,42 Z" fill="url(#pcAreaGrad)"/>
-                    <path d="M 2,40 C 10,38 14,30 20,26 C 26,22 30,28 36,18 C 44,8 52,5 62,3" stroke="white" strokeWidth="9" strokeLinecap="round" fill="none" opacity="0.08"/>
-                    <path d="M 2,40 C 10,38 14,30 20,26 C 26,22 30,28 36,18 C 44,8 52,5 62,3" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-                    <circle cx="20" cy="26" r="2.5" fill="white" opacity="0.9"/>
-                    <circle cx="36" cy="18" r="2.5" fill="white" opacity="0.9"/>
-                    <circle cx="52" cy="5" r="2.5" fill="white" opacity="0.9"/>
-                    <circle cx="62" cy="3" r="5" fill="white"/>
-                    <circle cx="62" cy="3" r="9" fill="white" opacity="0.25"/>
-                    <circle cx="62" cy="3" r="14" fill="white" opacity="0.07"/>
+                  /* Charging bull — side profile, Wall Street style */
+                  <svg width="60" height="46" viewBox="0 0 100 66" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {/* Tail — sweeps up at the back */}
+                    <path d="M 10,30 C 4,18 4,8 8,2" stroke="white" strokeWidth="5" strokeLinecap="round" fill="none"/>
+                    <circle cx="8" cy="1" r="4.5" fill="white"/>
+                    {/* Body */}
+                    <ellipse cx="44" cy="44" rx="34" ry="20" fill="white"/>
+                    {/* Shoulder hump */}
+                    <ellipse cx="66" cy="26" rx="18" ry="13" fill="white"/>
+                    {/* Head — lowered, charging */}
+                    <ellipse cx="82" cy="48" rx="14" ry="10" transform="rotate(-18 82 48)" fill="white"/>
+                    {/* Muzzle */}
+                    <ellipse cx="90" cy="54" rx="8" ry="6" fill="white"/>
+                    {/* Front horn */}
+                    <path d="M 84,38 C 90,28 96,20 94,12" stroke="white" strokeWidth="5.5" strokeLinecap="round" fill="none"/>
+                    {/* Back horn (shorter) */}
+                    <path d="M 76,34 C 80,24 86,16 84,8" stroke="white" strokeWidth="4.5" strokeLinecap="round" fill="none"/>
+                    {/* Front legs — reaching forward */}
+                    <path d="M 72,60 C 76,63 80,66 84,66" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
+                    <path d="M 80,62 C 83,64 86,66 88,64" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
+                    {/* Back legs — pushing off */}
+                    <path d="M 26,60 C 22,63 18,66 14,66" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
+                    <path d="M 36,62 C 32,64 28,66 25,65" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
                   </svg>
                 )}
               </div>
