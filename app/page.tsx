@@ -282,6 +282,17 @@ export default function Home() {
     }
   }, [stocks, refreshing]);
 
+  // Re-fetch when tab becomes visible after being hidden for >5 minutes
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      const stale = !lastRefreshed || Date.now() - lastRefreshed.getTime() > 5 * 60 * 1000;
+      if (stale) handleRefresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [lastRefreshed, handleRefresh]);
+
   const addStockBySymbol = useCallback(async (symbol: string) => {
     if (stocks.length >= MAX_STOCKS) { setError("Maximum 30 stocks reached."); return; }
     if (stocks.find((s) => s.symbol === symbol)) { setError(`${symbol} is already added.`); return; }
