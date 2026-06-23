@@ -400,33 +400,19 @@ export default function Home() {
         </div>
       )}
       <style>{`
-        @keyframes logo-gradient {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        @keyframes badge-glow {
-          0%, 100% { box-shadow: 0 4px 20px rgba(99,102,241,0.35), 0 1px 4px rgba(0,0,0,0.15); }
-          50% { box-shadow: 0 4px 24px rgba(16,185,129,0.35), 0 1px 4px rgba(0,0,0,0.15); }
-        }
-        @keyframes live-blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
         .logo-text {
           background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #10b981 70%, #6366f1 100%);
-          background-size: 300% 300%;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          animation: logo-gradient 8s ease infinite;
         }
         .logo-badge {
-          animation: badge-glow 4s ease-in-out infinite;
+          box-shadow: 0 4px 20px rgba(99,102,241,0.35), 0 1px 4px rgba(0,0,0,0.15);
         }
         .logo-underline {
           background: linear-gradient(90deg, #6366f1, #8b5cf6 50%, #10b981);
         }
-        .logo-live-dot { animation: live-blink 2s ease-in-out infinite; }
+        .logo-live-dot { opacity: 1; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 639px) {
           .stocks-grid { grid-template-columns: 1fr !important; }
