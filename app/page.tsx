@@ -195,7 +195,7 @@ export default function Home() {
           const refreshed = await Promise.all(
             migrated.map((s) =>
               refreshStockData(s.symbol, s.name)
-                .then(({ data, earningsDate, currency, symbol: corrected }) => ({ ...s, data, earningsDate, currency: currency ?? s.currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol }))
+                .then(({ data, earningsDate, currency, symbol: corrected }) => ({ ...s, data, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol }))
                 .catch(() => ({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }))
             )
           );
@@ -247,7 +247,7 @@ export default function Home() {
         if (current.length === 0) return current;
         Promise.all(
           current.map((s) =>
-            refreshStockData(s.symbol, s.name).then(({ data, earningsDate, currency, symbol: corrected }) => ({ ...s, data, earningsDate, currency: currency ?? s.currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol }))
+            refreshStockData(s.symbol, s.name).then(({ data, earningsDate, currency, symbol: corrected }) => ({ ...s, data, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol }))
           )
         )
           .then((results) => { setStocks(results); setLastRefreshed(new Date()); })
@@ -268,7 +268,7 @@ export default function Home() {
         current.map((s) =>
           refreshStockData(s.symbol, s.name).then(({ data, earningsDate, currency, symbol: corrected }) => ({
             ...s, data, earningsDate,
-            currency: currency ?? s.currency ?? inferCurrency(s.symbol),
+            currency: s.currency ?? currency ?? inferCurrency(s.symbol),
             symbol: corrected ?? s.symbol,
           }))
         )

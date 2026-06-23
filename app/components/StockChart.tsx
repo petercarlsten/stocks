@@ -175,6 +175,10 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const change = first ? ((last - first) / first) * 100 : 0;
   const positive = change >= 0;
 
+  // ISIN-like symbols (e.g. LU0672654240) have no exchange suffix, so the
+  // trading currency of the specific share class cannot be reliably auto-detected.
+  const isCurrencyUncertain = /^[A-Z]{2}[A-Z0-9]{10}$/.test(symbol.trim().toUpperCase());
+
   const min = Math.min(...data.map((d) => d.close));
   const max = Math.max(...data.map((d) => d.close));
   const padding = (max - min) * 0.1 || 1;
@@ -268,6 +272,16 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           ×
         </button>
       </div>
+      {isCurrencyUncertain && (
+        <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-800">
+          <span className="shrink-0 mt-0.5">⚠</span>
+          <span>
+            Currency auto-detection is unreliable for bare ISIN symbols — the detected{" "}
+            <strong>{tickerCurrency}</strong> may be wrong. Use the{" "}
+            <strong>{tickerCurrency} ✎</strong> button in the purchases section to correct it.
+          </span>
+        </div>
+      )}
       <div className="flex items-baseline gap-3 flex-wrap">
         <div className="text-2xl font-bold tracking-tight" style={{ color: gainColor }}>
           {fmt(last)}
