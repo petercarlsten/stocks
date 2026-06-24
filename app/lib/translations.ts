@@ -64,6 +64,7 @@ const en = {
   drawdownDateLabel: "Run out of money by",
   drawdownDateNote: "Monthly spend based on current portfolio value",
   monthlyBudget: "Monthly budget",
+  monthlyBudgetGrowth: "With 10% growth",
   drawdownMonthsLeft: (n: number) => `${n} months left`,
 };
 
@@ -131,6 +132,7 @@ const sv: typeof en = {
   drawdownDateLabel: "Slut på pengar",
   drawdownDateNote: "Månadsbudget baserat på nuvarande portföljvärde",
   monthlyBudget: "Månadsbudget",
+  monthlyBudgetGrowth: "Med 10% tillväxt",
   drawdownMonthsLeft: (n: number) => `${n} månader kvar`,
 };
 

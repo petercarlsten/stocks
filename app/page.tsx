@@ -508,7 +508,11 @@ const cutoff1yr = new Date();
                 const now = new Date();
                 const months = (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
                 if (months <= 0) return null;
-                return { amount: total / months, months };
+                const simple = total / months;
+                // Annuity formula: PMT = PV * r / (1 - (1+r)^-n), r = monthly rate at 10% annual
+                const r = Math.pow(1.10, 1 / 12) - 1;
+                const withGrowth = total * r / (1 - Math.pow(1 + r, -months));
+                return { simple, withGrowth, months };
               })();
 
               return total > 0 ? (
@@ -544,12 +548,21 @@ const cutoff1yr = new Date();
                     </div>
                   )}
                   {monthlyBudget && (
-                    <div className="flex items-baseline gap-2 mt-1 pt-1 border-t border-gray-100">
-                      <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudget}</span>
-                      <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
-                        {formatCurrency(monthlyBudget.amount, currency, 0)}
-                        <span className="text-gray-400 font-normal ml-1.5 text-xs">{t.drawdownMonthsLeft(monthlyBudget.months)}</span>
-                      </span>
+                    <div className="flex flex-col gap-0.5 mt-1 pt-1 border-t border-gray-100">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudget}</span>
+                        <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
+                          {formatCurrency(monthlyBudget.simple, currency, 0)}
+                          <span className="text-gray-400 font-normal ml-1.5 text-xs">{t.drawdownMonthsLeft(monthlyBudget.months)}</span>
+                        </span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetGrowth}</span>
+                        <span className="text-emerald-600 text-sm font-semibold whitespace-nowrap">
+                          {formatCurrency(monthlyBudget.withGrowth, currency, 0)}
+                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+10%/yr</span>
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
