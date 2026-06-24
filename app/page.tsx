@@ -564,14 +564,14 @@ const cutoff1yr = new Date();
                       </div>
                       <div className="flex items-baseline gap-2">
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetGrowth}</span>
-                        <span className="text-emerald-600 text-sm font-semibold whitespace-nowrap">
+                        <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.withGrowth, currency, 0)}
                           <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}%/yr</span>
                         </span>
                       </div>
                       <div className="flex items-baseline gap-2">
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetReal}</span>
-                        <span className="text-teal-600 text-sm font-semibold whitespace-nowrap">
+                        <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.withGrowthReal, currency, 0)}
                           <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}% −2.5% infl.</span>
                         </span>
