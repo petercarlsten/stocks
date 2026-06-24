@@ -201,9 +201,11 @@ interface Props {
   onDrawdownDateChange: (v: string) => void;
   growthRate: number;
   onGrowthRateChange: (v: number) => void;
+  inflationRate: number;
+  onInflationRateChange: (v: number) => void;
 }
 
-export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange }: Props) {
+export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange, inflationRate, onInflationRateChange }: Props) {
   const t = useTranslation();
   const [sendState, setSendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [pushTestState, setPushTestState] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -484,7 +486,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
             />
             <div className="flex items-center gap-2">
               <label className="text-gray-500 text-xs shrink-0">{t.expectedGrowth}</label>
-              <div className="relative flex items-center">
+              <div className="relative flex items-center ml-auto">
                 <input
                   type="number"
                   value={growthRate}
@@ -492,6 +494,21 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
                   max={50}
                   step={0.5}
                   onChange={(e) => onGrowthRateChange(Math.min(50, Math.max(0, parseFloat(e.target.value) || 0)))}
+                  className="w-16 bg-gray-50 border border-gray-300 rounded-lg px-2 py-1 text-sm text-gray-900 text-right focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <span className="absolute right-2 text-gray-400 text-xs pointer-events-none">%</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-gray-500 text-xs shrink-0">{t.expectedInflation}</label>
+              <div className="relative flex items-center ml-auto">
+                <input
+                  type="number"
+                  value={inflationRate}
+                  min={0}
+                  max={30}
+                  step={0.5}
+                  onChange={(e) => onInflationRateChange(Math.min(30, Math.max(0, parseFloat(e.target.value) || 0)))}
                   className="w-16 bg-gray-50 border border-gray-300 rounded-lg px-2 py-1 text-sm text-gray-900 text-right focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
                 <span className="absolute right-2 text-gray-400 text-xs pointer-events-none">%</span>

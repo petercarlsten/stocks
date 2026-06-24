@@ -115,6 +115,7 @@ export default function Home() {
   const [pushEnabled, setPushEnabled] = useState(false);
   const [drawdownDate, setDrawdownDate] = useState<string>("");
   const [growthRate, setGrowthRate] = useState<number>(10);
+  const [inflationRate, setInflationRate] = useState<number>(2.5);
   const [refreshing, setRefreshing] = useState(false);
 
   // Load saved preferences — localStorage first (instant), then server overrides
@@ -157,6 +158,7 @@ export default function Home() {
         if (p.language === "en" || p.language === "sv") { setLanguage(p.language as Language); localStorage.setItem("portfolio-language", p.language); }
         if (typeof p.drawdownDate === "string") setDrawdownDate(p.drawdownDate);
         if (typeof p.growthRate === "number") setGrowthRate(p.growthRate);
+        if (typeof p.inflationRate === "number") setInflationRate(p.inflationRate);
         // Also sync reportCurrency with currency if set
         if (d.reportCurrency && !p.currency) { setCurrency(d.reportCurrency); localStorage.setItem("portfolio-currency", d.reportCurrency); }
       })
@@ -515,7 +517,7 @@ const cutoff1yr = new Date();
                 const annuity = (rate: number) => total * rate / (1 - Math.pow(1 + rate, -months));
                 const growth = 1 + growthRate / 100;
                 const rNominal = Math.pow(growth, 1 / 12) - 1;
-                const rReal = Math.pow(growth / 1.025, 1 / 12) - 1;   // net of 2.5% inflation
+                const rReal = Math.pow(growth / (1 + inflationRate / 100), 1 / 12) - 1;
                 const withGrowth = annuity(rNominal);
                 const withGrowthReal = rReal > 0 ? annuity(rReal) : simple;
                 return { simple, withGrowth, withGrowthReal, months };
@@ -573,7 +575,7 @@ const cutoff1yr = new Date();
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetReal}</span>
                         <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.withGrowthReal, currency, 0)}
-                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}% −2.5% infl.</span>
+                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}% −{inflationRate}% infl.</span>
                         </span>
                       </div>
                     </div>
@@ -662,6 +664,8 @@ const cutoff1yr = new Date();
             onDrawdownDateChange={(v) => { setDrawdownDate(v); savePrefs({ drawdownDate: v }); }}
             growthRate={growthRate}
             onGrowthRateChange={(v) => { setGrowthRate(v); savePrefs({ growthRate: v }); }}
+            inflationRate={inflationRate}
+            onInflationRateChange={(v) => { setInflationRate(v); savePrefs({ inflationRate: v }); }}
           />
         </div>
 
