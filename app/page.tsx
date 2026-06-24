@@ -570,7 +570,7 @@ const cutoff1yr = new Date();
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetReal}</span>
                         <span className="text-teal-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.withGrowthReal, currency, 0)}
-                          <span className="text-gray-400 font-normal ml-1.5 text-xs">−2.5% inflation</span>
+                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+10% −2.5% infl.</span>
                         </span>
                       </div>
                     </div>
