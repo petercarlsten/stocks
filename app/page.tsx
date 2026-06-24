@@ -354,6 +354,44 @@ export default function Home() {
   const cols = stocks.length <= 2 ? stocks.length || 1 : Math.min(stocks.length, 3);
   const t = translations[language];
 
+  function exportCsv() {
+    const rows: string[][] = [["Symbol", "Name", "Currency", "Shares", "Avg Purchase Price", "Current Price", "Current Value (" + currency + ")", "Gain/Loss (" + currency + ")", "Gain/Loss %"]];
+    for (const s of stocks) {
+      const purchases = s.purchases ?? [];
+      const totalShares = purchases.reduce((sum, p) => sum + p.shares, 0);
+      if (totalShares <= 0) continue;
+      const currentPrice = s.data[s.data.length - 1]?.close ?? 0;
+      const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
+      const toPortfolio = exchangeRate / tickerRate;
+      const currentValue = totalShares * currentPrice * toPortfolio;
+      const avgPurchasePrice = purchases.filter(p => p.price).length > 0
+        ? purchases.reduce((sum, p) => sum + (p.price ?? 0) * p.shares, 0) / totalShares
+        : "";
+      const costBasis = typeof avgPurchasePrice === "number" ? avgPurchasePrice * totalShares * toPortfolio : null;
+      const gainLoss = costBasis !== null ? currentValue - costBasis : "";
+      const gainPct = costBasis !== null && costBasis > 0 ? ((currentValue - costBasis) / costBasis * 100).toFixed(2) + "%" : "";
+      rows.push([
+        s.symbol,
+        s.name,
+        s.currency ?? inferCurrency(s.symbol),
+        totalShares.toString(),
+        typeof avgPurchasePrice === "number" ? avgPurchasePrice.toFixed(4) : "",
+        currentPrice.toFixed(4),
+        currentValue.toFixed(2),
+        typeof gainLoss === "number" ? gainLoss.toFixed(2) : "",
+        gainPct,
+      ]);
+    }
+    const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `portfolio-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (status === "loading") {
     return (
       <main className="min-h-screen page-bg flex items-center justify-center">
@@ -477,8 +515,11 @@ const cutoff1yr = new Date();
               const cutoff1yrStr = cutoff1yr.toISOString().split("T")[0];
               const cutoff1yrEndStr = new Date(cutoff1yr.getTime() + 10 * 86400000).toISOString().split("T")[0];
 
-              let total = 0, total30d = 0, total1yr = 0;
-              let has30d = false, has1yr = false;
+              const ytdStr = `${new Date().getFullYear()}-01-01`;
+              const ytdEndStr = `${new Date().getFullYear()}-01-10`;
+
+              let total = 0, total30d = 0, total1yr = 0, totalYtd = 0;
+              let has30d = false, has1yr = false, hasYtd = false;
 
               for (const s of stocks) {
                 const totalShares = (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0);
@@ -498,12 +539,18 @@ const cutoff1yr = new Date();
                 const near1yr = s.data.filter((d) => d.date >= cutoff1yrStr && d.date <= cutoff1yrEndStr);
                 const price1yr = near1yr.length > 0 ? near1yr[0].close : null;
                 if (price1yr !== null) { total1yr += totalShares * price1yr * toPortfolio; has1yr = true; }
+
+                const nearYtd = s.data.filter((d) => d.date >= ytdStr && d.date <= ytdEndStr);
+                const priceYtd = nearYtd.length > 0 ? nearYtd[0].close : null;
+                if (priceYtd !== null) { totalYtd += totalShares * priceYtd * toPortfolio; hasYtd = true; }
               }
 
               const change30d = has30d && total30d > 0 ? ((total - total30d) / total30d) * 100 : null;
               const change1yr = has1yr && total1yr > 0 ? ((total - total1yr) / total1yr) * 100 : null;
+              const changeYtd = hasYtd && totalYtd > 0 ? ((total - totalYtd) / totalYtd) * 100 : null;
               const gain30d   = has30d ? total - total30d : null;
               const gain1yr   = has1yr ? total - total1yr : null;
+              const gainYtd   = hasYtd ? total - totalYtd : null;
               const fmt = (v: number) => formatCurrency(v, currency, 0);
 
               const monthlyBudget = (() => {
@@ -538,6 +585,18 @@ const cutoff1yr = new Date();
                         <TrumpHover isNegative={change1yr < 0}>
                           <span className={`text-sm font-medium whitespace-nowrap ${change1yr >= 0 ? "text-green-600" : "text-red-500"}`}>
                             {change1yr >= 0 ? "+" : ""}{fmt(gain1yr)} ({change1yr >= 0 ? "+" : ""}{change1yr.toFixed(2)}%)
+                          </span>
+                        </TrumpHover>
+                      </GainHover>
+                    </div>
+                  )}
+                  {changeYtd !== null && gainYtd !== null && (
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-gray-600 text-xs w-24 shrink-0">{changeYtd >= 0 ? t.ytdGain : t.ytdLoss}</span>
+                      <GainHover isPositive={changeYtd >= 0}>
+                        <TrumpHover isNegative={changeYtd < 0}>
+                          <span className={`text-sm font-medium whitespace-nowrap ${changeYtd >= 0 ? "text-green-600" : "text-red-500"}`}>
+                            {changeYtd >= 0 ? "+" : ""}{fmt(gainYtd)} ({changeYtd >= 0 ? "+" : ""}{changeYtd.toFixed(2)}%)
                           </span>
                         </TrumpHover>
                       </GainHover>
@@ -587,6 +646,17 @@ const cutoff1yr = new Date();
           {leaderboardEnabled && <div className="hidden lg:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} /></div>}
           {topGainersEnabled && <div className="hidden lg:block"><TopGainers /></div>}
           <div className="shrink-0 pt-1 flex flex-row sm:flex-col gap-2 ml-auto sm:ml-0">
+            <button
+              onClick={exportCsv}
+              className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-900 text-sm font-medium rounded-lg px-3 py-2 transition-colors border border-gray-200 shadow-sm"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span className="hidden sm:inline">Export CSV</span>
+            </button>
             <button
               onClick={handleRefresh}
               disabled={refreshing}
