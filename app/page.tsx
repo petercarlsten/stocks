@@ -114,6 +114,7 @@ export default function Home() {
   const [confirmRemoveSymbol, setConfirmRemoveSymbol] = useState<string | null>(null);
   const [pushEnabled, setPushEnabled] = useState(false);
   const [drawdownDate, setDrawdownDate] = useState<string>("");
+  const [growthRate, setGrowthRate] = useState<number>(10);
   const [refreshing, setRefreshing] = useState(false);
 
   // Load saved preferences — localStorage first (instant), then server overrides
@@ -155,6 +156,7 @@ export default function Home() {
         if (typeof p.topGainersEnabled === "boolean") { setTopGainersEnabled(p.topGainersEnabled); localStorage.setItem("portfolio-top-gainers", String(p.topGainersEnabled)); }
         if (p.language === "en" || p.language === "sv") { setLanguage(p.language as Language); localStorage.setItem("portfolio-language", p.language); }
         if (typeof p.drawdownDate === "string") setDrawdownDate(p.drawdownDate);
+        if (typeof p.growthRate === "number") setGrowthRate(p.growthRate);
         // Also sync reportCurrency with currency if set
         if (d.reportCurrency && !p.currency) { setCurrency(d.reportCurrency); localStorage.setItem("portfolio-currency", d.reportCurrency); }
       })
@@ -511,10 +513,11 @@ const cutoff1yr = new Date();
                 const simple = total / months;
                 // Annuity formula: PMT = PV * r / (1 - (1+r)^-n)
                 const annuity = (rate: number) => total * rate / (1 - Math.pow(1 + rate, -months));
-                const rNominal = Math.pow(1.10, 1 / 12) - 1;          // 10% annual
-                const rReal = Math.pow(1.10 / 1.025, 1 / 12) - 1;    // ~7.3% real (10% growth - 2.5% inflation)
+                const growth = 1 + growthRate / 100;
+                const rNominal = Math.pow(growth, 1 / 12) - 1;
+                const rReal = Math.pow(growth / 1.025, 1 / 12) - 1;   // net of 2.5% inflation
                 const withGrowth = annuity(rNominal);
-                const withGrowthReal = annuity(rReal);
+                const withGrowthReal = rReal > 0 ? annuity(rReal) : simple;
                 return { simple, withGrowth, withGrowthReal, months };
               })();
 
@@ -563,14 +566,14 @@ const cutoff1yr = new Date();
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetGrowth}</span>
                         <span className="text-emerald-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.withGrowth, currency, 0)}
-                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+10%/yr</span>
+                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}%/yr</span>
                         </span>
                       </div>
                       <div className="flex items-baseline gap-2">
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetReal}</span>
                         <span className="text-teal-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.withGrowthReal, currency, 0)}
-                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+10% −2.5% infl.</span>
+                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}% −2.5% infl.</span>
                         </span>
                       </div>
                     </div>
@@ -657,6 +660,8 @@ const cutoff1yr = new Date();
             onPushChange={setPushEnabled}
             drawdownDate={drawdownDate}
             onDrawdownDateChange={(v) => { setDrawdownDate(v); savePrefs({ drawdownDate: v }); }}
+            growthRate={growthRate}
+            onGrowthRateChange={(v) => { setGrowthRate(v); savePrefs({ growthRate: v }); }}
           />
         </div>
 
