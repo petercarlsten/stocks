@@ -65,6 +65,7 @@ const en = {
   drawdownDateNote: "Monthly spend based on current portfolio value",
   monthlyBudget: "Monthly budget",
   monthlyBudgetGrowth: "With 10% growth",
+  monthlyBudgetReal: "Real (today's $)",
   drawdownMonthsLeft: (n: number) => `${n} months left`,
 };
 
@@ -133,6 +134,7 @@ const sv: typeof en = {
   drawdownDateNote: "Månadsbudget baserat på nuvarande portföljvärde",
   monthlyBudget: "Månadsbudget",
   monthlyBudgetGrowth: "Med 10% tillväxt",
+  monthlyBudgetReal: "Realt (dagens kr)",
   drawdownMonthsLeft: (n: number) => `${n} månader kvar`,
 };
 

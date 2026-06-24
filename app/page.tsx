@@ -509,10 +509,13 @@ const cutoff1yr = new Date();
                 const months = (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
                 if (months <= 0) return null;
                 const simple = total / months;
-                // Annuity formula: PMT = PV * r / (1 - (1+r)^-n), r = monthly rate at 10% annual
-                const r = Math.pow(1.10, 1 / 12) - 1;
-                const withGrowth = total * r / (1 - Math.pow(1 + r, -months));
-                return { simple, withGrowth, months };
+                // Annuity formula: PMT = PV * r / (1 - (1+r)^-n)
+                const annuity = (rate: number) => total * rate / (1 - Math.pow(1 + rate, -months));
+                const rNominal = Math.pow(1.10, 1 / 12) - 1;          // 10% annual
+                const rReal = Math.pow(1.10 / 1.025, 1 / 12) - 1;    // ~7.3% real (10% growth - 2.5% inflation)
+                const withGrowth = annuity(rNominal);
+                const withGrowthReal = annuity(rReal);
+                return { simple, withGrowth, withGrowthReal, months };
               })();
 
               return total > 0 ? (
@@ -561,6 +564,13 @@ const cutoff1yr = new Date();
                         <span className="text-emerald-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.withGrowth, currency, 0)}
                           <span className="text-gray-400 font-normal ml-1.5 text-xs">+10%/yr</span>
+                        </span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetReal}</span>
+                        <span className="text-teal-600 text-sm font-semibold whitespace-nowrap">
+                          {formatCurrency(monthlyBudget.withGrowthReal, currency, 0)}
+                          <span className="text-gray-400 font-normal ml-1.5 text-xs">−2.5% inflation</span>
                         </span>
                       </div>
                     </div>
