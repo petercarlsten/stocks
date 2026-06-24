@@ -65,7 +65,7 @@ const en = {
   drawdownDateNote: "Monthly spend based on current portfolio value",
   monthlyBudget: "Monthly budget",
   monthlyBudgetGrowth: "With 10% growth",
-  monthlyBudgetReal: "Real (today's $)",
+  monthlyBudgetReal: "Real value",
   drawdownMonthsLeft: (n: number) => `${n} months left`,
 };
 
