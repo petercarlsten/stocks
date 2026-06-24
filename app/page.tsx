@@ -515,11 +515,8 @@ const cutoff1yr = new Date();
               const cutoff1yrStr = cutoff1yr.toISOString().split("T")[0];
               const cutoff1yrEndStr = new Date(cutoff1yr.getTime() + 10 * 86400000).toISOString().split("T")[0];
 
-              const ytdStr = `${new Date().getFullYear()}-01-01`;
-              const ytdEndStr = `${new Date().getFullYear()}-01-10`;
-
-              let total = 0, total30d = 0, total1yr = 0, totalYtd = 0;
-              let has30d = false, has1yr = false, hasYtd = false;
+              let total = 0, total30d = 0, total1yr = 0;
+              let has30d = false, has1yr = false;
 
               for (const s of stocks) {
                 const totalShares = (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0);
@@ -540,14 +537,10 @@ const cutoff1yr = new Date();
                 const price1yr = near1yr.length > 0 ? near1yr[0].close : null;
                 if (price1yr !== null) { total1yr += totalShares * price1yr * toPortfolio; has1yr = true; }
 
-                const nearYtd = s.data.filter((d) => d.date >= ytdStr && d.date <= ytdEndStr);
-                const priceYtd = nearYtd.length > 0 ? nearYtd[0].close : null;
-                if (priceYtd !== null) { totalYtd += totalShares * priceYtd * toPortfolio; hasYtd = true; }
               }
 
               const change30d = has30d && total30d > 0 ? ((total - total30d) / total30d) * 100 : null;
               const change1yr = has1yr && total1yr > 0 ? ((total - total1yr) / total1yr) * 100 : null;
-              const changeYtd = hasYtd && totalYtd > 0 ? ((total - totalYtd) / totalYtd) * 100 : null;
               const gain30d   = has30d ? total - total30d : null;
               const gain1yr   = has1yr ? total - total1yr : null;
               const gainYtd   = hasYtd ? total - totalYtd : null;
@@ -585,18 +578,6 @@ const cutoff1yr = new Date();
                         <TrumpHover isNegative={change1yr < 0}>
                           <span className={`text-sm font-medium whitespace-nowrap ${change1yr >= 0 ? "text-green-600" : "text-red-500"}`}>
                             {change1yr >= 0 ? "+" : ""}{fmt(gain1yr)} ({change1yr >= 0 ? "+" : ""}{change1yr.toFixed(2)}%)
-                          </span>
-                        </TrumpHover>
-                      </GainHover>
-                    </div>
-                  )}
-                  {changeYtd !== null && gainYtd !== null && (
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-gray-600 text-xs w-24 shrink-0">{changeYtd >= 0 ? t.ytdGain : t.ytdLoss}</span>
-                      <GainHover isPositive={changeYtd >= 0}>
-                        <TrumpHover isNegative={changeYtd < 0}>
-                          <span className={`text-sm font-medium whitespace-nowrap ${changeYtd >= 0 ? "text-green-600" : "text-red-500"}`}>
-                            {changeYtd >= 0 ? "+" : ""}{fmt(gainYtd)} ({changeYtd >= 0 ? "+" : ""}{changeYtd.toFixed(2)}%)
                           </span>
                         </TrumpHover>
                       </GainHover>
