@@ -197,9 +197,11 @@ interface Props {
   onReportEmailChange: (email: string) => void;
   pushEnabled: boolean;
   onPushChange: (v: boolean) => void;
+  drawdownDate: string;
+  onDrawdownDateChange: (v: string) => void;
 }
 
-export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange }: Props) {
+export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange, drawdownDate, onDrawdownDateChange }: Props) {
   const t = useTranslation();
   const [sendState, setSendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [pushTestState, setPushTestState] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -467,6 +469,18 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
                 </button>
               </div>
             )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">{t.drawdownDateLabel}</label>
+            <input
+              type="date"
+              value={drawdownDate}
+              min={new Date().toISOString().slice(0, 10)}
+              onChange={(e) => onDrawdownDateChange(e.target.value)}
+              className="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <p className="text-gray-400 text-xs">{t.drawdownDateNote}</p>
           </div>
 
           <div className="flex flex-col gap-2">

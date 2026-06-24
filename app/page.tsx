@@ -113,6 +113,7 @@ export default function Home() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [confirmRemoveSymbol, setConfirmRemoveSymbol] = useState<string | null>(null);
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [drawdownDate, setDrawdownDate] = useState<string>("");
   const [refreshing, setRefreshing] = useState(false);
 
   // Load saved preferences — localStorage first (instant), then server overrides
@@ -153,6 +154,7 @@ export default function Home() {
         if (typeof p.leaderboardEnabled === "boolean") { setLeaderboardEnabled(p.leaderboardEnabled); localStorage.setItem("portfolio-leaderboard", String(p.leaderboardEnabled)); }
         if (typeof p.topGainersEnabled === "boolean") { setTopGainersEnabled(p.topGainersEnabled); localStorage.setItem("portfolio-top-gainers", String(p.topGainersEnabled)); }
         if (p.language === "en" || p.language === "sv") { setLanguage(p.language as Language); localStorage.setItem("portfolio-language", p.language); }
+        if (typeof p.drawdownDate === "string") setDrawdownDate(p.drawdownDate);
         // Also sync reportCurrency with currency if set
         if (d.reportCurrency && !p.currency) { setCurrency(d.reportCurrency); localStorage.setItem("portfolio-currency", d.reportCurrency); }
       })
@@ -500,6 +502,15 @@ const cutoff1yr = new Date();
               const gain1yr   = has1yr ? total - total1yr : null;
               const fmt = (v: number) => formatCurrency(v, currency, 0);
 
+              const monthlyBudget = (() => {
+                if (!drawdownDate || total <= 0) return null;
+                const target = new Date(drawdownDate);
+                const now = new Date();
+                const months = (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
+                if (months <= 0) return null;
+                return { amount: total / months, months };
+              })();
+
               return total > 0 ? (
                 <div className="flex flex-col gap-1 mt-2">
                   <div className="flex items-baseline gap-2">
@@ -530,6 +541,15 @@ const cutoff1yr = new Date();
                           </span>
                         </TrumpHover>
                       </GainHover>
+                    </div>
+                  )}
+                  {monthlyBudget && (
+                    <div className="flex items-baseline gap-2 mt-1 pt-1 border-t border-gray-100">
+                      <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudget}</span>
+                      <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
+                        {formatCurrency(monthlyBudget.amount, currency, 0)}
+                        <span className="text-gray-400 font-normal ml-1.5 text-xs">{t.drawdownMonthsLeft(monthlyBudget.months)}</span>
+                      </span>
                     </div>
                   )}
                 </div>
@@ -612,6 +632,8 @@ const cutoff1yr = new Date();
             }}
             pushEnabled={pushEnabled}
             onPushChange={setPushEnabled}
+            drawdownDate={drawdownDate}
+            onDrawdownDateChange={(v) => { setDrawdownDate(v); savePrefs({ drawdownDate: v }); }}
           />
         </div>
 

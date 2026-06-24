@@ -61,6 +61,10 @@ const en = {
   sending: "Sending…",
   sent: "Sent!",
   sendError: "Failed to send",
+  drawdownDateLabel: "Run out of money by",
+  drawdownDateNote: "Monthly spend based on current portfolio value",
+  monthlyBudget: "Monthly budget",
+  drawdownMonthsLeft: (n: number) => `${n} months left`,
 };
 
 const sv: typeof en = {
@@ -124,6 +128,10 @@ const sv: typeof en = {
   sending: "Skickar…",
   sent: "Skickat!",
   sendError: "Misslyckades",
+  drawdownDateLabel: "Slut på pengar",
+  drawdownDateNote: "Månadsbudget baserat på nuvarande portföljvärde",
+  monthlyBudget: "Månadsbudget",
+  drawdownMonthsLeft: (n: number) => `${n} månader kvar`,
 };
 
 export const translations: Record<Language, typeof en> = { en, sv };
