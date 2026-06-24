@@ -476,7 +476,8 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">{t.drawdownDateLabel}</label>
+            <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">{t.monthlyBudgetSettings}</label>
+            <label className="text-gray-500 text-xs">{t.drawdownDateLabel}</label>
             <input
               type="date"
               value={drawdownDate}
