@@ -616,22 +616,23 @@ const cutoff1yr = new Date();
                   )}
                   {monthlyBudget && (
                     <div className="flex flex-col gap-0.5 mt-1 pt-1 border-t border-gray-100">
+                      <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-0.5">{t.monthlyBudgetSettings}</span>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-gray-600 text-xs w-36 shrink-0 whitespace-nowrap">{t.monthlyBudget}</span>
+                        <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudget}</span>
                         <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.simple, currency, 0)}
                           <span className="text-gray-400 font-normal ml-1.5 text-xs">{t.drawdownMonthsLeft(monthlyBudget.months)}</span>
                         </span>
                       </div>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-gray-600 text-xs w-36 shrink-0 whitespace-nowrap">{t.monthlyBudgetGrowth}</span>
+                        <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetGrowth}</span>
                         <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.withGrowth, currency, 0)}
                           <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}%/yr</span>
                         </span>
                       </div>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-gray-600 text-xs w-36 shrink-0 whitespace-nowrap">{t.monthlyBudgetReal}</span>
+                        <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetReal}</span>
                         <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.withGrowthReal, currency, 0)}
                           <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}% −{inflationRate}% infl.</span>
