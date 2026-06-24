@@ -543,7 +543,7 @@ const cutoff1yr = new Date();
               const change1yr = has1yr && total1yr > 0 ? ((total - total1yr) / total1yr) * 100 : null;
               const gain30d   = has30d ? total - total30d : null;
               const gain1yr   = has1yr ? total - total1yr : null;
-              const gainYtd   = hasYtd ? total - totalYtd : null;
+
               const fmt = (v: number) => formatCurrency(v, currency, 0);
 
               const monthlyBudget = (() => {
