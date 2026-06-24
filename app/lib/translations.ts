@@ -66,8 +66,8 @@ const en = {
   expectedGrowth: "Expected annual growth",
   expectedInflation: "Expected inflation",
   monthlyBudget: "Monthly budget (zero gains)",
-  monthlyBudgetGrowth: "With 10% growth",
-  monthlyBudgetReal: "Real value",
+  monthlyBudgetGrowth: "Monthly budget with gains",
+  monthlyBudgetReal: "Monthly budget real value",
   drawdownMonthsLeft: (n: number) => `${n} months left`,
 };
 
@@ -137,8 +137,8 @@ const sv: typeof en = {
   expectedGrowth: "Förväntad årlig tillväxt",
   expectedInflation: "Förväntad inflation",
   monthlyBudget: "Månadsbudget (noll vinst)",
-  monthlyBudgetGrowth: "Med 10% tillväxt",
-  monthlyBudgetReal: "Realt (dagens kr)",
+  monthlyBudgetGrowth: "Månadsbudget med vinst",
+  monthlyBudgetReal: "Månadsbudget realt värde",
   drawdownMonthsLeft: (n: number) => `${n} månader kvar`,
 };
 
