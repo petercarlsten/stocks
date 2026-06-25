@@ -35,7 +35,12 @@ const CHIP_COLORS = [
   "bg-orange-50 text-orange-700 border-orange-200",
 ];
 
-interface Stock { symbol: string; name: string }
+interface Stock {
+  symbol: string;
+  name: string;
+  purchases?: { shares: number }[];
+  data?: { date: string; close: number }[];
+}
 
 export default function AllStocksNews({ stocks }: { stocks: Stock[] }) {
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -59,7 +64,16 @@ export default function AllStocksNews({ stocks }: { stocks: Stock[] }) {
 
   if (!loading && news.length === 0) return null;
 
-  const symbolList = [...new Set(news.map((n) => n.symbol))].sort();
+  const positionValue = (sym: string) => {
+    const s = stocks.find((st) => st.symbol === sym);
+    if (!s) return 0;
+    const shares = (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0);
+    const price = s.data?.at(-1)?.close ?? 0;
+    return shares * price;
+  };
+
+  const symbolList = [...new Set(news.map((n) => n.symbol))]
+    .sort((a, b) => positionValue(b) - positionValue(a));
   const colorMap = Object.fromEntries(
     symbolList.map((sym, i) => [sym, CHIP_COLORS[i % CHIP_COLORS.length]])
   );
