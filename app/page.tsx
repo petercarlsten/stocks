@@ -602,21 +602,21 @@ const cutoff1yr = new Date();
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudget}</span>
                         <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.simple, currency, 0)}
-                          <span className="text-gray-400 font-normal ml-1.5 text-xs">end date {new Date(drawdownDate).toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })}</span>
+                          <span className="text-gray-400 font-normal ml-1.5 text-xs">end date: {new Date(drawdownDate).toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })}</span>
                         </span>
                       </div>
                       <div className="flex items-baseline gap-2">
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetGrowth}</span>
                         <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.withGrowth, currency, 0)}
-                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}%/yr · end date {new Date(drawdownDate).toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })}</span>
+                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}%/yr · end date: {new Date(drawdownDate).toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })}</span>
                         </span>
                       </div>
                       <div className="flex items-baseline gap-2">
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetReal}</span>
                         <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.withGrowthReal, currency, 0)}
-                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}% −{inflationRate}% infl. · end date {new Date(drawdownDate).toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })}</span>
+                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}% −{inflationRate}% infl. · end date: {new Date(drawdownDate).toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })}</span>
                         </span>
                       </div>
                     </div>
