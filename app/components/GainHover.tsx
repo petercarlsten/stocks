@@ -165,14 +165,10 @@ const FORTUNE_CAT_QUOTES_POSITIVE = [
 ];
 
 const FORTUNE_CAT_GIFS_POSITIVE = [
-  "https://gifdb.com/images/thumbnail/happy-cat-sassy-head-bobbing-uhryv4lr7t7dgfpp.gif",
-  "https://gifdb.com/images/thumbnail/happy-cat-funny-smiling-grin-2cxp5723g93tahsv.gif",
-  "https://gifdb.com/images/thumbnail/happy-cat-peach-excited-spinning-q5mnqrfbhrgdrdwl.gif",
-  "https://gifdb.com/images/thumbnail/happy-cat-funny-big-awkward-smile-face-zs216kptbat3kohr.gif",
-  "https://gifdb.com/images/thumbnail/happy-cat-high-five-yeah-meow-mq1f2c2qkdj13dmb.gif",
-  "https://gifdb.com/images/thumbnail/happy-cat-you-re-here-excited-jump-414bnrj063t5wry2.gif",
-  "https://gifdb.com/images/thumbnail/happy-cat-goma-excited-clapping-thumbs-up-bi9gbnqp2uvxrtu6.gif",
-  "https://gifdb.com/images/thumbnail/happy-cat-hands-in-the-air-slow-dancing-gbah5wpamm28t2ul.gif",
+  "https://gifdb.com/images/thumbnail/golden-lucky-cat-waving-bhvmcjsye680hwxa.gif",
+  "https://media.tenor.com/tcX0e4_faBwAAAAM/maneki-neko-waving-cat.gif",
+  "https://media.tenor.com/DcbjPfcygWoAAAAM/maneki-neko-waving.gif",
+  "https://media.tenor.com/bFr_st4tvjwAAAAM/waving-cat-lucky-cat.gif",
 ];
 
 const HAPPY_CAT_GIFS = [

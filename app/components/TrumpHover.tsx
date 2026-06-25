@@ -180,14 +180,10 @@ const FORTUNE_CAT_QUOTES_NEGATIVE = [
 ];
 
 const FORTUNE_CAT_GIFS_NEGATIVE = [
-  "https://gifdb.com/images/thumbnail/crying-cat-3edeiy96mwa2u8h4.gif",
-  "https://gifdb.com/images/thumbnail/screaming-crying-cat-xl6msgx53ws3shux.gif",
-  "https://gifdb.com/images/thumbnail/blubbering-sad-crying-cat-auepqb36go1kckph.gif",
-  "https://gifdb.com/images/thumbnail/shocked-crying-cat-8hch9jawuce2q36u.gif",
-  "https://gifdb.com/images/thumbnail/crying-cat-shouting-3bsbhl1wog57uk4c.gif",
-  "https://gifdb.com/images/thumbnail/so-lonely-crying-cat-1ri2ahadswvhizma.gif",
-  "https://gifdb.com/images/thumbnail/emotional-tearful-crying-cat-d6lzpnqx5t409ski.gif",
-  "https://gifdb.com/images/thumbnail/big-eyes-crying-cat-77mmitfzhm1hnp7j.gif",
+  "https://gifdb.com/images/thumbnail/golden-lucky-cat-waving-bhvmcjsye680hwxa.gif",
+  "https://media.tenor.com/tcX0e4_faBwAAAAM/maneki-neko-waving-cat.gif",
+  "https://media.tenor.com/DcbjPfcygWoAAAAM/maneki-neko-waving.gif",
+  "https://media.tenor.com/bFr_st4tvjwAAAAM/waving-cat-lucky-cat.gif",
 ];
 
 const SAD_DOG_GIFS = [
