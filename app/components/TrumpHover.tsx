@@ -152,6 +152,44 @@ const CHUCK_GIFS_NEGATIVE = [
   "https://gifdb.com/images/thumbnail/chuck-norris-escaping-bomb-explosion-mp52jzbxrinvyud5.gif",
 ];
 
+const FORTUNE_CAT_QUOTES_NEGATIVE = [
+  "I waved my paw for THIS? 🙀",
+  "The lucky coin has rolled away 🪙",
+  "Even Maneki-neko cannot save you",
+  "Bad qi. Very bad qi.",
+  "The golden bell tolls for your portfolio",
+  "Fortune cat is hiding under the bed",
+  "I beckoned wealth. Wealth said no.",
+  "My red collar matches your losses",
+  "Ancient proverb: this is bad",
+  "The spirits of profit have left the building",
+  "Misfortune cat has entered the chat 😿",
+  "No fortune cookie predicted THIS",
+  "The lucky paw goes down now",
+  "Even the jade cannot help today",
+  "My paw is tired of waving at losses",
+  "Feng shui cannot save you here",
+  "Negative qi detected 🙀",
+  "The fortune has left the building",
+  "I brought luck. You brought losses.",
+  "The red envelope is empty",
+  "My bell rings for thee. Sadly.",
+  "The cat of luck has clocked out",
+  "Ten thousand misfortunes 😿",
+  "Even the lucky cat looks away",
+];
+
+const FORTUNE_CAT_GIFS_NEGATIVE = [
+  "https://gifdb.com/images/thumbnail/crying-cat-3edeiy96mwa2u8h4.gif",
+  "https://gifdb.com/images/thumbnail/screaming-crying-cat-xl6msgx53ws3shux.gif",
+  "https://gifdb.com/images/thumbnail/blubbering-sad-crying-cat-auepqb36go1kckph.gif",
+  "https://gifdb.com/images/thumbnail/shocked-crying-cat-8hch9jawuce2q36u.gif",
+  "https://gifdb.com/images/thumbnail/crying-cat-shouting-3bsbhl1wog57uk4c.gif",
+  "https://gifdb.com/images/thumbnail/so-lonely-crying-cat-1ri2ahadswvhizma.gif",
+  "https://gifdb.com/images/thumbnail/emotional-tearful-crying-cat-d6lzpnqx5t409ski.gif",
+  "https://gifdb.com/images/thumbnail/big-eyes-crying-cat-77mmitfzhm1hnp7j.gif",
+];
+
 const SAD_DOG_GIFS = [
   "https://gifdb.com/images/thumbnail/sad-dog-boxer-t04yw3khyjv1a9r1.gif",
   "https://gifdb.com/images/thumbnail/sad-dog-pug-w5cej36jsji5akks.gif",
@@ -189,6 +227,9 @@ export default function TrumpHover({ isNegative, children }: Props) {
     } else if (funnyMode === "chuck") {
       quoteRef.current = CHUCK_QUOTES_NEGATIVE[Math.floor(Math.random() * CHUCK_QUOTES_NEGATIVE.length)];
       gifRef.current = CHUCK_GIFS_NEGATIVE[Math.floor(Math.random() * CHUCK_GIFS_NEGATIVE.length)];
+    } else if (funnyMode === "fortune-cat") {
+      quoteRef.current = FORTUNE_CAT_QUOTES_NEGATIVE[Math.floor(Math.random() * FORTUNE_CAT_QUOTES_NEGATIVE.length)];
+      gifRef.current = FORTUNE_CAT_GIFS_NEGATIVE[Math.floor(Math.random() * FORTUNE_CAT_GIFS_NEGATIVE.length)];
     } else {
       quoteRef.current = TRUMP_QUOTES[Math.floor(Math.random() * TRUMP_QUOTES.length)];
     }
@@ -250,6 +291,18 @@ export default function TrumpHover({ isNegative, children }: Props) {
           </span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={gifRef.current} alt="Chuck Norris" className="w-24 rounded-xl shadow-2xl" />
+        </span>
+      )}
+      {show && funnyMode === "fortune-cat" && (
+        <span
+          className={`trump-popup absolute left-1/2 z-50 pointer-events-none flex items-center gap-1 ${posClass}`}
+          style={{ width: 110 }}
+        >
+          <span className="block bg-red-900 text-yellow-300 text-xs font-semibold rounded-lg px-3 py-2 shadow-xl text-center leading-snug border border-yellow-600">
+            &ldquo;{quoteRef.current}&rdquo;
+          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={gifRef.current} alt="Fortune cat" className="w-24 rounded-xl shadow-2xl" />
         </span>
       )}
     </span>

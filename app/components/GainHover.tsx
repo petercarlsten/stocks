@@ -141,6 +141,40 @@ const CHUCK_GIFS_POSITIVE = [
   "https://gifdb.com/images/thumbnail/chuck-norris-comments-you-ve-got-attitude-problem-muekrxrwc02yj6hc.gif",
 ];
 
+const FORTUNE_CAT_QUOTES_POSITIVE = [
+  "Fortune cat waves for YOU! 🐱",
+  "The lucky paw never lies 🪙",
+  "Great fortune! Much wealth!",
+  "Ancient spirits of profit smile upon you",
+  "Maneki-neko has blessed this trade",
+  "The red envelope is FULL today 🧧",
+  "Lucky numbers aligned perfectly",
+  "Feng shui: maximum money mode",
+  "I waved my paw and it worked!",
+  "The golden bell rings for gains! 🔔",
+  "Ten thousand fortunes! 🐱",
+  "Auspicious returns! Very auspicious!",
+  "The jade of gains is strong",
+  "Chi of the charts flows in your favour",
+  "My paw never lies. Neither do these gains.",
+  "Fortune favours the bold investor",
+  "Even the fortune cookie knew this",
+  "The cat of luck has smiled upon you",
+  "The spirits of profit have arrived",
+  "Gold coins incoming! 🪙",
+];
+
+const FORTUNE_CAT_GIFS_POSITIVE = [
+  "https://gifdb.com/images/thumbnail/happy-cat-sassy-head-bobbing-uhryv4lr7t7dgfpp.gif",
+  "https://gifdb.com/images/thumbnail/happy-cat-funny-smiling-grin-2cxp5723g93tahsv.gif",
+  "https://gifdb.com/images/thumbnail/happy-cat-peach-excited-spinning-q5mnqrfbhrgdrdwl.gif",
+  "https://gifdb.com/images/thumbnail/happy-cat-funny-big-awkward-smile-face-zs216kptbat3kohr.gif",
+  "https://gifdb.com/images/thumbnail/happy-cat-high-five-yeah-meow-mq1f2c2qkdj13dmb.gif",
+  "https://gifdb.com/images/thumbnail/happy-cat-you-re-here-excited-jump-414bnrj063t5wry2.gif",
+  "https://gifdb.com/images/thumbnail/happy-cat-goma-excited-clapping-thumbs-up-bi9gbnqp2uvxrtu6.gif",
+  "https://gifdb.com/images/thumbnail/happy-cat-hands-in-the-air-slow-dancing-gbah5wpamm28t2ul.gif",
+];
+
 const HAPPY_CAT_GIFS = [
   "https://gifdb.com/images/thumbnail/happy-cat-sassy-head-bobbing-uhryv4lr7t7dgfpp.gif",
   "https://gifdb.com/images/thumbnail/happy-cat-funny-smiling-grin-2cxp5723g93tahsv.gif",
@@ -177,6 +211,9 @@ export default function GainHover({ isPositive, children }: Props) {
     } else if (funnyMode === "chuck") {
       quoteRef.current = CHUCK_QUOTES_POSITIVE[Math.floor(Math.random() * CHUCK_QUOTES_POSITIVE.length)];
       gifRef.current = CHUCK_GIFS_POSITIVE[Math.floor(Math.random() * CHUCK_GIFS_POSITIVE.length)];
+    } else if (funnyMode === "fortune-cat") {
+      quoteRef.current = FORTUNE_CAT_QUOTES_POSITIVE[Math.floor(Math.random() * FORTUNE_CAT_QUOTES_POSITIVE.length)];
+      gifRef.current = FORTUNE_CAT_GIFS_POSITIVE[Math.floor(Math.random() * FORTUNE_CAT_GIFS_POSITIVE.length)];
     } else {
       quoteRef.current = CAT_QUOTES[Math.floor(Math.random() * CAT_QUOTES.length)];
       gifRef.current = HAPPY_CAT_GIFS[Math.floor(Math.random() * HAPPY_CAT_GIFS.length)];
@@ -227,6 +264,18 @@ export default function GainHover({ isPositive, children }: Props) {
           </span>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={gifRef.current} alt="Chuck Norris" className="w-28 rounded-xl shadow-2xl" />
+        </span>
+      )}
+      {show && funnyMode === "fortune-cat" && (
+        <span
+          className={`trump-popup absolute left-1/2 z-50 pointer-events-none flex items-center gap-1 ${posClass}`}
+          style={{ width: 120 }}
+        >
+          <span className="block bg-red-900 text-yellow-300 text-xs font-semibold rounded-lg px-3 py-2 shadow-xl text-center leading-snug border border-yellow-600">
+            &ldquo;{quoteRef.current}&rdquo;
+          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={gifRef.current} alt="Fortune cat" className="w-28 rounded-xl shadow-2xl" />
         </span>
       )}
     </span>

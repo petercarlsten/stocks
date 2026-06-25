@@ -333,6 +333,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
                 ["cats", "🐱 Cats"],
                 ["dogs", "🐶 Dogs"],
                 ["chuck", "🥋 Chuck"],
+                ["fortune-cat", "🐱 Fortune cat"],
               ] as const).map(([mode, label], i) => (
                 <button
                   key={mode}
