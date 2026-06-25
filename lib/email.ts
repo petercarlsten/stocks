@@ -146,7 +146,6 @@ function buildHtml(data: ReportData): string {
       </p>
 
       ${summaryBlock}
-      ${data.monthlyBudget ? buildBudgetBlock(data.monthlyBudget, data.currency) : ""}
 
       <!-- Stock table -->
       <p style="margin:0 0 10px;color:#111827;font-size:14px;font-weight:700">Performance</p>
@@ -163,6 +162,8 @@ function buildHtml(data: ReportData): string {
           <tbody>${stockRows}</tbody>
         </table>
       </div>
+
+      ${data.monthlyBudget ? buildBudgetBlock(data.monthlyBudget, data.currency) : ""}
 
       <p style="margin:32px 0 0;color:#9ca3af;font-size:12px;text-align:center;line-height:1.6">
         Sent by My Portfolio on the 1st of each month.
@@ -277,7 +278,6 @@ function buildYearlyHtml(data: YearlyReportData): string {
       </p>
 
       ${summaryBlock}
-      ${data.monthlyBudget ? buildBudgetBlock(data.monthlyBudget, data.currency) : ""}
 
       <!-- Stock table -->
       <p style="margin:0 0 10px;color:#111827;font-size:14px;font-weight:700">Year Performance</p>
@@ -294,6 +294,8 @@ function buildYearlyHtml(data: YearlyReportData): string {
           <tbody>${stockRows}</tbody>
         </table>
       </div>
+
+      ${data.monthlyBudget ? buildBudgetBlock(data.monthlyBudget, data.currency) : ""}
 
       <p style="margin:32px 0 0;color:#9ca3af;font-size:12px;text-align:center;line-height:1.6">
         Sent by My Portfolio on January 1st.
