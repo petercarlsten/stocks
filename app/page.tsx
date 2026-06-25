@@ -261,10 +261,19 @@ export default function Home() {
         if (current.length === 0) return current;
         Promise.all(
           current.map((s) =>
-            refreshStockData(s.symbol, s.name).then(({ data, earningsDate, currency, symbol: corrected }) => ({ ...s, data: (data && data.length > 0) ? data : s.data, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol }))
+            refreshStockData(s.symbol, s.name)
+              .then(({ data, earningsDate, currency, symbol: corrected }) => ({ ...s, data: (data && data.length > 0) ? data : s.data, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol }))
+              .catch(() => s)
           )
         )
-          .then((results) => { setStocks(results); setLastRefreshed(new Date()); })
+          .then((results) => {
+            setStocks((prev) => {
+              const refreshedSymbols = new Set(results.map((r) => r.symbol));
+              const extras = prev.filter((p) => !refreshedSymbols.has(p.symbol));
+              return [...results, ...extras];
+            });
+            setLastRefreshed(new Date());
+          })
           .catch(() => {});
         return current;
       });
@@ -280,14 +289,20 @@ export default function Home() {
       if (current.length === 0) return;
       const results = await Promise.all(
         current.map((s) =>
-          refreshStockData(s.symbol, s.name).then(({ data, earningsDate, currency, symbol: corrected }) => ({
-            ...s, data, earningsDate,
-            currency: s.currency ?? currency ?? inferCurrency(s.symbol),
-            symbol: corrected ?? s.symbol,
-          }))
+          refreshStockData(s.symbol, s.name)
+            .then(({ data, earningsDate, currency, symbol: corrected }) => ({
+              ...s, data: (data && data.length > 0) ? data : s.data, earningsDate,
+              currency: s.currency ?? currency ?? inferCurrency(s.symbol),
+              symbol: corrected ?? s.symbol,
+            }))
+            .catch(() => s)
         )
       );
-      setStocks(results);
+      setStocks((prev) => {
+        const refreshedSymbols = new Set(results.map((r) => r.symbol));
+        const extras = prev.filter((p) => !refreshedSymbols.has(p.symbol));
+        return [...results, ...extras];
+      });
       setLastRefreshed(new Date());
     } catch { /* non-fatal */ } finally {
       setRefreshing(false);
@@ -366,7 +381,7 @@ export default function Home() {
       const purchases = s.purchases ?? [];
       const totalShares = purchases.reduce((sum, p) => sum + p.shares, 0);
       if (totalShares <= 0) continue;
-      const currentPrice = s.data[s.data.length - 1]?.close ?? 0;
+      const currentPrice = s.data?.at(-1)?.close ?? 0;
       const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
       const toPortfolio = exchangeRate / tickerRate;
       const currentValue = totalShares * currentPrice * toPortfolio;
@@ -531,15 +546,15 @@ const cutoff1yr = new Date();
                 const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
                 const toPortfolio = exchangeRate / tickerRate;
 
-                const price = s.data[s.data.length - 1]?.close ?? 0;
+                const price = s.data?.at(-1)?.close ?? 0;
                 total += totalShares * price * toPortfolio;
 
-                const past30 = s.data.filter((d) => d.date <= cutoffStr);
+                const past30 = (s.data ?? []).filter((d) => d.date <= cutoffStr);
                 const price30d = past30.length > 0 ? past30[past30.length - 1].close : null;
                 if (price30d !== null) { total30d += totalShares * price30d * toPortfolio; has30d = true; }
 
                 // Find closest trading day at or just after the 1-year mark (handles weekends/holidays)
-                const near1yr = s.data.filter((d) => d.date >= cutoff1yrStr && d.date <= cutoff1yrEndStr);
+                const near1yr = (s.data ?? []).filter((d) => d.date >= cutoff1yrStr && d.date <= cutoff1yrEndStr);
                 const price1yr = near1yr.length > 0 ? near1yr[0].close : null;
                 if (price1yr !== null) { total1yr += totalShares * price1yr * toPortfolio; has1yr = true; }
 
