@@ -588,7 +588,7 @@ const cutoff1yr = new Date();
                   )}
                   {monthlyBudget && (
                     <div className="flex flex-col gap-0.5 mt-1 pt-1 border-t border-gray-100">
-                      <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-0.5">{t.monthlyBudgetSettings}</span>
+                      <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-0.5">{t.monthlyBudgetHeader}</span>
                       <div className="flex items-baseline gap-2">
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudget}</span>
                         <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
