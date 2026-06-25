@@ -169,6 +169,14 @@ const FORTUNE_CAT_GIFS_POSITIVE = [
   "https://media.tenor.com/tcX0e4_faBwAAAAM/maneki-neko-waving-cat.gif",
   "https://media.tenor.com/DcbjPfcygWoAAAAM/maneki-neko-waving.gif",
   "https://media.tenor.com/bFr_st4tvjwAAAAM/waving-cat-lucky-cat.gif",
+  "https://media.tenor.com/D9CBn7EPis4AAAAM/luckycat-cat.gif",
+  "https://media.tenor.com/AlaLk9GVkxMAAAAM/manekineko-cat.gif",
+  "https://media.tenor.com/LOw1pxP7XEsAAAAM/maneki-neko-lucky-cat.gif",
+  "https://media.tenor.com/m8ctmtH-PUEAAAAM/maneki-neko-cat.gif",
+  "https://media.tenor.com/65cRg0Si8NMAAAAM/fortune-cat.gif",
+  "https://media.tenor.com/Bt4RFwao0lAAAAAM/maneki-neko-manekineko.gif",
+  "https://media.tenor.com/TUNNqIB1uXoAAAAM/lucky-cat.gif",
+  "https://media.tenor.com/u7oQW0PuPusAAAAM/cat-waving-chinese.gif",
 ];
 
 const HAPPY_CAT_GIFS = [
