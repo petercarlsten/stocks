@@ -387,7 +387,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
           <div className="flex flex-col gap-2">
             <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">Push notifications</label>
             <div className="flex items-center justify-between">
-              <p className="text-gray-600 text-xs">Monthly portfolio summary on your device</p>
+              <p className="text-gray-600 text-xs">Monthly portfolio summary on your device and earning calls</p>
               <button
                 onClick={async () => {
                   if (!pushEnabled) {

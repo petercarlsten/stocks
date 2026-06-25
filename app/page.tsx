@@ -207,16 +207,22 @@ export default function Home() {
                 .catch(() => ({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }))
             )
           );
-          // Preserve any in-memory purchase prices that haven't been saved to the server yet
-          setStocks((prev) => refreshed.map((r) => {
-            const cur = prev.find((p) => p.symbol === r.symbol);
-            if (!cur?.purchases) return r;
-            const merged = (r.purchases ?? cur.purchases).map((rp, i) => {
-              const cp = cur.purchases?.[i];
-              return cp?.price != null && rp.price == null ? { ...rp, price: cp.price } : rp;
+          // Preserve in-memory purchase prices and any stocks added while loading
+          setStocks((prev) => {
+            const refreshedSymbols = new Set(refreshed.map((r) => r.symbol));
+            const merged = refreshed.map((r) => {
+              const cur = prev.find((p) => p.symbol === r.symbol);
+              if (!cur?.purchases) return r;
+              const mergedPurchases = (r.purchases ?? cur.purchases).map((rp, i) => {
+                const cp = cur.purchases?.[i];
+                return cp?.price != null && rp.price == null ? { ...rp, price: cp.price } : rp;
+              });
+              return { ...r, purchases: mergedPurchases };
             });
-            return { ...r, purchases: merged };
-          }));
+            // Keep any stocks added to state while the initial load was in flight
+            const extras = prev.filter((p) => !refreshedSymbols.has(p.symbol));
+            return [...merged, ...extras];
+          });
           setLastRefreshed(new Date());
         } else {
           // Server is empty — migrate legacy localStorage data if any
