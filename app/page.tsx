@@ -450,8 +450,9 @@ export default function Home() {
         }
       `}</style>
       <div className="max-w-screen-xl mx-auto">
-        <div className="flex flex-wrap items-start gap-3 sm:gap-6 mb-4 sm:mb-6">
-          <div className="flex-1">
+        <div className="grid grid-cols-[1fr_auto] items-start gap-x-4 sm:gap-x-6 mb-4 sm:mb-6">
+          <div className="flex flex-wrap items-start gap-3 sm:gap-6 min-w-0">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-5 mb-2">
               <div className="relative shrink-0">
               <div className="logo-badge relative bg-gradient-to-br from-indigo-600 via-violet-600 to-emerald-500 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex items-center justify-center overflow-hidden">
@@ -611,7 +612,8 @@ const cutoff1yr = new Date();
           </div>
           {leaderboardEnabled && <div className="hidden lg:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} /></div>}
           {topGainersEnabled && <div className="hidden lg:block"><TopGainers /></div>}
-          <div className="shrink-0 pt-1 flex flex-row sm:flex-col gap-2 ml-auto sm:ml-0">
+          </div>{/* end left content wrapper */}
+          <div className="shrink-0 pt-1 flex flex-col gap-2 self-start">
             <button
               onClick={() => setSettingsOpen(true)}
               className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-900 text-sm font-medium rounded-lg px-3 py-2 transition-colors border border-gray-200 shadow-sm"
@@ -657,7 +659,8 @@ const cutoff1yr = new Date();
               <span className="hidden sm:inline">{t.signOut}</span>
             </button>
           </div>
-          <SettingsPanel
+        </div>{/* end grid */}
+        <SettingsPanel
             open={settingsOpen}
             onClose={() => setSettingsOpen(false)}
             currency={currency}
@@ -692,7 +695,6 @@ const cutoff1yr = new Date();
             inflationRate={inflationRate}
             onInflationRateChange={(v) => { setInflationRate(v); savePrefs({ inflationRate: v }); }}
           />
-        </div>
 
         <div className="flex gap-2 mb-4">
           <TickerSearch
