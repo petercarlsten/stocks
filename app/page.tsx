@@ -203,7 +203,7 @@ export default function Home() {
           const refreshed = await Promise.all(
             migrated.map((s) =>
               refreshStockData(s.symbol, s.name)
-                .then(({ data, earningsDate, currency, symbol: corrected }) => ({ ...s, data, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol }))
+                .then(({ data, earningsDate, currency, symbol: corrected }) => ({ ...s, data: (data && data.length > 0) ? data : s.data, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol }))
                 .catch(() => ({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }))
             )
           );
@@ -261,7 +261,7 @@ export default function Home() {
         if (current.length === 0) return current;
         Promise.all(
           current.map((s) =>
-            refreshStockData(s.symbol, s.name).then(({ data, earningsDate, currency, symbol: corrected }) => ({ ...s, data, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol }))
+            refreshStockData(s.symbol, s.name).then(({ data, earningsDate, currency, symbol: corrected }) => ({ ...s, data: (data && data.length > 0) ? data : s.data, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol }))
           )
         )
           .then((results) => { setStocks(results); setLastRefreshed(new Date()); })
@@ -755,7 +755,7 @@ const cutoff1yr = new Date();
                   const sh = (s.purchases ?? []).reduce((a, p) => a + p.shares, 0);
                   if (sh <= 0) return sum;
                   const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
-                  return sum + sh * (s.data[s.data.length - 1]?.close ?? 0) * (exchangeRate / tickerRate);
+                  return sum + sh * (s.data?.at(-1)?.close ?? 0) * (exchangeRate / tickerRate);
                 }, 0);
                 return (
                   <div
@@ -765,11 +765,11 @@ const cutoff1yr = new Date();
                     {stocks.map((s, i) => {
                       const sh = (s.purchases ?? []).reduce((a, p) => a + p.shares, 0);
                       const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
-                      const posVal = sh > 0 ? sh * (s.data[s.data.length - 1]?.close ?? 0) * (exchangeRate / tickerRate) : 0;
+                      const posVal = sh > 0 ? sh * (s.data?.at(-1)?.close ?? 0) * (exchangeRate / tickerRate) : 0;
                       const portfolioPct = totalPortfolioValue > 0 && posVal > 0 ? (posVal / totalPortfolioValue) * 100 : undefined;
                       const threeMonthsAgo = new Date(); threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
                       const chartCutoff = threeMonthsAgo.toISOString().split("T")[0];
-                      const chartData = s.data.filter((d) => d.date >= chartCutoff);
+                      const chartData = (s.data ?? []).filter((d) => d.date >= chartCutoff);
                       return (
                         <SortableStockChart
                           key={s.symbol}
