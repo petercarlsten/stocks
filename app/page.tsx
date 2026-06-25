@@ -208,6 +208,7 @@ export default function Home() {
             )
           );
           // Preserve in-memory purchase prices and any stocks added while loading
+          serverLoaded.current = true;
           setStocks((prev) => {
             const refreshedSymbols = new Set(refreshed.map((r) => r.symbol));
             const merged = refreshed.map((r) => {
@@ -227,6 +228,7 @@ export default function Home() {
         } else {
           // Server is empty — migrate legacy localStorage data if any
           const legacy: StockData[] = JSON.parse(localStorage.getItem(LEGACY_KEY) ?? "[]");
+          serverLoaded.current = true;
           if (legacy.length > 0) {
             await fetch("/api/user/stocks", {
               method: "PUT",
@@ -243,10 +245,14 @@ export default function Home() {
 
   // Persist to server + cache on any stocks change (skip initial empty state)
   const saveRef = useRef(false);
+  // Prevent the initial localStorage cache from overwriting the server before
+  // the server fetch completes — the cache may be incomplete (e.g. PWA cold start).
+  const serverLoaded = useRef(false);
   useEffect(() => {
     if (!username) return;
     if (!saveRef.current) { saveRef.current = true; return; } // skip mount
-    localStorage.setItem(cacheKey(username), JSON.stringify(stocks));
+    localStorage.setItem(cacheKey(username), JSON.stringify(stocks)); // always update local cache
+    if (!serverLoaded.current) return; // don't overwrite server until it's been read
     fetch("/api/user/stocks", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
