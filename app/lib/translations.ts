@@ -69,7 +69,6 @@ const en = {
   monthlyBudget: "Zero gains",
   monthlyBudgetGrowth: "With gains",
   monthlyBudgetReal: "Real value",
-  drawdownMonthsLeft: (n: number) => `${n} months left`,
 };
 
 const sv: typeof en = {
@@ -141,7 +140,6 @@ const sv: typeof en = {
   monthlyBudget: "Noll vinst",
   monthlyBudgetGrowth: "Med vinst",
   monthlyBudgetReal: "Realt värde",
-  drawdownMonthsLeft: (n: number) => `${n} månader kvar`,
 };
 
 export const translations: Record<Language, typeof en> = { en, sv };

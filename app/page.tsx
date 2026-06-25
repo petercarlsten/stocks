@@ -602,7 +602,7 @@ const cutoff1yr = new Date();
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudget}</span>
                         <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.simple, currency, 0)}
-                          <span className="text-gray-400 font-normal ml-1.5 text-xs">{t.drawdownMonthsLeft(monthlyBudget.months)}</span>
+                          <span className="text-gray-400 font-normal ml-1.5 text-xs">{new Date(drawdownDate).toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })}</span>
                         </span>
                       </div>
                       <div className="flex items-baseline gap-2">
