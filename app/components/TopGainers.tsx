@@ -9,6 +9,12 @@ interface Gainer {
   gain: number;
 }
 
+const RANK_COLORS = [
+  "text-amber-500",
+  "text-slate-400",
+  "text-orange-400",
+];
+
 export default function TopGainers() {
   const t = useTranslation();
   const [gainers, setGainers] = useState<Gainer[]>([]);
@@ -21,28 +27,51 @@ export default function TopGainers() {
       .catch(() => setLoading(false));
   }, []);
 
+  const maxGain = gainers.length > 0 ? Math.max(...gainers.map((g) => Math.abs(g.gain))) : 1;
+
   return (
-    <div className="bg-white rounded-xl p-4 w-96 shrink-0 border border-gray-200 shadow-sm">
-      <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">
-        {t.topGainersTitle}
-      </h2>
-      <p className="text-gray-400 text-xs mb-3">{t.last3Months}</p>
+    <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm min-w-0 shrink">
+      <div className="flex items-baseline gap-2 mb-3">
+        <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider">
+          {t.topGainersTitle}
+        </h2>
+        <span className="text-gray-300 text-xs">{t.last3Months}</span>
+      </div>
+
       {loading ? (
-        <p className="text-gray-600 text-xs">{t.loading}</p>
+        <p className="text-gray-400 text-xs">{t.loading}</p>
       ) : gainers.length === 0 ? (
-        <p className="text-gray-600 text-xs">{t.noData}</p>
+        <p className="text-gray-400 text-xs">{t.noData}</p>
       ) : (
-        <ol className="flex flex-col gap-2">
-          {gainers.map((g, i) => (
-            <li key={g.symbol} className="flex items-center gap-2 min-w-0">
-              <span className="text-gray-300 text-xs w-3 shrink-0">{i + 1}</span>
-              <span className="text-gray-900 text-sm font-medium truncate flex-1" title={g.name}>{g.name}</span>
-              <span className={`text-sm font-medium shrink-0 ${g.gain >= 0 ? "text-green-600" : "text-red-500"}`}>
-                {g.gain >= 0 ? "+" : ""}{g.gain.toFixed(1)}%
-              </span>
-            </li>
-          ))}
-        </ol>
+        <div className="grid grid-cols-3 gap-x-4 gap-y-1.5">
+          {gainers.map((g, i) => {
+            const barWidth = Math.round((Math.abs(g.gain) / maxGain) * 100);
+            const positive = g.gain >= 0;
+            return (
+              <div key={g.symbol} className="flex flex-col min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className={`text-xs font-bold w-4 shrink-0 tabular-nums ${RANK_COLORS[i] ?? "text-gray-300"}`}>
+                    {i + 1}
+                  </span>
+                  <span className="text-gray-900 text-xs font-bold shrink-0">{g.symbol}</span>
+                  <span className={`text-xs font-semibold shrink-0 ml-auto tabular-nums ${positive ? "text-green-600" : "text-red-500"}`}>
+                    {positive ? "+" : ""}{g.gain.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
+                  <span className="w-4 shrink-0" />
+                  <div className="flex-1 min-w-0 relative h-1 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`absolute left-0 top-0 h-full rounded-full ${positive ? "bg-green-400" : "bg-red-400"}`}
+                      style={{ width: `${barWidth}%` }}
+                    />
+                  </div>
+                  <span className="text-gray-400 text-xs truncate min-w-0 max-w-16" title={g.name}>{g.name.split(" ")[0]}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
