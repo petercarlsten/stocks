@@ -13,6 +13,15 @@ export interface StockReport {
   currency: string;
 }
 
+export interface MonthlyBudget {
+  simple: number;
+  withGrowth: number;
+  withGrowthReal: number;
+  drawdownDate: string;
+  growthRate: number;
+  inflationRate: number;
+}
+
 export interface ReportData {
   username: string;
   month: string;
@@ -21,6 +30,7 @@ export interface ReportData {
   totalEarnings30dUSD: number | null;
   currency: string;
   stocks: StockReport[];
+  monthlyBudget?: MonthlyBudget;
 }
 
 function fmt(value: number, currency: string): string {
@@ -39,6 +49,32 @@ function fmtPct(pct: number | null): string {
 function pctColor(pct: number | null): string {
   if (pct === null) return "#6b7280";
   return pct >= 0 ? "#16a34a" : "#ef4444";
+}
+
+function buildBudgetBlock(budget: MonthlyBudget, currency: string): string {
+  const endDate = new Date(budget.drawdownDate).toLocaleDateString("en-GB", { month: "short", year: "numeric" });
+  const row = (label: string, value: number, note: string) =>
+    `<tr>
+      <td style="padding:8px 14px;border-bottom:1px solid #f3f4f6;color:#6b7280;font-size:12px">${label}</td>
+      <td style="padding:8px 14px;border-bottom:1px solid #f3f4f6;text-align:right;color:#4f46e5;font-size:13px;font-weight:700">${fmt(value, currency)}</td>
+      <td style="padding:8px 14px;border-bottom:1px solid #f3f4f6;text-align:right;color:#9ca3af;font-size:11px">${note}</td>
+    </tr>`;
+  return `
+    <p style="margin:24px 0 10px;color:#111827;font-size:14px;font-weight:700">Monthly Living Budget</p>
+    <div style="border-radius:10px;overflow:hidden;border:1px solid #f3f4f6;margin-bottom:8px">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#f9fafb">
+          <th style="padding:8px 14px;text-align:left;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Scenario</th>
+          <th style="padding:8px 14px;text-align:right;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Per Month</th>
+          <th style="padding:8px 14px;text-align:right;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.05em">Assumptions</th>
+        </tr></thead>
+        <tbody>
+          ${row("Zero gains", budget.simple, `end date: ${endDate}`)}
+          ${row("With gains", budget.withGrowth, `+${budget.growthRate}%/yr · end date: ${endDate}`)}
+          ${row("Real value", budget.withGrowthReal, `+${budget.growthRate}% −${budget.inflationRate}% infl. · end date: ${endDate}`)}
+        </tbody>
+      </table>
+    </div>`;
 }
 
 function buildHtml(data: ReportData): string {
@@ -110,6 +146,7 @@ function buildHtml(data: ReportData): string {
       </p>
 
       ${summaryBlock}
+      ${data.monthlyBudget ? buildBudgetBlock(data.monthlyBudget, data.currency) : ""}
 
       <!-- Stock table -->
       <p style="margin:0 0 10px;color:#111827;font-size:14px;font-weight:700">Performance</p>
@@ -166,6 +203,7 @@ export interface YearlyReportData {
   totalEarningsYrUSD: number | null;
   currency: string;
   stocks: YearlyStockReport[];
+  monthlyBudget?: MonthlyBudget;
 }
 
 function buildYearlyHtml(data: YearlyReportData): string {
@@ -239,6 +277,7 @@ function buildYearlyHtml(data: YearlyReportData): string {
       </p>
 
       ${summaryBlock}
+      ${data.monthlyBudget ? buildBudgetBlock(data.monthlyBudget, data.currency) : ""}
 
       <!-- Stock table -->
       <p style="margin:0 0 10px;color:#111827;font-size:14px;font-weight:700">Year Performance</p>

@@ -1,6 +1,6 @@
 import { getUserStocks } from "./stockStore";
-import { getReportCurrency } from "./users";
-import type { ReportData, StockReport } from "./email";
+import { getReportCurrency, getPreferences } from "./users";
+import type { ReportData, StockReport, MonthlyBudget } from "./email";
 
 interface StoredPurchase {
   date?: string;
@@ -68,6 +68,29 @@ export async function buildReportData(username: string): Promise<ReportData | nu
   const totalEarnings30d = has30d ? total - total30d : null;
   const month = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
+  const prefs = getPreferences(username);
+  const monthlyBudget = ((): MonthlyBudget | undefined => {
+    if (!prefs.drawdownDate || !(total > 0)) return undefined;
+    const target = new Date(prefs.drawdownDate as string);
+    const now = new Date();
+    const months = (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
+    if (months <= 0) return undefined;
+    const growthRate = typeof prefs.growthRate === "number" ? prefs.growthRate : 10;
+    const inflationRate = typeof prefs.inflationRate === "number" ? prefs.inflationRate : 2.5;
+    const annuity = (rate: number) => total * rate / (1 - Math.pow(1 + rate, -months));
+    const growth = 1 + growthRate / 100;
+    const rNominal = Math.pow(growth, 1 / 12) - 1;
+    const rReal = Math.pow(growth / (1 + inflationRate / 100), 1 / 12) - 1;
+    return {
+      simple: total / months,
+      withGrowth: annuity(rNominal),
+      withGrowthReal: rReal > 0 ? annuity(rReal) : total / months,
+      drawdownDate: prefs.drawdownDate as string,
+      growthRate,
+      inflationRate,
+    };
+  })();
+
   return {
     username,
     month,
@@ -76,5 +99,6 @@ export async function buildReportData(username: string): Promise<ReportData | nu
     totalEarnings30dUSD: totalEarnings30d,
     currency: reportCurrency,
     stocks: stockResults,
+    monthlyBudget,
   };
 }

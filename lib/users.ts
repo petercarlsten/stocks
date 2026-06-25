@@ -17,6 +17,9 @@ export interface UserPreferences {
   leaderboardEnabled?: boolean;
   topGainersEnabled?: boolean;
   language?: string;
+  drawdownDate?: string;
+  growthRate?: number;
+  inflationRate?: number;
 }
 
 interface User {
