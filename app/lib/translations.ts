@@ -62,7 +62,7 @@ const en = {
   sent: "Sent!",
   sendError: "Failed to send",
   monthlyBudgetSettings: "Monthly living budget",
-  drawdownDateLabel: "Run out of money by",
+  drawdownDateLabel: "Run out of investments by",
   drawdownDateNote: "Monthly spend based on current portfolio value",
   expectedGrowth: "Expected annual growth",
   expectedInflation: "Expected inflation",
