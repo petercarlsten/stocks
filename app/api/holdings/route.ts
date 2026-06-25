@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const YahooFinance = require("yahoo-finance2").default;
@@ -26,6 +28,9 @@ async function fetchHoldings(symbol: string): Promise<{ name: string; pct: numbe
 }
 
 export async function GET(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.name) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const symbolParam = req.nextUrl.searchParams.get("symbol")?.trim();
   const name = req.nextUrl.searchParams.get("name")?.trim() ?? "";
   if (!symbolParam) return NextResponse.json({ holdings: [] });

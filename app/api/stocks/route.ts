@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // yahoo-finance2 v3 uses a class-based API; bypass type mismatch with require
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -334,6 +336,9 @@ async function resolveISIN(isin: string): Promise<string | null> {
 // ─── Route handler ──────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.name) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const symbol = req.nextUrl.searchParams.get("symbol");
   const includeName = req.nextUrl.searchParams.get("noName") !== "1";
   const nameHint = req.nextUrl.searchParams.get("name") ?? undefined;

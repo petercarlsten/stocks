@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 const ISIN_RE = /^[A-Z]{2}[A-Z0-9]{10}$/i;
 
@@ -395,6 +397,9 @@ async function fetchNewsForStock(symbol: string, name: string | null) {
 // ─── Route handler ───────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.name) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const url = req.nextUrl;
 
   // Batch mode: ?symbols=AAPL,NET&names=Apple|Cloudflare

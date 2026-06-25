@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const YahooFinance = require("yahoo-finance2").default;
@@ -15,6 +17,9 @@ const YAHOO_TO_EODHD: Record<string, string> = {
 const ISIN_RE = /^[A-Z]{2}[A-Z0-9]{10}$/i;
 
 export async function GET(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.name) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const symbol = req.nextUrl.searchParams.get("symbol")?.trim() ?? "";
   const date = req.nextUrl.searchParams.get("date")?.trim() ?? "";
   if (!symbol || !date) return NextResponse.json({ error: "Missing params" }, { status: 400 });
