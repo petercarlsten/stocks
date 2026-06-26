@@ -536,8 +536,10 @@ export async function GET(req: NextRequest) {
     // prices in the data are always in the local exchange currency.
     const suffixCurrency = inferCurrencyFromSuffix(upper);
     const currency = suffixCurrency !== "USD" ? suffixCurrency : (quote?.currency ?? "USD");
+    const marketState = (quote?.marketState as string | undefined) ?? null;
+    const exchangeTimezoneName = (quote?.exchangeTimezoneName as string | undefined) ?? null;
     const responseSymbol = originalISIN ?? upper;
-    return NextResponse.json({ symbol: responseSymbol, name, earningsDate, data, currency });
+    return NextResponse.json({ symbol: responseSymbol, name, earningsDate, data, currency, marketState, exchangeTimezoneName });
   } catch {
     return NextResponse.json(
       { error: `Could not fetch data for "${upper}"` },

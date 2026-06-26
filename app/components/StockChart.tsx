@@ -42,6 +42,8 @@ interface Props {
   theme?: "light" | "dark";
   portfolioPct?: number;
   tickerCurrency?: string;
+  marketState?: string | null;
+  exchangeTimezoneName?: string | null;
 }
 
 function formatEarningsDate(dateStr: string): string {
@@ -55,7 +57,75 @@ function fmtDate(dateStr?: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD" }: Props) {
+const EXCHANGE_OPEN: Record<string, [number, number]> = {
+  "America/New_York":   [9,  30],
+  "America/Chicago":    [8,  30],
+  "Europe/London":      [8,  0 ],
+  "Europe/Berlin":      [9,  0 ],
+  "Europe/Paris":       [9,  0 ],
+  "Europe/Amsterdam":   [9,  0 ],
+  "Europe/Stockholm":   [9,  0 ],
+  "Europe/Helsinki":    [9,  0 ],
+  "Europe/Copenhagen":  [9,  0 ],
+  "Europe/Oslo":        [9,  0 ],
+  "Europe/Brussels":    [9,  0 ],
+  "Europe/Vienna":      [9,  0 ],
+  "Europe/Zurich":      [9,  0 ],
+  "Asia/Tokyo":         [9,  0 ],
+  "Asia/Hong_Kong":     [9,  30],
+  "Asia/Singapore":     [9,  0 ],
+  "Asia/Kuala_Lumpur":  [9,  0 ],
+  "Asia/Kolkata":       [9,  15],
+  "Australia/Sydney":   [10, 0 ],
+};
+
+function getNextOpen(exchangeTz: string): string | null {
+  const open = EXCHANGE_OPEN[exchangeTz];
+  if (!open) return null;
+  const [oh, om] = open;
+  const now = new Date();
+
+  for (let daysAhead = 0; daysAhead <= 7; daysAhead++) {
+    const probe = new Date(now.getTime() + daysAhead * 86_400_000);
+    const weekday = new Intl.DateTimeFormat("en", { timeZone: exchangeTz, weekday: "short" }).format(probe);
+    if (weekday === "Sat" || weekday === "Sun") continue;
+
+    const dateStr = probe.toLocaleDateString("sv", { timeZone: exchangeTz }); // "yyyy-mm-dd"
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const approx = new Date(Date.UTC(y, m - 1, d, oh, om, 0));
+
+    // Correct for timezone offset (handles DST automatically)
+    const parts = new Intl.DateTimeFormat("en", {
+      timeZone: exchangeTz, hour: "2-digit", minute: "2-digit", hour12: false,
+    }).formatToParts(approx);
+    const ah = parseInt(parts.find(p => p.type === "hour")!.value);
+    const am = parseInt(parts.find(p => p.type === "minute")!.value);
+    const openUTC = new Date(approx.getTime() + ((oh - ah) * 60 + (om - am)) * 60_000);
+
+    if (openUTC <= now) continue;
+
+    const timeStr = openUTC.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+    const nowDate  = now.toLocaleDateString("sv");
+    const openDate = openUTC.toLocaleDateString("sv");
+    const tmrwDate = new Date(now.getTime() + 86_400_000).toLocaleDateString("sv");
+
+    if (openDate === nowDate)  return `Opens at ${timeStr}`;
+    if (openDate === tmrwDate) return `Opens tomorrow at ${timeStr}`;
+    return `Opens ${openUTC.toLocaleDateString(undefined, { weekday: "short" })} at ${timeStr}`;
+  }
+  return null;
+}
+
+const MARKET_STATE_BADGE: Record<string, { dot: string; label: string }> = {
+  REGULAR:  { dot: "bg-green-400",  label: "Market open"     },
+  PRE:      { dot: "bg-amber-400",  label: "Market pre"      },
+  POST:     { dot: "bg-blue-400",   label: "Market after hrs" },
+  POSTPOST: { dot: "bg-blue-300",   label: "Market after hrs" },
+  PREPRE:   { dot: "bg-amber-300",  label: "Market pre"      },
+  CLOSED:   { dot: "bg-gray-300",   label: "Market closed"   },
+};
+
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName }: Props) {
   const t = useTranslation();
   const [holdings, setHoldings] = useState<{ name: string; pct: number }[] | null>(null);
   const [showHoldings, setShowHoldings] = useState(false);
@@ -257,6 +327,23 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           </div>
           <div className="flex items-center gap-3">
             <span className="text-gray-600 text-xs">{symbol}</span>
+            {marketState && MARKET_STATE_BADGE[marketState] && (() => {
+              const badge = MARKET_STATE_BADGE[marketState];
+              const nextOpen = marketState !== "REGULAR" && exchangeTimezoneName
+                ? getNextOpen(exchangeTimezoneName)
+                : null;
+              return (
+                <span className="group relative flex items-center gap-1 text-xs text-gray-500 cursor-default">
+                  <span className={`inline-block w-1.5 h-1.5 rounded-full ${badge.dot}`} />
+                  {badge.label}
+                  {nextOpen && (
+                    <span className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                      {nextOpen}
+                    </span>
+                  )}
+                </span>
+              );
+            })()}
             {earningsDate && (
               <span className="text-xs text-amber-600">
                 {earningsIsFuture ? t.nextEarningsCall : t.reported}

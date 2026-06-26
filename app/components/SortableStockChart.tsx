@@ -22,6 +22,8 @@ interface Props {
   theme?: "light" | "dark";
   portfolioPct?: number;
   tickerCurrency?: string;
+  marketState?: string | null;
+  exchangeTimezoneName?: string | null;
 }
 
 export default function SortableStockChart(props: Props) {
