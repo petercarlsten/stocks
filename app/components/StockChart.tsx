@@ -392,6 +392,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           </div>
         )}
       </div>
+      <div className="w-full overflow-hidden">
       <ResponsiveContainer width="100%" height={chartHeight}>
         <LineChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
@@ -441,6 +442,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           />
         </LineChart>
       </ResponsiveContainer>
+      </div>
       <div className="flex items-center gap-4 mt-1">
         {(purchases ?? []).length > 0 && (
           <span className="flex items-center gap-1.5 text-xs text-gray-600">

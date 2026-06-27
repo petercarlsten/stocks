@@ -728,7 +728,7 @@ const cutoff1yr = new Date();
         {/* Leaderboard + Top Gainers shown below search on mobile and tablet */}
         <div className="flex flex-wrap gap-3 mb-4 lg:hidden">
           {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} />}
-          {topGainersEnabled && <TopGainers />}
+          {topGainersEnabled && <div className="w-full"><TopGainers /></div>}
         </div>
 
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
