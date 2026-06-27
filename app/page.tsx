@@ -176,14 +176,17 @@ export default function Home() {
   // Fetch exchange rates and persist locally
   useEffect(() => {
     localStorage.setItem("portfolio-currency", currency);
+    let cancelled = false;
     fetch(`https://open.er-api.com/v6/latest/USD`)
       .then((r) => r.json())
       .then((data) => {
+        if (cancelled) return;
         const rates: Record<string, number> = { USD: 1, ...data.rates };
         setUsdRates(rates);
         setExchangeRate(rates[currency] ?? 1);
       })
-      .catch(() => { setExchangeRate(currency === "USD" ? 1 : 1); });
+      .catch(() => { if (!cancelled) setExchangeRate(1); });
+    return () => { cancelled = true; };
   }, [currency]);
 
   // Load stocks from server (with per-user localStorage cache for instant render)
