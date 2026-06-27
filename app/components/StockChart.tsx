@@ -127,6 +127,13 @@ const MARKET_STATE_BADGE: Record<string, { dot: string; label: string }> = {
 
 export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName }: Props) {
   const t = useTranslation();
+  const [chartHeight, setChartHeight] = useState(180);
+  useEffect(() => {
+    const update = () => setChartHeight(window.innerWidth < 640 ? 130 : 180);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
   const [holdings, setHoldings] = useState<{ name: string; pct: number }[] | null>(null);
   const [showHoldings, setShowHoldings] = useState(false);
   const [showGains, setShowGains] = useState(false);
@@ -385,7 +392,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           </div>
         )}
       </div>
-      <ResponsiveContainer width="100%" height={180}>
+      <ResponsiveContainer width="100%" height={chartHeight}>
         <LineChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
           <XAxis
