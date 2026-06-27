@@ -126,7 +126,7 @@ const MARKET_STATE_BADGE: Record<string, { dot: string; label: string }> = {
 
 export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName }: Props) {
   const t = useTranslation();
-  const chartHeight = window.innerWidth < 640 ? 130 : 180;
+  const chartHeight = chartWidth > 0 && chartWidth < 500 ? 130 : 180;
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(0);
   useEffect(() => {

@@ -464,7 +464,7 @@ export default function Home() {
         .logo-live-dot { opacity: 1; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 639px) {
-          .stocks-grid { grid-template-columns: 1fr !important; }
+          .stocks-grid { grid-template-columns: minmax(0, 1fr) !important; }
         }
         @media (min-width: 640px) and (max-width: 1023px) {
           .stocks-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
