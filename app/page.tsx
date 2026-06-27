@@ -177,7 +177,7 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem("portfolio-currency", currency);
     let cancelled = false;
-    fetch(`https://open.er-api.com/v6/latest/USD`)
+    fetch(`https://open.er-api.com/v6/latest/USD`, { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
@@ -322,15 +322,23 @@ export default function Home() {
     }
   }, [stocks, refreshing]);
 
-  // Re-fetch when tab becomes visible after being hidden for >5 minutes
+  // Re-fetch when tab becomes visible after being hidden for >1 minute,
+  // or when the page is restored from BFCache (pageshow with persisted=true)
   useEffect(() => {
+    const isStale = () => !lastRefreshed || Date.now() - lastRefreshed.getTime() > 60 * 1000;
     const onVisible = () => {
       if (document.visibilityState !== "visible") return;
-      const stale = !lastRefreshed || Date.now() - lastRefreshed.getTime() > 5 * 60 * 1000;
-      if (stale) handleRefresh();
+      if (isStale()) handleRefresh();
+    };
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted && isStale()) handleRefresh();
     };
     document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
+    window.addEventListener("pageshow", onPageShow);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("pageshow", onPageShow);
+    };
   }, [lastRefreshed, handleRefresh]);
 
   const addStockBySymbol = useCallback(async (symbol: string) => {
