@@ -7,7 +7,6 @@ import { ALL_CURRENCIES } from "./SettingsPanel";
 import { formatCurrency } from "../lib/formatCurrency";
 import { useTranslation } from "./SettingsContext";
 import {
-  ResponsiveContainer,
   LineChart,
   Line,
   XAxis,
@@ -127,12 +126,16 @@ const MARKET_STATE_BADGE: Record<string, { dot: string; label: string }> = {
 
 export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName }: Props) {
   const t = useTranslation();
-  const [chartHeight, setChartHeight] = useState(180);
+  const chartHeight = window.innerWidth < 640 ? 130 : 180;
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [chartWidth, setChartWidth] = useState(0);
   useEffect(() => {
-    const update = () => setChartHeight(window.innerWidth < 640 ? 130 : 180);
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
+    const el = chartContainerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => setChartWidth(entries[0].contentRect.width));
+    ro.observe(el);
+    setChartWidth(el.getBoundingClientRect().width);
+    return () => ro.disconnect();
   }, []);
   const [holdings, setHoldings] = useState<{ name: string; pct: number }[] | null>(null);
   const [showHoldings, setShowHoldings] = useState(false);
@@ -294,7 +297,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const overlayBg = dark ? "#111827" : "#ffffff";
 
   return (
-    <div className="bg-white rounded-xl p-4 flex flex-col gap-2 min-w-0 border border-gray-200 shadow-sm relative">
+    <div className="bg-white rounded-xl p-4 flex flex-col gap-2 min-w-0 border border-gray-200 shadow-sm relative overflow-hidden">
       <div className="flex items-start justify-between gap-2">
         {dragHandleProps && (
           <div
@@ -392,9 +395,8 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           </div>
         )}
       </div>
-      <div className="w-full overflow-hidden">
-      <ResponsiveContainer width="100%" height={chartHeight}>
-        <LineChart data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+      <div ref={chartContainerRef} className="w-full overflow-hidden">
+      {chartWidth > 0 && <LineChart width={chartWidth} height={chartHeight} data={data} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
           <XAxis
             dataKey="date"
@@ -441,7 +443,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
             dot={false}
           />
         </LineChart>
-      </ResponsiveContainer>
+      }
       </div>
       <div className="flex items-center gap-4 mt-1">
         {(purchases ?? []).length > 0 && (
