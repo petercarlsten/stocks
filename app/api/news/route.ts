@@ -59,8 +59,8 @@ function scoreSentiment(title: string, description: string | null): "positive" |
   let score = 0;
   for (const [re, w] of POSITIVE) if (re.test(text)) score += w;
   for (const [re, w] of NEGATIVE) if (re.test(text)) score -= w;
-  if (score >= 2) return "positive";
-  if (score <= -2) return "negative";
+  if (score >= 1) return "positive";
+  if (score <= -1) return "negative";
   return "neutral";
 }
 
