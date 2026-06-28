@@ -22,7 +22,6 @@ import SortableStockChart from "./components/SortableStockChart";
 import TopGainers from "./components/TopGainers";
 import DashboardLeaderboard from "./components/DashboardLeaderboard";
 import TickerSearch from "./components/TickerSearch";
-import AllStocksNews from "./components/AllStocksNews";
 
 interface Purchase {
   date?: string;
@@ -796,12 +795,6 @@ const cutoff1yr = new Date();
               })()}
             </SortableContext>
           </DndContext>
-        )}
-
-        {stocks.length > 0 && newsEnabled && (
-          <div className="mt-8">
-            <AllStocksNews stocks={stocks} />
-          </div>
         )}
 
       </div>
