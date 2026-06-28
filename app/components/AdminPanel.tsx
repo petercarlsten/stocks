@@ -1,6 +1,23 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
+interface Stats {
+  totalUsers: number;
+  activeDay: number;
+  active7d: number;
+  active30d: number;
+  newThisMonth: number;
+  totalLogins: number;
+  withPush: number;
+  totalStocks: number;
+  avgStocks: string;
+  maxStocks: number;
+  memoryMB: number;
+  heapUsedMB: number;
+  heapTotalMB: number;
+  uptimeSeconds: number;
+}
+
 interface UserInfo {
   username: string;
   provider: "google" | "credentials";
@@ -30,17 +47,33 @@ function fmtDateTime(iso: string | null) {
     d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
+function StatRow({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="flex items-baseline justify-between gap-2">
+      <span className="text-gray-500 text-xs">{label}</span>
+      <span className="text-gray-900 text-xs font-semibold tabular-nums">{value}</span>
+    </div>
+  );
+}
+
+function fmtUptime(s: number) {
+  if (s < 60) return `${s}s`;
+  if (s < 3600) return `${Math.floor(s / 60)}m`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m`;
+  return `${Math.floor(s / 86400)}d ${Math.floor((s % 86400) / 3600)}h`;
+}
+
 export default function AdminPanel({ open, onClose }: Props) {
   const [users, setUsers] = useState<UserInfo[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    fetch("/api/admin/users")
-      .then((r) => r.json())
-      .then((d) => setUsers(d.users ?? []));
+    fetch("/api/admin/users").then((r) => r.json()).then((d) => setUsers(d.users ?? []));
+    fetch("/api/admin/stats").then((r) => r.json()).then((d) => setStats(d));
   }, [open]);
 
   useEffect(() => {
@@ -76,6 +109,36 @@ export default function AdminPanel({ open, onClose }: Props) {
           <h2 className="font-bold text-sm">Admin — Accounts ({users.length})</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-1">×</button>
         </div>
+
+        {stats && (
+          <div className="px-4 py-3 border-b border-gray-200 grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
+            <div className="flex flex-col gap-2">
+              <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Users</p>
+              <StatRow label="Total" value={stats.totalUsers} />
+              <StatRow label="New this month" value={stats.newThisMonth} />
+              <StatRow label="Push enabled" value={stats.withPush} />
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Activity</p>
+              <StatRow label="Active today" value={stats.activeDay} />
+              <StatRow label="Active 7d" value={stats.active7d} />
+              <StatRow label="Active 30d" value={stats.active30d} />
+              <StatRow label="Total logins" value={stats.totalLogins} />
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Portfolio</p>
+              <StatRow label="Total tickers" value={stats.totalStocks} />
+              <StatRow label="Avg per user" value={stats.avgStocks} />
+              <StatRow label="Most tickers" value={stats.maxStocks} />
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Server</p>
+              <StatRow label="Uptime" value={fmtUptime(stats.uptimeSeconds)} />
+              <StatRow label="RSS memory" value={`${stats.memoryMB} MB`} />
+              <StatRow label="Heap used" value={`${stats.heapUsedMB} / ${stats.heapTotalMB} MB`} />
+            </div>
+          </div>
+        )}
 
         <div className="flex-1 overflow-auto">
           <table className="text-xs border-collapse">
