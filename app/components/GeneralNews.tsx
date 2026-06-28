@@ -10,9 +10,9 @@ interface NewsItem {
   sentiment?: "positive" | "negative" | "neutral";
 }
 
-function SentimentIcon({ sentiment }: { sentiment?: string }) {
-  if (sentiment === "positive") return <span className="text-green-400 text-sm leading-none shrink-0">👍</span>;
-  if (sentiment === "negative") return <span className="text-red-400 text-sm leading-none shrink-0">👎</span>;
+function SentimentDot({ sentiment }: { sentiment?: string }) {
+  if (sentiment === "positive") return <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400 shrink-0 mt-1" />;
+  if (sentiment === "negative") return <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-400 shrink-0 mt-1" />;
   return null;
 }
 
@@ -60,7 +60,7 @@ export default function GeneralNews() {
                 className="flex flex-col group rounded-lg hover:bg-gray-800 p-2 -m-2 transition-colors"
               >
                 <div className="flex items-start gap-1.5">
-                  <SentimentIcon sentiment={item.sentiment} />
+                  <SentimentDot sentiment={item.sentiment} />
                   <p className="text-gray-200 text-xs font-medium leading-snug group-hover:text-white transition-colors line-clamp-2">
                     {item.title}
                   </p>

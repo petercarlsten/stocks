@@ -14,9 +14,9 @@ interface NewsItem {
   sentiment?: "positive" | "negative" | "neutral";
 }
 
-function SentimentIcon({ sentiment }: { sentiment?: string }) {
-  if (sentiment === "positive") return <span className="text-green-500 text-sm leading-none shrink-0">👍</span>;
-  if (sentiment === "negative") return <span className="text-red-500 text-sm leading-none shrink-0">👎</span>;
+function SentimentDot({ sentiment }: { sentiment?: string }) {
+  if (sentiment === "positive") return <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 shrink-0 mt-1" />;
+  if (sentiment === "negative") return <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 shrink-0 mt-1" />;
   return null;
 }
 
@@ -161,7 +161,7 @@ export default function AllStocksNews({ stocks }: { stocks: Stock[] }) {
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start gap-1.5">
-                        <SentimentIcon sentiment={item.sentiment} />
+                        <SentimentDot sentiment={item.sentiment} />
                         <p className="text-gray-800 text-xs font-medium leading-snug group-hover:text-gray-900 line-clamp-2">
                           {item.title}
                         </p>
