@@ -381,7 +381,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               <span className="group relative text-xs text-amber-600 cursor-default">
                 {earningsIsFuture ? t.nextEarningsCall : t.reported}
                 {formatEarningsDate(earningsDate)}
-                {!earningsIsFuture && earningsResult && earningsResult.epsActual != null && (
+                {earningsResult && earningsResult.epsActual != null && (
                   <span className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
                     {(() => {
                       const beat = earningsResult.epsEstimate != null && earningsResult.epsActual > earningsResult.epsEstimate;
@@ -389,7 +389,8 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                       const pct = earningsResult.surprisePercent != null ? Math.abs(earningsResult.surprisePercent * 100).toFixed(1) : null;
                       const beatMiss = beat ? `beat by ${pct}%` : miss ? `missed by ${pct}%` : "met estimate";
                       const est = earningsResult.epsEstimate != null ? ` (est. ${earningsResult.epsEstimate.toFixed(2)})` : "";
-                      return `EPS: ${earningsResult.epsActual.toFixed(2)}${est} — ${beatMiss}`;
+                      const prefix = earningsIsFuture ? "Last quarter — " : "";
+                      return `${prefix}EPS: ${earningsResult.epsActual.toFixed(2)}${est} — ${beatMiss}`;
                     })()}
                   </span>
                 )}
