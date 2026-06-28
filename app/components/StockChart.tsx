@@ -346,9 +346,9 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
             {quoteType === "MUTUALFUND" && navDate && (() => {
               const isToday = navDate === TODAY_STR;
               const isYesterday = navDate === YESTERDAY_STR;
-              const label = isToday ? "NAV: today" : isYesterday ? "NAV: yesterday" : `NAV: ${new Date(navDate + "T12:00:00Z").toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
+              const label = isToday ? "Net asset value: today" : isYesterday ? "Net asset value: yesterday" : `Net asset value: ${new Date(navDate + "T12:00:00Z").toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
               const dot = isToday ? "bg-green-400" : isYesterday ? "bg-amber-400" : "bg-red-400";
-              const tooltip = isToday ? "Today's NAV is available" : isYesterday ? "Using yesterday's NAV — today's not published yet" : "NAV is more than 1 day old";
+              const tooltip = isToday ? "Today's net asset value is available" : isYesterday ? "Using yesterday's net asset value — today's not published yet" : "Net asset value is more than 1 day old";
               return (
                 <span className="group relative flex items-center gap-1 text-xs text-gray-500 cursor-default">
                   <span className={`inline-block w-1.5 h-1.5 rounded-full ${dot}`} />
