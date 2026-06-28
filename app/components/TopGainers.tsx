@@ -53,7 +53,12 @@ export default function TopGainers() {
                   <span className={`text-xs font-bold w-4 shrink-0 tabular-nums ${RANK_COLORS[i] ?? "text-gray-300"}`}>
                     {i + 1}
                   </span>
-                  <span className="text-gray-900 text-xs font-bold shrink-0">{g.symbol}</span>
+                  <span className="group relative text-gray-900 text-xs font-bold shrink-0 cursor-default">
+                    {g.symbol}
+                    <span className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                      {g.name}
+                    </span>
+                  </span>
                   <span className={`text-xs font-semibold shrink-0 ml-auto tabular-nums ${positive ? "text-green-600" : "text-red-500"}`}>
                     {positive ? "+" : ""}{g.gain.toFixed(1)}%
                   </span>
