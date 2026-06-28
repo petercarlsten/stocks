@@ -3,8 +3,8 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 
 const _now = new Date();
-const TODAY_STR = _now.toISOString().split("T")[0];
-const YESTERDAY_STR = new Date(_now.getTime() - 86_400_000).toISOString().split("T")[0];
+const TODAY_STR = _now.toLocaleDateString("sv");
+const YESTERDAY_STR = new Date(_now.getTime() - 86_400_000).toLocaleDateString("sv");
 import TrumpHover from "./TrumpHover";
 import GainHover from "./GainHover";
 import { ALL_CURRENCIES } from "./SettingsPanel";
@@ -275,7 +275,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
       (data.length > 0 && earningsDate >= data[0].date && earningsDate <= data[data.length - 1].date)
     : false;
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString("sv");
   const earningsIsFuture = earningsDate ? earningsDate > today : false;
 
   const totalPurchasedShares = (purchases ?? []).reduce((sum, p) => sum + (p.shares || 0), 0);
