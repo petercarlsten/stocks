@@ -303,7 +303,7 @@ export default function Home() {
       const results = await Promise.all(
         current.map((s) =>
           refreshStockData(s.symbol, s.name)
-            .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName }) => ({
+            .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navDate }) => ({
               ...s, data: (data && data.length > 0) ? data : s.data, earningsDate,
               currency: s.currency ?? currency ?? inferCurrency(s.symbol),
               symbol: corrected ?? s.symbol,
