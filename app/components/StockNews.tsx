@@ -13,9 +13,9 @@ interface NewsItem {
 }
 
 function sentimentBorder(sentiment?: string) {
-  if (sentiment === "positive") return "border border-green-500/50";
-  if (sentiment === "negative") return "border border-red-500/50";
-  return "border border-transparent";
+  if (sentiment === "positive") return "border-2 border-green-500";
+  if (sentiment === "negative") return "border-2 border-red-500";
+  return "border-2 border-transparent";
 }
 
 function timeAgo(unix: number): string {
