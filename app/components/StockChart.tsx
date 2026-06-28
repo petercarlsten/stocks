@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+
+const _now = new Date();
+const TODAY_STR = _now.toISOString().split("T")[0];
+const YESTERDAY_STR = new Date(_now.getTime() - 86_400_000).toISOString().split("T")[0];
 import TrumpHover from "./TrumpHover";
 import GainHover from "./GainHover";
 import { ALL_CURRENCIES } from "./SettingsPanel";
@@ -43,6 +47,8 @@ interface Props {
   tickerCurrency?: string;
   marketState?: string | null;
   exchangeTimezoneName?: string | null;
+  quoteType?: string | null;
+  navDate?: string | null;
 }
 
 function formatEarningsDate(dateStr: string): string {
@@ -124,7 +130,7 @@ const MARKET_STATE_BADGE: Record<string, { dot: string; label: string }> = {
   CLOSED:   { dot: "bg-gray-300",   label: "Market closed"   },
 };
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName }: Props) {
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navDate }: Props) {
   const t = useTranslation();
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(0);
@@ -337,7 +343,23 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           </div>
           <div className="flex items-center gap-3">
             <span className="text-gray-600 text-xs">{symbol}</span>
-            {marketState && MARKET_STATE_BADGE[marketState] && (() => {
+            {quoteType === "MUTUALFUND" && navDate && (() => {
+              const isToday = navDate === TODAY_STR;
+              const isYesterday = navDate === YESTERDAY_STR;
+              const label = isToday ? "NAV: today" : isYesterday ? "NAV: yesterday" : `NAV: ${new Date(navDate + "T12:00:00Z").toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
+              const dot = isToday ? "bg-green-400" : isYesterday ? "bg-amber-400" : "bg-red-400";
+              const tooltip = isToday ? "Today's NAV is available" : isYesterday ? "Using yesterday's NAV — today's not published yet" : "NAV is more than 1 day old";
+              return (
+                <span className="group relative flex items-center gap-1 text-xs text-gray-500 cursor-default">
+                  <span className={`inline-block w-1.5 h-1.5 rounded-full ${dot}`} />
+                  {label}
+                  <span className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                    {tooltip}
+                  </span>
+                </span>
+              );
+            })()}
+            {quoteType !== "MUTUALFUND" && marketState && MARKET_STATE_BADGE[marketState] && (() => {
               const badge = MARKET_STATE_BADGE[marketState];
               const nextOpen = marketState !== "REGULAR" && exchangeTimezoneName
                 ? getNextOpen(exchangeTimezoneName)

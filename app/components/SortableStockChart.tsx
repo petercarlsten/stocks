@@ -24,6 +24,8 @@ interface Props {
   tickerCurrency?: string;
   marketState?: string | null;
   exchangeTimezoneName?: string | null;
+  quoteType?: string | null;
+  navDate?: string | null;
 }
 
 export default function SortableStockChart(props: Props) {

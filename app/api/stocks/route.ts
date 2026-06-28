@@ -538,8 +538,15 @@ export async function GET(req: NextRequest) {
     const currency = suffixCurrency !== "USD" ? suffixCurrency : (quote?.currency ?? "USD");
     const marketState = (quote?.marketState as string | undefined) ?? null;
     const exchangeTimezoneName = (quote?.exchangeTimezoneName as string | undefined) ?? null;
+    const quoteType = (quote?.quoteType as string | undefined) ?? null;
+    const navDate: string | null = (() => {
+      const rmt = quote?.regularMarketTime;
+      if (!rmt) return null;
+      const d = rmt instanceof Date ? rmt : new Date((rmt as number) * 1000);
+      return isNaN(d.getTime()) ? null : d.toISOString().split("T")[0];
+    })();
     const responseSymbol = originalISIN ?? upper;
-    return NextResponse.json({ symbol: responseSymbol, name, earningsDate, data, currency, marketState, exchangeTimezoneName });
+    return NextResponse.json({ symbol: responseSymbol, name, earningsDate, data, currency, marketState, exchangeTimezoneName, quoteType, navDate });
   } catch {
     return NextResponse.json(
       { error: `Could not fetch data for "${upper}"` },
