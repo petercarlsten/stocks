@@ -787,7 +787,6 @@ const cutoff1yr = new Date();
                           quoteType={s.quoteType ?? null}
                           navDate={s.navDate ?? null}
                           earningsResult={s.earningsResult ?? null}
-                          newsEnabled={newsEnabled}
                         />
                       );
                     })}

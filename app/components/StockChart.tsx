@@ -6,7 +6,6 @@ const _now = new Date();
 const TODAY_STR = _now.toLocaleDateString("sv");
 const YESTERDAY_STR = new Date(_now.getTime() - 86_400_000).toLocaleDateString("sv");
 import TrumpHover from "./TrumpHover";
-import StockNews from "./StockNews";
 import GainHover from "./GainHover";
 import { ALL_CURRENCIES } from "./SettingsPanel";
 import { formatCurrency } from "../lib/formatCurrency";
@@ -51,7 +50,6 @@ interface Props {
   quoteType?: string | null;
   navDate?: string | null;
   earningsResult?: { epsActual: number | null; epsEstimate: number | null; surprisePercent: number | null; currency: string } | null;
-  newsEnabled?: boolean;
 }
 
 function formatEarningsDate(dateStr: string): string {
@@ -133,7 +131,7 @@ const MARKET_STATE_BADGE: Record<string, { dot: string; label: string }> = {
   CLOSED:   { dot: "bg-gray-300",   label: "Market closed"   },
 };
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navDate, earningsResult, newsEnabled }: Props) {
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navDate, earningsResult }: Props) {
   const t = useTranslation();
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(0);
@@ -696,7 +694,6 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           )}
         </div>
       )}
-      {newsEnabled && <StockNews symbol={symbol} name={name} maxItems={3} />}
     </div>
   );
 }
