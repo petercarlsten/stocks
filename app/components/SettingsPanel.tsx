@@ -522,7 +522,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
           <div className="flex flex-col gap-2">
             <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">{t.language}</label>
             <div className="flex rounded-lg overflow-hidden border border-gray-300">
-              {(["en", "sv"] as const).map((lang) => (
+              {(["en", "sv", "de", "fr"] as const).map((lang) => (
                 <button
                   key={lang}
                   onClick={() => onLanguageChange(lang)}
@@ -532,7 +532,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
                       : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600"
                   }`}
                 >
-                  {lang === "en" ? "🇬🇧 English" : "🇸🇪 Svenska"}
+                  {lang === "en" ? "🇬🇧 EN" : lang === "sv" ? "🇸🇪 SV" : lang === "de" ? "🇩🇪 DE" : "🇫🇷 FR"}
                 </button>
               ))}
             </div>
