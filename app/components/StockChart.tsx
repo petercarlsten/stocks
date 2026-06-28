@@ -297,7 +297,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const overlayBg = dark ? "#111827" : "#ffffff";
 
   return (
-    <div className="bg-white rounded-xl p-4 flex flex-col gap-2 min-w-0 border border-gray-200 shadow-sm relative overflow-hidden">
+    <div className="bg-white rounded-xl p-4 flex flex-col gap-2 min-w-0 border border-gray-200 shadow-sm relative">
       <div className="flex items-start justify-between gap-2">
         {dragHandleProps && (
           <div
