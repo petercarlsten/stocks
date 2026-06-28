@@ -361,9 +361,10 @@ export async function GET(req: NextRequest) {
   start.setMonth(start.getMonth() - 13);
 
   try {
-    const [chartResult, quote] = await Promise.all([
+    const [chartResult, quote, earningsSummary] = await Promise.all([
       yf.chart(upper, { period1: start, period2: end, interval: "1d" }, { validateResult: false }).catch(() => null),
       yf.quote(upper, {}, { validateResult: false }).catch(() => null),
+      yf.quoteSummary(upper, { modules: ["earningsHistory"] }, { validateResult: false }).catch(() => null),
     ]);
 
     let data = chartResult
@@ -545,8 +546,22 @@ export async function GET(req: NextRequest) {
       const d = rmt instanceof Date ? rmt : new Date((rmt as number) * 1000);
       return isNaN(d.getTime()) ? null : d.toISOString().split("T")[0];
     })();
+    type EarningsHistoryEntry = { quarter?: Date; epsActual?: number; epsEstimate?: number; surprisePercent?: number; currency?: string };
+    const earningsHistory: EarningsHistoryEntry[] = earningsSummary?.earningsHistory?.history ?? [];
+    const today = new Date().toISOString().split("T")[0];
+    const pastEntries = earningsHistory
+      .filter((e) => e.quarter && e.quarter.toISOString().split("T")[0] <= today && e.epsActual != null)
+      .sort((a, b) => (b.quarter!.getTime() - a.quarter!.getTime()));
+    const latest = pastEntries[0] ?? null;
+    const earningsResult = latest ? {
+      epsActual: latest.epsActual ?? null,
+      epsEstimate: latest.epsEstimate ?? null,
+      surprisePercent: latest.surprisePercent ?? null,
+      currency: latest.currency ?? currency,
+    } : null;
+
     const responseSymbol = originalISIN ?? upper;
-    return NextResponse.json({ symbol: responseSymbol, name, earningsDate, data, currency, marketState, exchangeTimezoneName, quoteType, navDate });
+    return NextResponse.json({ symbol: responseSymbol, name, earningsDate, data, currency, marketState, exchangeTimezoneName, quoteType, navDate, earningsResult });
   } catch {
     return NextResponse.json(
       { error: `Could not fetch data for "${upper}"` },

@@ -49,6 +49,7 @@ interface Props {
   exchangeTimezoneName?: string | null;
   quoteType?: string | null;
   navDate?: string | null;
+  earningsResult?: { epsActual: number | null; epsEstimate: number | null; surprisePercent: number | null; currency: string } | null;
 }
 
 function formatEarningsDate(dateStr: string): string {
@@ -130,7 +131,7 @@ const MARKET_STATE_BADGE: Record<string, { dot: string; label: string }> = {
   CLOSED:   { dot: "bg-gray-300",   label: "Market closed"   },
 };
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navDate }: Props) {
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navDate, earningsResult }: Props) {
   const t = useTranslation();
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(0);
@@ -377,9 +378,21 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               );
             })()}
             {earningsDate && (
-              <span className="text-xs text-amber-600">
+              <span className="group relative text-xs text-amber-600 cursor-default">
                 {earningsIsFuture ? t.nextEarningsCall : t.reported}
                 {formatEarningsDate(earningsDate)}
+                {!earningsIsFuture && earningsResult && earningsResult.epsActual != null && (
+                  <span className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                    {(() => {
+                      const beat = earningsResult.epsEstimate != null && earningsResult.epsActual > earningsResult.epsEstimate;
+                      const miss = earningsResult.epsEstimate != null && earningsResult.epsActual < earningsResult.epsEstimate;
+                      const pct = earningsResult.surprisePercent != null ? Math.abs(earningsResult.surprisePercent * 100).toFixed(1) : null;
+                      const beatMiss = beat ? `beat by ${pct}%` : miss ? `missed by ${pct}%` : "met estimate";
+                      const est = earningsResult.epsEstimate != null ? ` (est. ${earningsResult.epsEstimate.toFixed(2)})` : "";
+                      return `EPS: ${earningsResult.epsActual.toFixed(2)}${est} — ${beatMiss}`;
+                    })()}
+                  </span>
+                )}
               </span>
             )}
           </div>

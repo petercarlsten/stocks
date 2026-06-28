@@ -26,6 +26,7 @@ interface Props {
   exchangeTimezoneName?: string | null;
   quoteType?: string | null;
   navDate?: string | null;
+  earningsResult?: { epsActual: number | null; epsEstimate: number | null; surprisePercent: number | null; currency: string } | null;
 }
 
 export default function SortableStockChart(props: Props) {
