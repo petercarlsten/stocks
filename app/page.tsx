@@ -477,7 +477,7 @@ export default function Home() {
           .stocks-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
         }
       `}</style>
-      <div className="max-w-screen-xl mx-auto">
+      <div className="max-w-screen-xl mx-auto pb-12">
         <div className="grid grid-cols-[1fr_auto] items-start gap-x-4 sm:gap-x-6 mb-4 sm:mb-6">
           <div className="flex flex-wrap items-start gap-3 sm:gap-6 min-w-0">
           <div className="flex-1 min-w-0">
@@ -787,6 +787,7 @@ const cutoff1yr = new Date();
                           quoteType={s.quoteType ?? null}
                           navDate={s.navDate ?? null}
                           earningsResult={s.earningsResult ?? null}
+                          newsEnabled={newsEnabled}
                         />
                       );
                     })}
