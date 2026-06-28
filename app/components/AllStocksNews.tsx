@@ -14,10 +14,10 @@ interface NewsItem {
   sentiment?: "positive" | "negative" | "neutral";
 }
 
-function SentimentDot({ sentiment }: { sentiment?: string }) {
-  if (sentiment === "positive") return <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 shrink-0 mt-1" />;
-  if (sentiment === "negative") return <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 shrink-0 mt-1" />;
-  return null;
+function sentimentBorder(sentiment?: string) {
+  if (sentiment === "positive") return "border border-green-400/60";
+  if (sentiment === "negative") return "border border-red-400/60";
+  return "border border-transparent";
 }
 
 function timeAgo(unix: number): string {
@@ -150,7 +150,7 @@ export default function AllStocksNews({ stocks }: { stocks: Stock[] }) {
                     href={item.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-start gap-2 py-1.5 hover:bg-gray-50 -mx-1 px-1 rounded transition-colors group"
+                    className={`flex items-start gap-2 p-1.5 rounded transition-colors group hover:bg-gray-50 ${sentimentBorder(item.sentiment)}`}
                   >
                     {item.thumbnail && (
                       <img
@@ -160,12 +160,9 @@ export default function AllStocksNews({ stocks }: { stocks: Stock[] }) {
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start gap-1.5">
-                        <SentimentDot sentiment={item.sentiment} />
-                        <p className="text-gray-800 text-xs font-medium leading-snug group-hover:text-gray-900 line-clamp-2">
-                          {item.title}
-                        </p>
-                      </div>
+                      <p className="text-gray-800 text-xs font-medium leading-snug group-hover:text-gray-900 line-clamp-2">
+                        {item.title}
+                      </p>
                       <p className="text-gray-400 text-xs mt-0.5">
                         {item.publisher}{item.publishedAt > 0 && <> · {timeAgo(item.publishedAt)}</>}
                       </p>

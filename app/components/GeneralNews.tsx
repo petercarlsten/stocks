@@ -10,10 +10,10 @@ interface NewsItem {
   sentiment?: "positive" | "negative" | "neutral";
 }
 
-function SentimentDot({ sentiment }: { sentiment?: string }) {
-  if (sentiment === "positive") return <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-400 shrink-0 mt-1" />;
-  if (sentiment === "negative") return <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-400 shrink-0 mt-1" />;
-  return null;
+function sentimentBorder(sentiment?: string) {
+  if (sentiment === "positive") return "border border-green-500/50";
+  if (sentiment === "negative") return "border border-red-500/50";
+  return "border border-transparent";
 }
 
 function timeAgo(unix: number): string {
@@ -57,14 +57,11 @@ export default function GeneralNews() {
                 href={item.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col group rounded-lg hover:bg-gray-800 p-2 -m-2 transition-colors"
+                className={`flex flex-col group rounded-lg hover:bg-gray-800 p-2 transition-colors ${sentimentBorder(item.sentiment)}`}
               >
-                <div className="flex items-start gap-1.5">
-                  <SentimentDot sentiment={item.sentiment} />
-                  <p className="text-gray-200 text-xs font-medium leading-snug group-hover:text-white transition-colors line-clamp-2">
-                    {item.title}
-                  </p>
-                </div>
+                <p className="text-gray-200 text-xs font-medium leading-snug group-hover:text-white transition-colors line-clamp-2">
+                  {item.title}
+                </p>
                 <p className="text-gray-500 text-xs mt-1">
                   {item.publisher}
                   {item.publishedAt > 0 && <> · {timeAgo(item.publishedAt)}</>}
