@@ -35,6 +35,7 @@ interface User {
   lastLoginAt?: string;
   lastSeenAt?: string;
   lastSeenDevice?: string;
+  timezone?: string;
   loginCount?: number;
   failedAttempts?: number;
   lockedUntil?: number | null;
@@ -126,12 +127,13 @@ export function parseDevice(ua: string): string {
   return "Unknown";
 }
 
-export function updateLastSeen(username: string, ua?: string) {
+export function updateLastSeen(username: string, ua?: string, timezone?: string) {
   const users = readUsers();
   const idx = users.findIndex((u) => u.username.toLowerCase() === username.toLowerCase());
   if (idx === -1) return;
   const update: Partial<User> = { lastSeenAt: new Date().toISOString() };
   if (ua) update.lastSeenDevice = parseDevice(ua);
+  if (timezone) update.timezone = timezone;
   users[idx] = { ...users[idx], ...update };
   writeUsers(users);
 }

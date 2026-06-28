@@ -147,7 +147,9 @@ export default function Home() {
       }).catch(() => {});
     }
 
-    fetch("/api/user/settings")
+    fetch("/api/user/settings", {
+      headers: { "x-timezone": Intl.DateTimeFormat().resolvedOptions().timeZone },
+    })
       .then((r) => r.json())
       .then((d) => {
         if (d.reportEmail) setReportEmail(d.reportEmail);

@@ -25,6 +25,7 @@ interface UserInfo {
   lastLoginAt: string | null;
   lastSeenAt: string | null;
   lastSeenDevice: string | null;
+  timezone: string | null;
   loginCount: number;
   theme: "light" | "dark" | null;
   funnyMode: string | null;
@@ -149,6 +150,7 @@ export default function AdminPanel({ open, onClose }: Props) {
                 <th className="px-2 py-1.5 font-semibold border-b border-gray-200">Joined</th>
                 <th className="px-2 py-1.5 font-semibold border-b border-gray-200">Last seen</th>
                 <th className="px-2 py-1.5 font-semibold border-b border-gray-200">Device</th>
+                <th className="px-2 py-1.5 font-semibold border-b border-gray-200">Timezone</th>
                 <th className="px-2 py-1.5 font-semibold border-b border-gray-200">Theme</th>
                 <th className="px-2 py-1.5 font-semibold border-b border-gray-200">Funny</th>
                 <th className="px-2 py-1.5 font-semibold border-b border-gray-200 text-right">Logins</th>
@@ -163,6 +165,7 @@ export default function AdminPanel({ open, onClose }: Props) {
                   <td className="px-2 py-1.5 text-gray-500 whitespace-nowrap">{fmtDate(u.createdAt)}</td>
                   <td className="px-2 py-1.5 text-gray-500 whitespace-nowrap">{fmtDateTime(u.lastSeenAt)}</td>
                   <td className="px-2 py-1.5 text-gray-500 whitespace-nowrap">{u.lastSeenDevice ?? "—"}</td>
+                  <td className="px-2 py-1.5 text-gray-500 whitespace-nowrap">{u.timezone ?? "—"}</td>
                   <td className="px-2 py-1.5 text-gray-500 whitespace-nowrap">{u.theme ?? "—"}</td>
                   <td className="px-2 py-1.5 text-gray-500 whitespace-nowrap">{u.funnyMode ?? "—"}</td>
                   <td className="px-2 py-1.5 text-gray-500 text-right">{u.loginCount}</td>

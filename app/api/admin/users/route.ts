@@ -20,6 +20,7 @@ export async function GET() {
     lastLoginAt: u.lastLoginAt ?? null,
     lastSeenAt: u.lastSeenAt ?? null,
     lastSeenDevice: u.lastSeenDevice ?? null,
+    timezone: u.timezone ?? null,
     loginCount: u.loginCount ?? 0,
     theme: u.preferences?.theme ?? null,
     funnyMode: u.preferences?.funnyMode ?? null,

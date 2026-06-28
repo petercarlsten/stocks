@@ -8,7 +8,8 @@ export async function GET(req: NextRequest) {
   const username = session?.user?.name ?? null;
   if (!username) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const ua = req.headers.get("user-agent") ?? undefined;
-  updateLastSeen(username, ua);
+  const timezone = req.headers.get("x-timezone") ?? undefined;
+  updateLastSeen(username, ua, timezone);
   return NextResponse.json({
     reportEmail: getReportEmail(username),
     reportCurrency: getReportCurrency(username),
