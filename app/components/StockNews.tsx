@@ -9,6 +9,13 @@ interface NewsItem {
   link: string;
   publishedAt: number;
   thumbnail: string | null;
+  sentiment?: "positive" | "negative" | "neutral";
+}
+
+function SentimentIcon({ sentiment }: { sentiment?: string }) {
+  if (sentiment === "positive") return <span className="text-green-400 text-sm leading-none shrink-0">👍</span>;
+  if (sentiment === "negative") return <span className="text-red-400 text-sm leading-none shrink-0">👎</span>;
+  return null;
 }
 
 function timeAgo(unix: number): string {
@@ -68,10 +75,13 @@ export default function StockNews({ symbol, name, maxItems = 10 }: { symbol: str
                   className="w-14 h-10 object-cover rounded shrink-0 opacity-70 group-hover:opacity-100 transition-opacity"
                 />
               )}
-              <div className="min-w-0">
-                <p className="text-gray-200 text-xs font-medium leading-snug group-hover:text-white transition-colors line-clamp-2">
-                  {item.title}
-                </p>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start gap-1.5">
+                  <SentimentIcon sentiment={item.sentiment} />
+                  <p className="text-gray-200 text-xs font-medium leading-snug group-hover:text-white transition-colors line-clamp-2">
+                    {item.title}
+                  </p>
+                </div>
                 {item.description && (
                   <p className="text-gray-400 text-xs leading-snug mt-1 line-clamp-3">
                     {item.description}

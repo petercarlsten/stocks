@@ -11,6 +11,13 @@ interface NewsItem {
   link: string;
   publishedAt: number;
   thumbnail: string | null;
+  sentiment?: "positive" | "negative" | "neutral";
+}
+
+function SentimentIcon({ sentiment }: { sentiment?: string }) {
+  if (sentiment === "positive") return <span className="text-green-500 text-sm leading-none shrink-0">👍</span>;
+  if (sentiment === "negative") return <span className="text-red-500 text-sm leading-none shrink-0">👎</span>;
+  return null;
 }
 
 function timeAgo(unix: number): string {
@@ -153,9 +160,12 @@ export default function AllStocksNews({ stocks }: { stocks: Stock[] }) {
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-gray-800 text-xs font-medium leading-snug group-hover:text-gray-900 line-clamp-2">
-                        {item.title}
-                      </p>
+                      <div className="flex items-start gap-1.5">
+                        <SentimentIcon sentiment={item.sentiment} />
+                        <p className="text-gray-800 text-xs font-medium leading-snug group-hover:text-gray-900 line-clamp-2">
+                          {item.title}
+                        </p>
+                      </div>
                       <p className="text-gray-400 text-xs mt-0.5">
                         {item.publisher}{item.publishedAt > 0 && <> · {timeAgo(item.publishedAt)}</>}
                       </p>

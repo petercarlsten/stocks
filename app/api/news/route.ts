@@ -2,6 +2,68 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
+// ─── Sentiment scoring ───────────────────────────────────────────────────────
+
+const POSITIVE: [RegExp, number][] = [
+  [/\b(beat|beats|beating)\s+(earnings|estimates?|expectations?|revenue|forecast)/i, 3],
+  [/\b(record\s+(high|earnings|revenue|profit|quarter|year))/i, 3],
+  [/\b(raised?\s+guidance|raises?\s+guidance|raised?\s+outlook)/i, 3],
+  [/\b(dividend\s+increase|dividend\s+hike|special\s+dividend)/i, 2],
+  [/\b(share\s+buyback|stock\s+buyback|repurchase\s+program)/i, 2],
+  [/\b(upgrade[sd]?|upgraded\s+to\s+(buy|outperform|overweight))/i, 2],
+  [/\b(surges?|soars?|jumps?|spikes?|skyrockets?)\b/i, 2],
+  [/\b(all[- ]time\s+high|52[- ]week\s+high)\b/i, 2],
+  [/\b(profit(able|ability)?|profitability)\b/i, 1],
+  [/\b(growth|growing|grew)\b/i, 1],
+  [/\b(gains?|gaining)\b/i, 1],
+  [/\b(rises?|rising|rose)\b/i, 1],
+  [/\b(rallies|rally|rallying)\b/i, 1],
+  [/\b(strong\s+(results?|earnings?|revenue|demand|quarter))\b/i, 2],
+  [/\b(exceeds?|exceeding|exceeded)\b/i, 1],
+  [/\b(boosts?|boosting|boosted)\b/i, 1],
+  [/\b(bullish)\b/i, 2],
+  [/\b(outperforms?|outperforming)\b/i, 2],
+  [/\b(expansion|expands?|expanding)\b/i, 1],
+  [/\b(deal|partnership|agreement|acqui(res?|sition))\b/i, 1],
+  [/\b(approved?|approval|clears?|cleared)\b/i, 1],
+  [/\b(launches?|launch|launched)\b/i, 1],
+];
+
+const NEGATIVE: [RegExp, number][] = [
+  [/\b(missed?|misses?|missing)\s+(earnings|estimates?|expectations?|revenue|forecast)/i, 3],
+  [/\b(lowered?\s+guidance|cuts?\s+guidance|lowered?\s+outlook|warned?\s+on\s+outlook)/i, 3],
+  [/\b(bankruptcy|bankrupt|chapter\s+11|default|insolvency)\b/i, 3],
+  [/\b(mass\s+layoff|layoffs?|lay\s+offs?|job\s+cuts?|reductions?\s+in\s+force)\b/i, 3],
+  [/\b(recall[sd]?|product\s+recall)\b/i, 2],
+  [/\b(investigation|probe|fraud|lawsuit|class[- ]action|fine[sd]?|penalt(y|ies)|sanction)\b/i, 2],
+  [/\b(downgrade[sd]?|downgraded\s+to\s+(sell|underperform|underweight))\b/i, 2],
+  [/\b(plunges?|plunging|crashes?|crashing|slumps?|slumping|tumbles?|tumbling)\b/i, 2],
+  [/\b(all[- ]time\s+low|52[- ]week\s+low)\b/i, 2],
+  [/\b(loss(es)?|net\s+loss)\b/i, 1],
+  [/\b(declines?|declining|declined)\b/i, 1],
+  [/\b(falls?|falling|fell)\b/i, 1],
+  [/\b(drops?|dropping|dropped)\b/i, 1],
+  [/\b(weak(er)?\s+(results?|earnings?|revenue|demand|quarter))\b/i, 2],
+  [/\b(disappoints?|disappointing|disappointed)\b/i, 2],
+  [/\b(concern(s|ed)?|worry|worried|worrying)\b/i, 1],
+  [/\b(risk[s]?|risky)\b/i, 1],
+  [/\b(cuts?\s+(dividend|forecast|outlook|jobs?))\b/i, 2],
+  [/\b(bearish)\b/i, 2],
+  [/\b(underperforms?|underperforming)\b/i, 2],
+  [/\b(resigns?|resignation|ousted?|fired?)\b/i, 1],
+  [/\b(warning[s]?|warns?)\b/i, 1],
+];
+
+function scoreSentiment(title: string, description: string | null): "positive" | "negative" | "neutral" {
+  const text = `${title} ${description ?? ""}`;
+  let score = 0;
+  for (const [re, w] of POSITIVE) if (re.test(text)) score += w;
+  for (const [re, w] of NEGATIVE) if (re.test(text)) score -= w;
+  if (score >= 2) return "positive";
+  if (score <= -2) return "negative";
+  return "neutral";
+}
+
 const ISIN_RE = /^[A-Z]{2}[A-Z0-9]{10}$/i;
 
 const EXCH_SUFFIX: Record<string, string> = {
@@ -382,16 +444,21 @@ async function fetchNewsForStock(symbol: string, name: string | null) {
     )
   );
 
-  return raw.map((item, i) => ({
-    symbol,
-    name: name ?? symbol,
-    title: item.title ?? "",
-    description: descriptions[i] ?? null,
-    publisher: item.publisher ?? "",
-    link: item.link ?? "",
-    publishedAt: item.providerPublishTime ?? 0,
-    thumbnail: item.thumbnail ?? null,
-  }));
+  return raw.map((item, i) => {
+    const title = item.title ?? "";
+    const description = descriptions[i] ?? null;
+    return {
+      symbol,
+      name: name ?? symbol,
+      title,
+      description,
+      publisher: item.publisher ?? "",
+      link: item.link ?? "",
+      publishedAt: item.providerPublishTime ?? 0,
+      thumbnail: item.thumbnail ?? null,
+      sentiment: scoreSentiment(title, description),
+    };
+  });
 }
 
 // ─── Route handler ───────────────────────────────────────────────────────────
@@ -445,12 +512,16 @@ export async function GET(req: NextRequest) {
           return true;
         })
         .slice(0, 10)
-        .map((item) => ({
-          title: item.title ?? "",
-          publisher: item.publisher ?? "",
-          link: item.link ?? "",
-          publishedAt: item.providerPublishTime ?? 0,
-        }));
+        .map((item) => {
+          const title = item.title ?? "";
+          return {
+            title,
+            publisher: item.publisher ?? "",
+            link: item.link ?? "",
+            publishedAt: item.providerPublishTime ?? 0,
+            sentiment: scoreSentiment(title, null),
+          };
+        });
       return NextResponse.json({ news });
     } catch {
       return NextResponse.json({ news: [] });
