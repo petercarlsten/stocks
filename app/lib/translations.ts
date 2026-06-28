@@ -17,7 +17,7 @@ const en = {
   purchasePriceError: (names: string) =>
     `could not fetch historical price for ${names}. Gain since purchase cannot be calculated.`,
   nextEarningsCall: "Next earnings call ",
-  reported: "Reported ",
+  reported: "Earnings call reported ",
   purchaseDate: "Purchase date",
   earningsCallDate: "Earnings call date",
   purchases: "Purchases",
@@ -89,7 +89,7 @@ const sv: typeof en = {
   purchasePriceError: (names: string) =>
     `kunde inte hämta historiskt pris för ${names}. Vinst sedan köp kan inte beräknas.`,
   nextEarningsCall: "Nästa resultatrapport ",
-  reported: "Rapporterade ",
+  reported: "Resultatrapport redovisad ",
   purchaseDate: "Köpdatum",
   earningsCallDate: "Datum för resultatrapport",
   purchases: "Köp",
