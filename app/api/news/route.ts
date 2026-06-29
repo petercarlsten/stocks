@@ -6,23 +6,29 @@ import { authOptions } from "@/lib/auth";
 
 const POSITIVE: [RegExp, number][] = [
   [/\b(beat|beats|beating)\s+(earnings|estimates?|expectations?|revenue|forecast)/i, 3],
-  [/\b(record\s+(high|earnings|revenue|profit|quarter|year))/i, 3],
-  [/\b(raised?\s+guidance|raises?\s+guidance|raised?\s+outlook)/i, 3],
-  [/\b(dividend\s+increase|dividend\s+hike|special\s+dividend)/i, 2],
-  [/\b(share\s+buyback|stock\s+buyback|repurchase\s+program)/i, 2],
-  [/\b(upgrade[sd]?|upgraded\s+to\s+(buy|outperform|overweight))/i, 2],
+  [/\b(record\s+(high|earnings|revenue|profit|quarter|year))\b/i, 3],
+  [/\b(raised?\s+guidance|raises?\s+guidance|raised?\s+outlook)\b/i, 3],
+  [/\bahead\s+of\s+(estimates?|expectations?|forecast|consensus)\b/i, 3],
+  [/\b(initiates?|initiated)\s+.{0,30}\b(buy|outperform|overweight|strong\s+buy)\b/i, 3],
+  [/\b(raises?|raised|lifts?|lifted|increases?|increased)\s+price\s+target\b/i, 3],
+  [/\b(dividend\s+increase|dividend\s+hike|special\s+dividend)\b/i, 2],
+  [/\b(share\s+buyback|stock\s+buyback|repurchase\s+program)\b/i, 2],
+  [/\b(upgrade[sd]?|upgraded\s+to\s+(buy|outperform|overweight))\b/i, 2],
   [/\b(surges?|soars?|jumps?|spikes?|skyrockets?)\b/i, 2],
   [/\b(all[- ]time\s+high|52[- ]week\s+high)\b/i, 2],
+  [/\b(strong\s+(results?|earnings?|revenue|demand|quarter))\b/i, 2],
+  [/\b(bullish)\b/i, 2],
+  [/\b(outperforms?|outperforming)\b/i, 2],
+  [/\b(wins?\s+contract|awarded?\s+contract|new\s+contract)\b/i, 2],
+  [/\b(free\s+cash\s+flow|positive\s+cash\s+flow)\b/i, 2],
+  [/\b(market\s+share\s+(gain|growth|increase))\b/i, 2],
   [/\b(profit(able|ability)?|profitability)\b/i, 1],
   [/\b(growth|growing|grew)\b/i, 1],
   [/\b(gains?|gaining)\b/i, 1],
   [/\b(rises?|rising|rose)\b/i, 1],
   [/\b(rallies|rally|rallying)\b/i, 1],
-  [/\b(strong\s+(results?|earnings?|revenue|demand|quarter))\b/i, 2],
   [/\b(exceeds?|exceeding|exceeded)\b/i, 1],
   [/\b(boosts?|boosting|boosted)\b/i, 1],
-  [/\b(bullish)\b/i, 2],
-  [/\b(outperforms?|outperforming)\b/i, 2],
   [/\b(expansion|expands?|expanding)\b/i, 1],
   [/\b(deal|partnership|agreement|acqui(res?|sition))\b/i, 1],
   [/\b(approved?|approval|clears?|cleared)\b/i, 1],
@@ -31,36 +37,61 @@ const POSITIVE: [RegExp, number][] = [
 
 const NEGATIVE: [RegExp, number][] = [
   [/\b(missed?|misses?|missing)\s+(earnings|estimates?|expectations?|revenue|forecast)/i, 3],
-  [/\b(lowered?\s+guidance|cuts?\s+guidance|lowered?\s+outlook|warned?\s+on\s+outlook)/i, 3],
+  [/\b(lowered?\s+guidance|cuts?\s+guidance|lowered?\s+outlook|warned?\s+on\s+outlook)\b/i, 3],
   [/\b(bankruptcy|bankrupt|chapter\s+11|default|insolvency)\b/i, 3],
   [/\b(mass\s+layoff|layoffs?|lay\s+offs?|job\s+cuts?|reductions?\s+in\s+force)\b/i, 3],
+  [/\bsec\s+(investigation|probe|charges?|enforcement|subpoena)\b/i, 3],
+  [/\b(restate[sd]?|restatement)\s+(earnings|revenue|results|financials)\b/i, 3],
   [/\b(recall[sd]?|product\s+recall)\b/i, 2],
   [/\b(investigation|probe|fraud|lawsuit|class[- ]action|fine[sd]?|penalt(y|ies)|sanction)\b/i, 2],
   [/\b(downgrade[sd]?|downgraded\s+to\s+(sell|underperform|underweight))\b/i, 2],
+  [/\b(cuts?|lowers?|reduces?)\s+price\s+target\b/i, 2],
+  [/\b(credit\s+rating\s+(cut|downgrade)|downgrade[sd]?\s+credit)\b/i, 2],
   [/\b(plunges?|plunging|crashes?|crashing|slumps?|slumping|tumbles?|tumbling)\b/i, 2],
   [/\b(all[- ]time\s+low|52[- ]week\s+low)\b/i, 2],
+  [/\b(weak(er)?\s+(results?|earnings?|revenue|demand|quarter))\b/i, 2],
+  [/\b(disappoints?|disappointing|disappointed)\b/i, 2],
+  [/\b(margin\s+(compression|squeeze|pressure))\b/i, 2],
+  [/\b(cuts?\s+(dividend|forecast|outlook|jobs?))\b/i, 2],
+  [/\b(bearish)\b/i, 2],
+  [/\b(underperforms?|underperforming)\b/i, 2],
   [/\b(loss(es)?|net\s+loss)\b/i, 1],
   [/\b(declines?|declining|declined)\b/i, 1],
   [/\b(falls?|falling|fell)\b/i, 1],
   [/\b(drops?|dropping|dropped)\b/i, 1],
-  [/\b(weak(er)?\s+(results?|earnings?|revenue|demand|quarter))\b/i, 2],
-  [/\b(disappoints?|disappointing|disappointed)\b/i, 2],
   [/\b(concern(s|ed)?|worry|worried|worrying)\b/i, 1],
   [/\b(risk[s]?|risky)\b/i, 1],
-  [/\b(cuts?\s+(dividend|forecast|outlook|jobs?))\b/i, 2],
-  [/\b(bearish)\b/i, 2],
-  [/\b(underperforms?|underperforming)\b/i, 2],
   [/\b(resigns?|resignation|ousted?|fired?)\b/i, 1],
   [/\b(warning[s]?|warns?)\b/i, 1],
 ];
 
-function scoreSentiment(title: string, description: string | null): "positive" | "negative" | "neutral" {
-  const text = `${title} ${description ?? ""}`;
+// Negation words that can flip a pattern's sentiment
+const NEGATION_RE = /\b(not|no|never|without|fail(?:s|ed|ing)?\s+to|unable\s+to|didn'?t|doesn'?t|won'?t|hasn'?t|haven'?t|isn'?t|aren'?t|wasn'?t|weren'?t|avoids?|averted?|denies?|denied)\b/i;
+
+function scoreSegment(text: string): number {
   let score = 0;
-  for (const [re, w] of POSITIVE) if (re.test(text)) score += w;
-  for (const [re, w] of NEGATIVE) if (re.test(text)) score -= w;
-  if (score >= 1) return "positive";
-  if (score <= -1) return "negative";
+  for (const [re, w] of POSITIVE) {
+    const m = re.exec(text);
+    if (m) {
+      const before = text.slice(Math.max(0, m.index - 50), m.index);
+      score += NEGATION_RE.test(before) ? -w : w;
+    }
+  }
+  for (const [re, w] of NEGATIVE) {
+    const m = re.exec(text);
+    if (m) {
+      const before = text.slice(Math.max(0, m.index - 50), m.index);
+      score += NEGATION_RE.test(before) ? w : -w;
+    }
+  }
+  return score;
+}
+
+function scoreSentiment(title: string, description: string | null): "positive" | "negative" | "neutral" {
+  // Title carries 2x the weight of description
+  const score = scoreSegment(title) * 2 + (description ? scoreSegment(description) : 0);
+  if (score >= 2) return "positive";
+  if (score <= -2) return "negative";
   return "neutral";
 }
 
