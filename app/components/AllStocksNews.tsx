@@ -94,12 +94,33 @@ export default function AllStocksNews({ stocks }: { stocks: Stock[] }) {
     }))
     .filter((g) => g.items.length > 0);
 
+  const positiveCount = news.filter((n) => n.sentiment === "positive").length;
+  const negativeCount = news.filter((n) => n.sentiment === "negative").length;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-600 bg-clip-text text-transparent">
-          News related to your portfolio
-        </h2>
+        <div className="flex items-center gap-3 flex-wrap">
+          <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-600 bg-clip-text text-transparent">
+            News related to your portfolio
+          </h2>
+          {!loading && (positiveCount > 0 || negativeCount > 0) && (
+            <div className="flex items-center gap-2 text-xs">
+              {positiveCount > 0 && (
+                <span className="flex items-center gap-1 bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                  {positiveCount} positive
+                </span>
+              )}
+              {negativeCount > 0 && (
+                <span className="flex items-center gap-1 bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded-full font-medium">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block" />
+                  {negativeCount} negative
+                </span>
+              )}
+            </div>
+          )}
+        </div>
         {symbolList.length > 1 && !loading && (
           <div className="flex flex-wrap gap-1.5">
             <button
