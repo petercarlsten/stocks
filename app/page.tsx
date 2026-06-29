@@ -218,8 +218,9 @@ export default function Home() {
               refreshStockData(s.symbol, s.name)
                 .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult }) => {
                   const newData = (data && data.length > 0) ? data : s.data;
-                  const newLastDate = newData?.[newData.length - 1]?.date ?? null;
-                  const lastDataDate = newLastDate && newLastDate > (s.lastDataDate ?? "") ? newLastDate : (s.lastDataDate ?? null);
+                  const lastDataDate = (quoteType ?? s.quoteType) === "MUTUALFUND" && newData?.length
+                    ? new Date().toLocaleDateString("sv")
+                    : (s.lastDataDate ?? null);
                   return { ...s, data: newData, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol, marketState: marketState ?? s.marketState, exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName, quoteType: quoteType ?? s.quoteType, navTimestamp: navTimestamp ?? s.navTimestamp, lastDataDate, earningsResult: earningsResult ?? s.earningsResult };
                 })
                 .catch(() => ({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }))
@@ -288,8 +289,9 @@ export default function Home() {
             refreshStockData(s.symbol, s.name)
               .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult }) => {
                 const newData = (data && data.length > 0) ? data : s.data;
-                const newLastDate = newData?.[newData.length - 1]?.date ?? null;
-                const lastDataDate = newLastDate && newLastDate > (s.lastDataDate ?? "") ? newLastDate : (s.lastDataDate ?? null);
+                const lastDataDate = (quoteType ?? s.quoteType) === "MUTUALFUND" && newData?.length
+                  ? new Date().toLocaleDateString("sv")
+                  : (s.lastDataDate ?? null);
                 return { ...s, data: newData, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol, marketState: marketState ?? s.marketState, exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName, quoteType: quoteType ?? s.quoteType, navTimestamp: navTimestamp ?? s.navTimestamp, lastDataDate, earningsResult: earningsResult ?? s.earningsResult };
               })
               .catch(() => s)
@@ -321,8 +323,9 @@ export default function Home() {
           refreshStockData(s.symbol, s.name)
             .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult }) => {
               const newData = (data && data.length > 0) ? data : s.data;
-              const newLastDate = newData?.[newData.length - 1]?.date ?? null;
-              const lastDataDate = newLastDate && newLastDate > (s.lastDataDate ?? "") ? newLastDate : (s.lastDataDate ?? null);
+              const lastDataDate = (quoteType ?? s.quoteType) === "MUTUALFUND" && newData?.length
+                ? new Date().toLocaleDateString("sv")
+                : (s.lastDataDate ?? null);
               return {
                 ...s, data: newData, earningsDate,
                 currency: s.currency ?? currency ?? inferCurrency(s.symbol),
