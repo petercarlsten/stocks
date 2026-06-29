@@ -132,7 +132,8 @@ const MARKET_STATE_BADGE: Record<string, { dot: string; label: string }> = {
 };
 
 export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult }: Props) {
-  const navDate = navTimestamp ? new Date(navTimestamp).toLocaleDateString("sv") : null;
+  // Use the last chart data point's date — more reliable than regularMarketTime for mutual funds
+  const navDate = quoteType === "MUTUALFUND" ? (data[data.length - 1]?.date ?? null) : null;
   const t = useTranslation();
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(0);
