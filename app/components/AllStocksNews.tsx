@@ -102,7 +102,7 @@ export default function AllStocksNews({ stocks }: { stocks: Stock[] }) {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3 flex-wrap">
           <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-600 bg-clip-text text-transparent">
-            News related to your portfolio
+            Portfolio news
           </h2>
           {!loading && (positiveCount > 0 || negativeCount > 0) && (
             <div className="flex items-center gap-2 text-xs">
