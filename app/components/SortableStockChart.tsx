@@ -25,7 +25,7 @@ interface Props {
   marketState?: string | null;
   exchangeTimezoneName?: string | null;
   quoteType?: string | null;
-  navDate?: string | null;
+  navTimestamp?: number | null;
   earningsResult?: { epsActual: number | null; epsEstimate: number | null; surprisePercent: number | null; currency: string } | null;
 }
 

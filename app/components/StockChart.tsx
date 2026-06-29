@@ -48,7 +48,7 @@ interface Props {
   marketState?: string | null;
   exchangeTimezoneName?: string | null;
   quoteType?: string | null;
-  navDate?: string | null;
+  navTimestamp?: number | null;
   earningsResult?: { epsActual: number | null; epsEstimate: number | null; surprisePercent: number | null; currency: string } | null;
 }
 
@@ -131,7 +131,8 @@ const MARKET_STATE_BADGE: Record<string, { dot: string; label: string }> = {
   CLOSED:   { dot: "bg-gray-300",   label: "Market closed"   },
 };
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navDate, earningsResult }: Props) {
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult }: Props) {
+  const navDate = navTimestamp ? new Date(navTimestamp).toLocaleDateString("sv") : null;
   const t = useTranslation();
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(0);
@@ -347,7 +348,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
             {quoteType === "MUTUALFUND" && navDate && (() => {
               const isToday = navDate === TODAY_STR;
               const isYesterday = navDate === YESTERDAY_STR;
-              const label = isToday ? "Fund priced today" : isYesterday ? "Fund priced yesterday" : `Fund priced ${new Date(navDate + "T12:00:00Z").toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
+              const label = isToday ? "Fund priced today" : isYesterday ? "Fund priced yesterday" : `Fund priced ${new Date(navDate + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
               const dot = isToday ? "bg-green-400" : isYesterday ? "bg-amber-400" : "bg-red-400";
               const tooltip = isToday ? "Today's price is available — funds price once daily after market close" : isYesterday ? "Showing yesterday's price — today's not published yet" : "Price is more than 1 day old";
               return (

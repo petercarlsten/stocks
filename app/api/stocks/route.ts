@@ -540,11 +540,11 @@ export async function GET(req: NextRequest) {
     const marketState = (quote?.marketState as string | undefined) ?? null;
     const exchangeTimezoneName = (quote?.exchangeTimezoneName as string | undefined) ?? null;
     const quoteType = (quote?.quoteType as string | undefined) ?? null;
-    const navDate: string | null = (() => {
+    const navTimestamp: number | null = (() => {
       const rmt = quote?.regularMarketTime;
       if (!rmt) return null;
       const d = rmt instanceof Date ? rmt : new Date((rmt as number) * 1000);
-      return isNaN(d.getTime()) ? null : d.toISOString().split("T")[0];
+      return isNaN(d.getTime()) ? null : d.getTime();
     })();
     type EarningsHistoryEntry = { quarter?: Date; epsActual?: number; epsEstimate?: number; surprisePercent?: number; currency?: string };
     const earningsHistory: EarningsHistoryEntry[] = earningsSummary?.earningsHistory?.history ?? [];
@@ -561,7 +561,7 @@ export async function GET(req: NextRequest) {
     } : null;
 
     const responseSymbol = originalISIN ?? upper;
-    return NextResponse.json({ symbol: responseSymbol, name, earningsDate, data, currency, marketState, exchangeTimezoneName, quoteType, navDate, earningsResult });
+    return NextResponse.json({ symbol: responseSymbol, name, earningsDate, data, currency, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult });
   } catch {
     return NextResponse.json(
       { error: `Could not fetch data for "${upper}"` },

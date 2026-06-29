@@ -40,7 +40,7 @@ interface StockData {
   marketState?: string | null;
   exchangeTimezoneName?: string | null;
   quoteType?: string | null;
-  navDate?: string | null;
+  navTimestamp?: number | null;
   earningsResult?: { epsActual: number | null; epsEstimate: number | null; surprisePercent: number | null; currency: string } | null;
 }
 
@@ -80,7 +80,7 @@ async function fetchStock(symbol: string): Promise<StockData> {
   const res = await fetch(`/api/stocks?symbol=${encodeURIComponent(symbol)}`);
   const json = await res.json();
   if (!res.ok) throw new Error(json.error ?? "Failed to fetch");
-  return { symbol: json.symbol, name: json.name, earningsDate: json.earningsDate ?? null, data: json.data, currency: json.currency ?? inferCurrency(json.symbol), marketState: json.marketState ?? null, exchangeTimezoneName: json.exchangeTimezoneName ?? null, quoteType: json.quoteType ?? null, navDate: json.navDate ?? null, earningsResult: json.earningsResult ?? null };
+  return { symbol: json.symbol, name: json.name, earningsDate: json.earningsDate ?? null, data: json.data, currency: json.currency ?? inferCurrency(json.symbol), marketState: json.marketState ?? null, exchangeTimezoneName: json.exchangeTimezoneName ?? null, quoteType: json.quoteType ?? null, navTimestamp: json.navTimestamp ?? null, earningsResult: json.earningsResult ?? null };
 }
 
 async function refreshStockData(symbol: string, name?: string) {
@@ -89,7 +89,7 @@ async function refreshStockData(symbol: string, name?: string) {
   const res = await fetch(`/api/stocks?${params}`);
   const json = await res.json();
   if (!res.ok) throw new Error(json.error ?? "Failed to fetch");
-  return { data: json.data as StockData["data"], earningsDate: (json.earningsDate as string | null) ?? null, currency: (json.currency as string | undefined), symbol: (json.symbol as string | undefined), marketState: (json.marketState as string | null) ?? null, exchangeTimezoneName: (json.exchangeTimezoneName as string | null) ?? null, quoteType: (json.quoteType as string | null) ?? null, navDate: (json.navDate as string | null) ?? null, earningsResult: (json.earningsResult as StockData["earningsResult"]) ?? null };
+  return { data: json.data as StockData["data"], earningsDate: (json.earningsDate as string | null) ?? null, currency: (json.currency as string | undefined), symbol: (json.symbol as string | undefined), marketState: (json.marketState as string | null) ?? null, exchangeTimezoneName: (json.exchangeTimezoneName as string | null) ?? null, quoteType: (json.quoteType as string | null) ?? null, navTimestamp: (json.navTimestamp as number | null) ?? null, earningsResult: (json.earningsResult as StockData["earningsResult"]) ?? null };
 }
 
 export default function Home() {
@@ -215,7 +215,7 @@ export default function Home() {
           const refreshed = await Promise.all(
             migrated.map((s) =>
               refreshStockData(s.symbol, s.name)
-                .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navDate, earningsResult }) => ({ ...s, data: (data && data.length > 0) ? data : s.data, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol, marketState: marketState ?? s.marketState, exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName, quoteType: quoteType ?? s.quoteType, navDate: navDate ?? s.navDate, earningsResult: earningsResult ?? s.earningsResult }))
+                .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult }) => ({ ...s, data: (data && data.length > 0) ? data : s.data, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol, marketState: marketState ?? s.marketState, exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName, quoteType: quoteType ?? s.quoteType, navTimestamp: navTimestamp ?? s.navTimestamp, earningsResult: earningsResult ?? s.earningsResult }))
                 .catch(() => ({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }))
             )
           );
@@ -280,7 +280,7 @@ export default function Home() {
         Promise.all(
           current.map((s) =>
             refreshStockData(s.symbol, s.name)
-              .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navDate, earningsResult }) => ({ ...s, data: (data && data.length > 0) ? data : s.data, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol, marketState: marketState ?? s.marketState, exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName, quoteType: quoteType ?? s.quoteType, navDate: navDate ?? s.navDate, earningsResult: earningsResult ?? s.earningsResult }))
+              .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult }) => ({ ...s, data: (data && data.length > 0) ? data : s.data, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol, marketState: marketState ?? s.marketState, exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName, quoteType: quoteType ?? s.quoteType, navTimestamp: navTimestamp ?? s.navTimestamp, earningsResult: earningsResult ?? s.earningsResult }))
               .catch(() => s)
           )
         )
@@ -308,14 +308,14 @@ export default function Home() {
       const results = await Promise.all(
         current.map((s) =>
           refreshStockData(s.symbol, s.name)
-            .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navDate, earningsResult }) => ({
+            .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult }) => ({
               ...s, data: (data && data.length > 0) ? data : s.data, earningsDate,
               currency: s.currency ?? currency ?? inferCurrency(s.symbol),
               symbol: corrected ?? s.symbol,
               marketState: marketState ?? s.marketState,
               exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName,
               quoteType: quoteType ?? s.quoteType,
-              navDate: navDate ?? s.navDate,
+              navTimestamp: navTimestamp ?? s.navTimestamp,
               earningsResult: earningsResult ?? s.earningsResult,
             }))
             .catch(() => s)
@@ -790,7 +790,7 @@ const cutoff1yr = new Date();
                           marketState={s.marketState ?? null}
                           exchangeTimezoneName={s.exchangeTimezoneName ?? null}
                           quoteType={s.quoteType ?? null}
-                          navDate={s.navDate ?? null}
+                          navTimestamp={s.navTimestamp ?? null}
                           earningsResult={s.earningsResult ?? null}
                         />
                       );
