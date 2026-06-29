@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAllUsers, getReportEmail, getPushSubscription } from "@/lib/users";
+import { getAllUsers, getReportEmail, getPushSubscription, getPreferences } from "@/lib/users";
 import { buildReportData } from "@/lib/buildReport";
 import { sendMonthlyReport } from "@/lib/email";
 import { sendPushNotification } from "@/lib/sendPush";
@@ -28,9 +28,10 @@ export async function GET(req: NextRequest) {
       catch (err) { results.push({ username: user.username, status: `email error: ${err}` }); }
     }
 
-    // Push notification
+    // Push notification — only if user opted in to monthly
+    const prefs = getPreferences(user.username);
     const subscription = getPushSubscription(user.username);
-    if (subscription) {
+    if (subscription && (prefs.pushSchedule?.monthly ?? true)) {
       try {
         const topGainer = data.stocks.find((s) => (s.change30d ?? -Infinity) > 0);
         const valueStr = formatCurrency(data.totalValueUSD ?? 0, data.currency, 0);

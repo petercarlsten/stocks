@@ -118,6 +118,7 @@ export default function Home() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [confirmRemoveSymbol, setConfirmRemoveSymbol] = useState<string | null>(null);
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushSchedule, setPushSchedule] = useState<{ daily?: boolean; monthly?: boolean; yearly?: boolean }>({ monthly: true });
   const [drawdownDate, setDrawdownDate] = useState<string>("");
   const [growthRate, setGrowthRate] = useState<number>(10);
   const [inflationRate, setInflationRate] = useState<number>(2.5);
@@ -166,6 +167,7 @@ export default function Home() {
         if (typeof p.drawdownDate === "string") setDrawdownDate(p.drawdownDate);
         if (typeof p.growthRate === "number") setGrowthRate(p.growthRate);
         if (typeof p.inflationRate === "number") setInflationRate(p.inflationRate);
+        if (p.pushSchedule && typeof p.pushSchedule === "object") setPushSchedule(p.pushSchedule);
         // Also sync reportCurrency with currency if set
         if (d.reportCurrency && !p.currency) { setCurrency(d.reportCurrency); localStorage.setItem("portfolio-currency", d.reportCurrency); }
       })
@@ -717,6 +719,8 @@ const cutoff1yr = new Date();
             }}
             pushEnabled={pushEnabled}
             onPushChange={setPushEnabled}
+            pushSchedule={pushSchedule}
+            onPushScheduleChange={(s) => { setPushSchedule(s); savePrefs({ pushSchedule: s }); }}
             drawdownDate={drawdownDate}
             onDrawdownDateChange={(v) => { setDrawdownDate(v); savePrefs({ drawdownDate: v }); }}
             growthRate={growthRate}

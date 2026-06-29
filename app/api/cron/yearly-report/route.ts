@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAllUsers, getReportEmail } from "@/lib/users";
+import { getAllUsers, getReportEmail, getPushSubscription, getPreferences } from "@/lib/users";
 import { buildYearlyReportData } from "@/lib/buildYearlyReport";
 import { sendYearlyReport } from "@/lib/email";
+import { sendPushNotification } from "@/lib/sendPush";
+import { formatCurrency } from "@/app/lib/formatCurrency";
 
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -14,17 +16,35 @@ export async function GET(req: NextRequest) {
   const results: { username: string; status: string }[] = [];
 
   for (const user of users) {
-    const email = getReportEmail(user.username);
-    if (!email) continue;
+    const data = await buildYearlyReportData(user.username);
+    if (!data) { results.push({ username: user.username, status: "no stocks" }); continue; }
 
-    try {
-      const data = await buildYearlyReportData(user.username);
-      if (!data) { results.push({ username: user.username, status: "no stocks" }); continue; }
-      await sendYearlyReport(email, data);
-      results.push({ username: user.username, status: "sent" });
-    } catch (err) {
-      results.push({ username: user.username, status: `error: ${err}` });
+    const sent: string[] = [];
+
+    // Email
+    const email = getReportEmail(user.username);
+    if (email) {
+      try { await sendYearlyReport(email, data); sent.push("email"); }
+      catch (err) { results.push({ username: user.username, status: `email error: ${err}` }); }
     }
+
+    // Push — only if opted in to yearly
+    const prefs = getPreferences(user.username);
+    const subscription = getPushSubscription(user.username);
+    if (subscription && prefs.pushSchedule?.yearly) {
+      try {
+        const valueStr = formatCurrency((data as { totalValueUSD?: number; currency: string }).totalValueUSD ?? 0, data.currency, 0);
+        await sendPushNotification(subscription, {
+          title: "Yearly Portfolio Report",
+          body: `Your ${new Date().getFullYear() - 1} portfolio summary is ready. Total value: ${valueStr}`,
+          url: "/",
+        });
+        sent.push("push");
+      } catch (err) { results.push({ username: user.username, status: `push error: ${err}` }); }
+    }
+
+    if (sent.length > 0) results.push({ username: user.username, status: `sent: ${sent.join(", ")}` });
+    else results.push({ username: user.username, status: "no notification configured" });
   }
 
   return NextResponse.json({ results });

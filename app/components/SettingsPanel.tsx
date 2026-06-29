@@ -197,6 +197,8 @@ interface Props {
   onReportEmailChange: (email: string) => void;
   pushEnabled: boolean;
   onPushChange: (v: boolean) => void;
+  pushSchedule: { daily?: boolean; monthly?: boolean; yearly?: boolean };
+  onPushScheduleChange: (s: { daily?: boolean; monthly?: boolean; yearly?: boolean }) => void;
   drawdownDate: string;
   onDrawdownDateChange: (v: string) => void;
   growthRate: number;
@@ -205,7 +207,7 @@ interface Props {
   onInflationRateChange: (v: number) => void;
 }
 
-export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange, inflationRate, onInflationRateChange }: Props) {
+export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange, pushSchedule, onPushScheduleChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange, inflationRate, onInflationRateChange }: Props) {
   const t = useTranslation();
   const [sendState, setSendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [pushTestState, setPushTestState] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -414,21 +416,37 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
               </button>
             </div>
             {pushEnabled && (
-              <button
-                onClick={async () => {
-                  if (pushTestState === "sending") return;
-                  setPushTestState("sending");
-                  try {
-                    const res = await fetch("/api/push/test", { method: "POST" });
-                    setPushTestState(res.ok ? "sent" : "error");
-                  } catch { setPushTestState("error"); }
-                  setTimeout(() => setPushTestState("idle"), 3000);
-                }}
-                className="text-xs text-indigo-600 hover:text-indigo-800 disabled:opacity-40 self-start"
-                disabled={pushTestState === "sending"}
-              >
-                {pushTestState === "sending" ? "Sending…" : pushTestState === "sent" ? "Sent!" : pushTestState === "error" ? "Error" : "Send test notification"}
-              </button>
+              <div className="flex flex-col gap-2">
+                <p className="text-gray-500 text-xs font-medium">Send summary notifications:</p>
+                <div className="flex gap-4">
+                  {(["daily", "monthly", "yearly"] as const).map((freq) => (
+                    <label key={freq} className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!pushSchedule[freq]}
+                        onChange={(e) => onPushScheduleChange({ ...pushSchedule, [freq]: e.target.checked })}
+                        className="w-3.5 h-3.5 accent-indigo-600"
+                      />
+                      <span className="text-xs text-gray-700 capitalize">{freq}</span>
+                    </label>
+                  ))}
+                </div>
+                <button
+                  onClick={async () => {
+                    if (pushTestState === "sending") return;
+                    setPushTestState("sending");
+                    try {
+                      const res = await fetch("/api/push/test", { method: "POST" });
+                      setPushTestState(res.ok ? "sent" : "error");
+                    } catch { setPushTestState("error"); }
+                    setTimeout(() => setPushTestState("idle"), 3000);
+                  }}
+                  className="text-xs text-indigo-600 hover:text-indigo-800 disabled:opacity-40 self-start"
+                  disabled={pushTestState === "sending"}
+                >
+                  {pushTestState === "sending" ? "Sending…" : pushTestState === "sent" ? "Sent!" : pushTestState === "error" ? "Error" : "Send test notification"}
+                </button>
+              </div>
             )}
           </div>
 
