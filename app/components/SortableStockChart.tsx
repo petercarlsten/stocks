@@ -26,6 +26,7 @@ interface Props {
   exchangeTimezoneName?: string | null;
   quoteType?: string | null;
   navTimestamp?: number | null;
+  lastDataDate?: string | null;
   earningsResult?: { epsActual: number | null; epsEstimate: number | null; surprisePercent: number | null; currency: string } | null;
 }
 

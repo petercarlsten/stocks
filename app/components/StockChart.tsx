@@ -49,6 +49,7 @@ interface Props {
   exchangeTimezoneName?: string | null;
   quoteType?: string | null;
   navTimestamp?: number | null;
+  lastDataDate?: string | null;
   earningsResult?: { epsActual: number | null; epsEstimate: number | null; surprisePercent: number | null; currency: string } | null;
 }
 
@@ -131,9 +132,12 @@ const MARKET_STATE_BADGE: Record<string, { dot: string; label: string }> = {
   CLOSED:   { dot: "bg-gray-300",   label: "Market closed"   },
 };
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult }: Props) {
-  // Use the last chart data point's date — more reliable than regularMarketTime for mutual funds
-  const navDate = quoteType === "MUTUALFUND" ? (data[data.length - 1]?.date ?? null) : null;
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navTimestamp, lastDataDate, earningsResult }: Props) {
+  // lastDataDate is our own record of the most recent data point we ever received — monotonically increasing,
+  // never reset to a stale Yahoo value. Falls back to current chart tail if not yet stored.
+  const navDate = quoteType === "MUTUALFUND"
+    ? (lastDataDate ?? data[data.length - 1]?.date ?? null)
+    : null;
   const t = useTranslation();
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartWidth, setChartWidth] = useState(0);

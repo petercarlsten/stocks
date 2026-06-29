@@ -41,6 +41,7 @@ interface StockData {
   exchangeTimezoneName?: string | null;
   quoteType?: string | null;
   navTimestamp?: number | null;
+  lastDataDate?: string | null;
   earningsResult?: { epsActual: number | null; epsEstimate: number | null; surprisePercent: number | null; currency: string } | null;
 }
 
@@ -215,7 +216,12 @@ export default function Home() {
           const refreshed = await Promise.all(
             migrated.map((s) =>
               refreshStockData(s.symbol, s.name)
-                .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult }) => ({ ...s, data: (data && data.length > 0) ? data : s.data, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol, marketState: marketState ?? s.marketState, exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName, quoteType: quoteType ?? s.quoteType, navTimestamp: navTimestamp ?? s.navTimestamp, earningsResult: earningsResult ?? s.earningsResult }))
+                .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult }) => {
+                  const newData = (data && data.length > 0) ? data : s.data;
+                  const newLastDate = newData?.[newData.length - 1]?.date ?? null;
+                  const lastDataDate = newLastDate && newLastDate > (s.lastDataDate ?? "") ? newLastDate : (s.lastDataDate ?? null);
+                  return { ...s, data: newData, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol, marketState: marketState ?? s.marketState, exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName, quoteType: quoteType ?? s.quoteType, navTimestamp: navTimestamp ?? s.navTimestamp, lastDataDate, earningsResult: earningsResult ?? s.earningsResult };
+                })
                 .catch(() => ({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }))
             )
           );
@@ -280,7 +286,12 @@ export default function Home() {
         Promise.all(
           current.map((s) =>
             refreshStockData(s.symbol, s.name)
-              .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult }) => ({ ...s, data: (data && data.length > 0) ? data : s.data, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol, marketState: marketState ?? s.marketState, exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName, quoteType: quoteType ?? s.quoteType, navTimestamp: navTimestamp ?? s.navTimestamp, earningsResult: earningsResult ?? s.earningsResult }))
+              .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult }) => {
+                const newData = (data && data.length > 0) ? data : s.data;
+                const newLastDate = newData?.[newData.length - 1]?.date ?? null;
+                const lastDataDate = newLastDate && newLastDate > (s.lastDataDate ?? "") ? newLastDate : (s.lastDataDate ?? null);
+                return { ...s, data: newData, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol, marketState: marketState ?? s.marketState, exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName, quoteType: quoteType ?? s.quoteType, navTimestamp: navTimestamp ?? s.navTimestamp, lastDataDate, earningsResult: earningsResult ?? s.earningsResult };
+              })
               .catch(() => s)
           )
         )
@@ -308,16 +319,22 @@ export default function Home() {
       const results = await Promise.all(
         current.map((s) =>
           refreshStockData(s.symbol, s.name)
-            .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult }) => ({
-              ...s, data: (data && data.length > 0) ? data : s.data, earningsDate,
-              currency: s.currency ?? currency ?? inferCurrency(s.symbol),
-              symbol: corrected ?? s.symbol,
-              marketState: marketState ?? s.marketState,
-              exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName,
-              quoteType: quoteType ?? s.quoteType,
-              navTimestamp: navTimestamp ?? s.navTimestamp,
-              earningsResult: earningsResult ?? s.earningsResult,
-            }))
+            .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult }) => {
+              const newData = (data && data.length > 0) ? data : s.data;
+              const newLastDate = newData?.[newData.length - 1]?.date ?? null;
+              const lastDataDate = newLastDate && newLastDate > (s.lastDataDate ?? "") ? newLastDate : (s.lastDataDate ?? null);
+              return {
+                ...s, data: newData, earningsDate,
+                currency: s.currency ?? currency ?? inferCurrency(s.symbol),
+                symbol: corrected ?? s.symbol,
+                marketState: marketState ?? s.marketState,
+                exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName,
+                quoteType: quoteType ?? s.quoteType,
+                navTimestamp: navTimestamp ?? s.navTimestamp,
+                lastDataDate,
+                earningsResult: earningsResult ?? s.earningsResult,
+              };
+            })
             .catch(() => s)
         )
       );
@@ -791,6 +808,7 @@ const cutoff1yr = new Date();
                           exchangeTimezoneName={s.exchangeTimezoneName ?? null}
                           quoteType={s.quoteType ?? null}
                           navTimestamp={s.navTimestamp ?? null}
+                          lastDataDate={s.lastDataDate ?? null}
                           earningsResult={s.earningsResult ?? null}
                         />
                       );
