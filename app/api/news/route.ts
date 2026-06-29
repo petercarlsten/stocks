@@ -1,67 +1,76 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import Anthropic from "@anthropic-ai/sdk";
 
 // ─── Sentiment scoring ───────────────────────────────────────────────────────
 
-const POSITIVE: [RegExp, number][] = [
-  [/\b(beat|beats|beating)\s+(earnings|estimates?|expectations?|revenue|forecast)/i, 3],
-  [/\b(record\s+(high|earnings|revenue|profit|quarter|year))/i, 3],
-  [/\b(raised?\s+guidance|raises?\s+guidance|raised?\s+outlook)/i, 3],
-  [/\b(dividend\s+increase|dividend\s+hike|special\s+dividend)/i, 2],
-  [/\b(share\s+buyback|stock\s+buyback|repurchase\s+program)/i, 2],
-  [/\b(upgrade[sd]?|upgraded\s+to\s+(buy|outperform|overweight))/i, 2],
-  [/\b(surges?|soars?|jumps?|spikes?|skyrockets?)\b/i, 2],
-  [/\b(all[- ]time\s+high|52[- ]week\s+high)\b/i, 2],
-  [/\b(profit(able|ability)?|profitability)\b/i, 1],
-  [/\b(growth|growing|grew)\b/i, 1],
-  [/\b(gains?|gaining)\b/i, 1],
-  [/\b(rises?|rising|rose)\b/i, 1],
-  [/\b(rallies|rally|rallying)\b/i, 1],
-  [/\b(strong\s+(results?|earnings?|revenue|demand|quarter))\b/i, 2],
-  [/\b(exceeds?|exceeding|exceeded)\b/i, 1],
-  [/\b(boosts?|boosting|boosted)\b/i, 1],
-  [/\b(bullish)\b/i, 2],
-  [/\b(outperforms?|outperforming)\b/i, 2],
-  [/\b(expansion|expands?|expanding)\b/i, 1],
-  [/\b(deal|partnership|agreement|acqui(res?|sition))\b/i, 1],
-  [/\b(approved?|approval|clears?|cleared)\b/i, 1],
-  [/\b(launches?|launch|launched)\b/i, 1],
-];
+type Sentiment = "positive" | "negative" | "neutral";
 
-const NEGATIVE: [RegExp, number][] = [
-  [/\b(missed?|misses?|missing)\s+(earnings|estimates?|expectations?|revenue|forecast)/i, 3],
-  [/\b(lowered?\s+guidance|cuts?\s+guidance|lowered?\s+outlook|warned?\s+on\s+outlook)/i, 3],
-  [/\b(bankruptcy|bankrupt|chapter\s+11|default|insolvency)\b/i, 3],
-  [/\b(mass\s+layoff|layoffs?|lay\s+offs?|job\s+cuts?|reductions?\s+in\s+force)\b/i, 3],
-  [/\b(recall[sd]?|product\s+recall)\b/i, 2],
-  [/\b(investigation|probe|fraud|lawsuit|class[- ]action|fine[sd]?|penalt(y|ies)|sanction)\b/i, 2],
-  [/\b(downgrade[sd]?|downgraded\s+to\s+(sell|underperform|underweight))\b/i, 2],
-  [/\b(plunges?|plunging|crashes?|crashing|slumps?|slumping|tumbles?|tumbling)\b/i, 2],
-  [/\b(all[- ]time\s+low|52[- ]week\s+low)\b/i, 2],
-  [/\b(loss(es)?|net\s+loss)\b/i, 1],
-  [/\b(declines?|declining|declined)\b/i, 1],
-  [/\b(falls?|falling|fell)\b/i, 1],
-  [/\b(drops?|dropping|dropped)\b/i, 1],
-  [/\b(weak(er)?\s+(results?|earnings?|revenue|demand|quarter))\b/i, 2],
-  [/\b(disappoints?|disappointing|disappointed)\b/i, 2],
-  [/\b(concern(s|ed)?|worry|worried|worrying)\b/i, 1],
-  [/\b(risk[s]?|risky)\b/i, 1],
-  [/\b(cuts?\s+(dividend|forecast|outlook|jobs?))\b/i, 2],
-  [/\b(bearish)\b/i, 2],
-  [/\b(underperforms?|underperforming)\b/i, 2],
-  [/\b(resigns?|resignation|ousted?|fired?)\b/i, 1],
-  [/\b(warning[s]?|warns?)\b/i, 1],
-];
-
-function scoreSentiment(title: string, description: string | null): "positive" | "negative" | "neutral" {
-  const text = `${title} ${description ?? ""}`;
-  let score = 0;
-  for (const [re, w] of POSITIVE) if (re.test(text)) score += w;
-  for (const [re, w] of NEGATIVE) if (re.test(text)) score -= w;
-  if (score >= 1) return "positive";
-  if (score <= -1) return "negative";
+// Keyword fallback used when ANTHROPIC_API_KEY is not set
+function keywordSentiment(title: string, description: string | null): Sentiment {
+  const text = `${title} ${description ?? ""}`.toLowerCase();
+  const pos = [
+    /beat(s|ing)?\s+(earnings|estimates?|expectations?|revenue)/,
+    /record\s+(high|earnings|revenue|profit|quarter)/,
+    /raised?\s+(guidance|outlook)/,
+    /dividend\s+(increase|hike)|special\s+dividend/,
+    /upgrade[sd]?|surges?|soars?|jumps?|all.time\s+high|52.week\s+high/,
+    /strong\s+(results?|earnings?|revenue|demand)/,
+    /share\s+buyback|stock\s+buyback/,
+  ];
+  const neg = [
+    /miss(es|ed|ing)?\s+(earnings|estimates?|expectations?|revenue)/,
+    /lower(ed)?\s+(guidance|outlook)|cut(s|ting)?\s+guidance/,
+    /bankrupt|chapter\s+11|default|insolvency/,
+    /layoff|job\s+cuts?|mass\s+redundanc/,
+    /investigation|fraud|lawsuit|class.action|fine[sd]?|penalt/,
+    /downgrade[sd]?|plunges?|crashes?|slumps?|tumbles?/,
+    /52.week\s+low|all.time\s+low/,
+    /weak\s+(results?|earnings?|revenue|demand)/,
+    /disappoint|recall[sd]?|warn(s|ing|ed)?/,
+  ];
+  const ps = pos.filter((r) => r.test(text)).length;
+  const ns = neg.filter((r) => r.test(text)).length;
+  if (ps > ns) return "positive";
+  if (ns > ps) return "negative";
   return "neutral";
+}
+
+// Batch Claude classification — one API call for all articles
+async function classifyWithClaude(
+  articles: { title: string; description: string | null }[]
+): Promise<Sentiment[]> {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey || articles.length === 0) return articles.map((a) => keywordSentiment(a.title, a.description));
+
+  const client = new Anthropic({ apiKey });
+  const numbered = articles
+    .map((a, i) => `${i + 1}. ${a.title}${a.description ? " — " + a.description.slice(0, 120) : ""}`)
+    .join("\n");
+
+  try {
+    const msg = await client.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 256,
+      messages: [{
+        role: "user",
+        content: `Classify each financial news headline as positive, negative, or neutral for a stock investor. Consider the actual impact on shareholders — not just whether the news sounds dramatic. Reply with ONLY a JSON array of strings, one per article, each exactly "positive", "negative", or "neutral". No explanation.\n\n${numbered}`,
+      }],
+    });
+
+    const raw = msg.content[0].type === "text" ? msg.content[0].text.trim() : "";
+    const match = raw.match(/\[[\s\S]*\]/);
+    if (!match) throw new Error("No JSON array in response");
+    const parsed: unknown[] = JSON.parse(match[0]);
+    return articles.map((a, i) => {
+      const v = parsed[i];
+      if (v === "positive" || v === "negative" || v === "neutral") return v;
+      return keywordSentiment(a.title, a.description);
+    });
+  } catch {
+    return articles.map((a) => keywordSentiment(a.title, a.description));
+  }
 }
 
 const ISIN_RE = /^[A-Z]{2}[A-Z0-9]{10}$/i;
@@ -444,21 +453,20 @@ async function fetchNewsForStock(symbol: string, name: string | null) {
     )
   );
 
-  return raw.map((item, i) => {
-    const title = item.title ?? "";
-    const description = descriptions[i] ?? null;
-    return {
-      symbol,
-      name: name ?? symbol,
-      title,
-      description,
-      publisher: item.publisher ?? "",
-      link: item.link ?? "",
-      publishedAt: item.providerPublishTime ?? 0,
-      thumbnail: item.thumbnail ?? null,
-      sentiment: scoreSentiment(title, description),
-    };
-  });
+  const articles = raw.map((item, i) => ({ title: item.title ?? "", description: descriptions[i] ?? null }));
+  const sentiments = await classifyWithClaude(articles);
+
+  return raw.map((item, i) => ({
+    symbol,
+    name: name ?? symbol,
+    title: articles[i].title,
+    description: articles[i].description,
+    publisher: item.publisher ?? "",
+    link: item.link ?? "",
+    publishedAt: item.providerPublishTime ?? 0,
+    thumbnail: item.thumbnail ?? null,
+    sentiment: sentiments[i],
+  }));
 }
 
 // ─── Route handler ───────────────────────────────────────────────────────────
@@ -505,23 +513,21 @@ export async function GET(req: NextRequest) {
         fetchSearchNews("financial markets economy"),
       ]);
       const seen = new Set<string>();
-      const news = [...spx, ...economy]
+      const raw = [...spx, ...economy]
         .filter(({ link }) => {
           if (!link || seen.has(link)) return false;
           seen.add(link);
           return true;
         })
-        .slice(0, 10)
-        .map((item) => {
-          const title = item.title ?? "";
-          return {
-            title,
-            publisher: item.publisher ?? "",
-            link: item.link ?? "",
-            publishedAt: item.providerPublishTime ?? 0,
-            sentiment: scoreSentiment(title, null),
-          };
-        });
+        .slice(0, 10);
+      const sentiments = await classifyWithClaude(raw.map((item) => ({ title: item.title ?? "", description: null })));
+      const news = raw.map((item, i) => ({
+        title: item.title ?? "",
+        publisher: item.publisher ?? "",
+        link: item.link ?? "",
+        publishedAt: item.providerPublishTime ?? 0,
+        sentiment: sentiments[i],
+      }));
       return NextResponse.json({ news });
     } catch {
       return NextResponse.json({ news: [] });
