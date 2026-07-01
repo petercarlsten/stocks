@@ -7,10 +7,16 @@ import {
 } from "recharts";
 import { formatCurrency } from "../lib/formatCurrency";
 
+interface Purchase {
+  shares: number;
+  price?: number;
+  date?: string;
+}
+
 interface Stock {
   symbol: string;
   data?: { date: string; close: number }[];
-  purchases?: { shares: number; date?: string; price?: number }[];
+  purchases?: Purchase[];
   currency?: string;
 }
 
@@ -28,19 +34,19 @@ function fmtAxisDate(dateStr: string) {
 }
 
 export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate, currency, theme = "light" }: Props) {
-  const { chartData, isPositive, baseline } = useMemo(() => {
+  const { chartData, startTotal } = useMemo(() => {
+    // Only stocks that have purchases and price data
     const active = stocks.filter(s =>
-      (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0) > 0 &&
+      (s.purchases ?? []).some(p => p.shares > 0) &&
       (s.data ?? []).length > 0
     );
-    if (active.length === 0) return { chartData: [], isPositive: true, baseline: 0 };
+    if (active.length === 0) return { chartData: [], startTotal: 0 };
 
-    // Last 3 months
     const now = new Date();
-    const cutoff = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+    const cutoff = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
     const cutoffStr = cutoff.toLocaleDateString("sv");
 
-    // Union of dates across all stocks within window
+    // Union of all trading dates in the last 12 months
     const dateSet = new Set<string>();
     for (const s of active) {
       for (const d of (s.data ?? [])) {
@@ -48,64 +54,61 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
       }
     }
     const dates = [...dateSet].sort();
-    if (dates.length < 3) return { chartData: [], isPositive: true, baseline: 0 };
+    if (dates.length < 5) return { chartData: [], startTotal: 0 };
 
-    // Per-stock shares
-    const shares = active.map(s =>
-      (s.purchases ?? []).reduce((sum, p) => sum + p.shares, 0)
-    );
-
-    // For each chart date: find most recent close for each stock on or before that date
     const rawPoints = dates.map(date => {
       let total = 0;
-      for (let i = 0; i < active.length; i++) {
-        if (shares[i] <= 0) continue;
-        const data = active[i].data ?? [];
+      for (const s of active) {
+        // How many shares were held on this date (respects purchase dates)
+        const sharesOnDate = (s.purchases ?? []).reduce((sum, p) => {
+          if (p.shares <= 0) return sum;
+          // Include if no purchase date, or purchase date is on/before this date
+          return (!p.date || p.date <= date) ? sum + p.shares : sum;
+        }, 0);
+        if (sharesOnDate <= 0) continue;
+
+        // Most recent close on or before this date (forward-fill only)
+        const data = s.data ?? [];
         let price = 0;
         for (let j = data.length - 1; j >= 0; j--) {
           if (data[j].date <= date) { price = data[j].close; break; }
         }
         if (price === 0) continue;
-        const tickerRate = usdRates[active[i].currency ?? "USD"] ?? 1;
-        total += shares[i] * price * (exchangeRate / tickerRate);
+
+        const fx = exchangeRate / (usdRates[s.currency ?? "USD"] ?? 1);
+        total += sharesOnDate * price * fx;
       }
       return { date, total };
-    }).filter(p => p.total > 0);
+    });
 
-    if (rawPoints.length < 3) return { chartData: [], isPositive: true, baseline: 0 };
+    // Drop leading zeros (before any stock was purchased)
+    const firstNonZero = rawPoints.findIndex(p => p.total > 0);
+    if (firstNonZero < 0) return { chartData: [], startTotal: 0 };
+    const trimmed = rawPoints.slice(firstNonZero);
+    if (trimmed.length < 5) return { chartData: [], startTotal: 0 };
 
-    const baseline = rawPoints[0].total;
-    const last = rawPoints[rawPoints.length - 1].total;
-    const isPositive = last >= baseline;
-
-    const chartData = rawPoints.map(p => ({
-      date: p.date,
-      value: p.total - baseline,
-      total: p.total,
-    }));
-
-    return { chartData, isPositive, baseline };
+    return { chartData: trimmed, startTotal: trimmed[0].total };
   }, [stocks, usdRates, exchangeRate]);
 
-  if (chartData.length < 3) return null;
-
-  const color = isPositive ? "#10B981" : "#EF4444";
-  const colorDim = isPositive ? "#10B98122" : "#EF444422";
-  const axisColor = theme === "dark" ? "#6B7280" : "#9CA3AF";
-  const gridColor = theme === "dark" ? "#374151" : "#F3F4F6";
-  const bgClass = theme === "dark" ? "bg-gray-900 border-gray-700" : "bg-white border-gray-100";
-  const textClass = theme === "dark" ? "text-gray-300" : "text-gray-500";
+  if (chartData.length < 5) return null;
 
   const first = chartData[0];
   const last = chartData[chartData.length - 1];
-  const changePct = baseline > 0 ? ((last.value) / baseline) * 100 : 0;
-  const changeAbs = last.value;
+  const changeAbs = last.total - first.total;
+  const changePct = first.total > 0 ? (changeAbs / first.total) * 100 : 0;
+  const isPositive = changeAbs >= 0;
+
+  const color = isPositive ? "#10B981" : "#EF4444";
+  const axisColor = theme === "dark" ? "#6B7280" : "#9CA3AF";
+  const refColor = theme === "dark" ? "#374151" : "#E5E7EB";
+  const bgClass = theme === "dark" ? "bg-gray-900 border-gray-700" : "bg-white border-gray-100";
+  const textClass = theme === "dark" ? "text-gray-300" : "text-gray-500";
 
   return (
     <div className={`rounded-xl border ${bgClass} px-4 pt-3 pb-1 mb-4`}>
       <div className="flex items-baseline gap-3 mb-1">
         <span className={`text-xs font-semibold uppercase tracking-wider ${textClass}`}>
-          3-month portfolio
+          1-year portfolio
         </span>
         <span className={`text-sm font-semibold ${isPositive ? "text-emerald-500" : "text-red-500"}`}>
           {changeAbs >= 0 ? "+" : ""}{formatCurrency(changeAbs, currency, 0)}
@@ -136,25 +139,26 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
             minTickGap={60}
           />
           <YAxis hide domain={["auto", "auto"]} />
-          <ReferenceLine y={0} stroke={gridColor} strokeWidth={1} />
+          <ReferenceLine y={startTotal} stroke={refColor} strokeWidth={1} strokeDasharray="3 3" />
           <Tooltip
             content={({ active, payload }) => {
               if (!active || !payload?.[0]) return null;
-              const d = payload[0].payload as { date: string; value: number; total: number };
+              const d = payload[0].payload as { date: string; total: number };
+              const delta = d.total - startTotal;
               return (
                 <div className={`rounded-lg px-2 py-1 text-xs shadow ${theme === "dark" ? "bg-gray-800 text-gray-100" : "bg-white text-gray-800 border border-gray-200"}`}>
                   <div className="font-medium">{fmtAxisDate(d.date)}</div>
-                  <div className={d.value >= 0 ? "text-emerald-500" : "text-red-500"}>
-                    {d.value >= 0 ? "+" : ""}{formatCurrency(d.value, currency, 0)}
-                  </div>
                   <div className={textClass}>{formatCurrency(d.total, currency, 0)}</div>
+                  <div className={delta >= 0 ? "text-emerald-500" : "text-red-500"}>
+                    {delta >= 0 ? "+" : ""}{formatCurrency(delta, currency, 0)}
+                  </div>
                 </div>
               );
             }}
           />
           <Area
             type="monotone"
-            dataKey="value"
+            dataKey="total"
             stroke={color}
             strokeWidth={1.5}
             fill="url(#portfolioFill)"
