@@ -23,6 +23,7 @@ import TopGainers from "./components/TopGainers";
 import DashboardLeaderboard from "./components/DashboardLeaderboard";
 import TickerSearch from "./components/TickerSearch";
 import AllStocksNews from "./components/AllStocksNews";
+import PortfolioOverviewChart from "./components/PortfolioOverviewChart";
 
 interface Purchase {
   date?: string;
@@ -765,6 +766,14 @@ const cutoff1yr = new Date();
             inflationRate={inflationRate}
             onInflationRateChange={(v) => { setInflationRate(v); savePrefs({ inflationRate: v }); }}
           />
+
+        <PortfolioOverviewChart
+          stocks={stocks}
+          usdRates={usdRates}
+          exchangeRate={exchangeRate}
+          currency={currency}
+          theme={theme}
+        />
 
         <div className="flex gap-2 mb-4">
           <TickerSearch
