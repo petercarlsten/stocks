@@ -120,6 +120,7 @@ export default function Home() {
   const [confirmRemoveSymbol, setConfirmRemoveSymbol] = useState<string | null>(null);
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushSchedule, setPushSchedule] = useState<{ daily?: boolean; monthly?: boolean; yearly?: boolean }>({ monthly: true });
+  const [drawdownStartDate, setDrawdownStartDate] = useState<string>("");
   const [drawdownDate, setDrawdownDate] = useState<string>("");
   const [growthRate, setGrowthRate] = useState<number>(10);
   const [inflationRate, setInflationRate] = useState<number>(2.5);
@@ -165,6 +166,7 @@ export default function Home() {
         if (typeof p.leaderboardEnabled === "boolean") { setLeaderboardEnabled(p.leaderboardEnabled); localStorage.setItem("portfolio-leaderboard", String(p.leaderboardEnabled)); }
         if (typeof p.topGainersEnabled === "boolean") { setTopGainersEnabled(p.topGainersEnabled); localStorage.setItem("portfolio-top-gainers", String(p.topGainersEnabled)); }
         if (p.language === "en" || p.language === "sv") { setLanguage(p.language as Language); localStorage.setItem("portfolio-language", p.language); }
+        if (typeof p.drawdownStartDate === "string") setDrawdownStartDate(p.drawdownStartDate);
         if (typeof p.drawdownDate === "string") setDrawdownDate(p.drawdownDate);
         if (typeof p.growthRate === "number") setGrowthRate(p.growthRate);
         if (typeof p.inflationRate === "number") setInflationRate(p.inflationRate);
@@ -584,19 +586,27 @@ const cutoff1yr = new Date();
 
               const monthlyBudget = (() => {
                 if (!drawdownDate || total <= 0) return null;
-                const target = new Date(drawdownDate);
                 const now = new Date();
-                const months = (target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth());
-                if (months <= 0) return null;
-                const simple = total / months;
-                // Annuity formula: PMT = PV * r / (1 - (1+r)^-n)
-                const annuity = (rate: number) => total * rate / (1 - Math.pow(1 + rate, -months));
+                const endDate = new Date(drawdownDate);
+                // Start date: if set, portfolio grows until then; otherwise drawdown starts now
+                const startDate = drawdownStartDate ? new Date(drawdownStartDate) : now;
+                const monthsAccum = Math.max(0,
+                  (startDate.getFullYear() - now.getFullYear()) * 12 + (startDate.getMonth() - now.getMonth())
+                );
+                const monthsDraw = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth());
+                if (monthsDraw <= 0) return null;
                 const growth = 1 + growthRate / 100;
                 const rNominal = Math.pow(growth, 1 / 12) - 1;
                 const rReal = Math.pow(growth / (1 + inflationRate / 100), 1 / 12) - 1;
-                const withGrowth = annuity(rNominal);
-                const withGrowthReal = rReal > 0 ? annuity(rReal) : simple;
-                return { simple, withGrowth, withGrowthReal, months };
+                // Project portfolio value forward to start date
+                const projectedNominal = total * Math.pow(1 + rNominal, monthsAccum);
+                const projectedReal = total * Math.pow(1 + rReal, monthsAccum);
+                const simple = (monthsAccum > 0 ? projectedNominal : total) / monthsDraw;
+                // Annuity formula: PMT = PV * r / (1 - (1+r)^-n)
+                const annuity = (pv: number, rate: number) => pv * rate / (1 - Math.pow(1 + rate, -monthsDraw));
+                const withGrowth = annuity(projectedNominal, rNominal);
+                const withGrowthReal = rReal > 0 ? annuity(projectedReal, rReal) : simple;
+                return { simple, withGrowth, withGrowthReal, monthsDraw, monthsAccum, startDate, endDate };
               })();
 
               return total > 0 ? (
@@ -634,25 +644,30 @@ const cutoff1yr = new Date();
                   {monthlyBudget && (
                     <div className="flex flex-col gap-0.5 mt-1 pt-1 border-t border-gray-100">
                       <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-0.5">{t.monthlyBudgetHeader}</span>
+                      {monthlyBudget.monthsAccum > 0 && (
+                        <span className="text-gray-400 text-xs mb-0.5">
+                          {monthlyBudget.startDate.toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })} → {monthlyBudget.endDate.toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })} · {Math.round(monthlyBudget.monthsDraw / 12)} yrs
+                        </span>
+                      )}
                       <div className="flex items-baseline gap-2">
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudget}</span>
                         <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.simple, currency, 0)}
-                          <span className="text-gray-400 font-normal ml-1.5 text-xs">end date: {new Date(drawdownDate).toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })}</span>
+                          {monthlyBudget.monthsAccum === 0 && <span className="text-gray-400 font-normal ml-1.5 text-xs">→ {monthlyBudget.endDate.toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })}</span>}
                         </span>
                       </div>
                       <div className="flex items-baseline gap-2">
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetGrowth}</span>
                         <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.withGrowth, currency, 0)}
-                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}%/yr · end date: {new Date(drawdownDate).toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })}</span>
+                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}%/yr</span>
                         </span>
                       </div>
                       <div className="flex items-baseline gap-2">
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetReal}</span>
                         <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.withGrowthReal, currency, 0)}
-                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}% −{inflationRate}% infl. · end date: {new Date(drawdownDate).toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })}</span>
+                          <span className="text-gray-400 font-normal ml-1.5 text-xs">+{growthRate}% −{inflationRate}% infl.</span>
                         </span>
                       </div>
                     </div>
@@ -741,6 +756,8 @@ const cutoff1yr = new Date();
             onPushChange={setPushEnabled}
             pushSchedule={pushSchedule}
             onPushScheduleChange={(s) => { setPushSchedule(s); savePrefs({ pushSchedule: s }); }}
+            drawdownStartDate={drawdownStartDate}
+            onDrawdownStartDateChange={(v) => { setDrawdownStartDate(v); savePrefs({ drawdownStartDate: v }); }}
             drawdownDate={drawdownDate}
             onDrawdownDateChange={(v) => { setDrawdownDate(v); savePrefs({ drawdownDate: v }); }}
             growthRate={growthRate}

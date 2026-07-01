@@ -199,6 +199,8 @@ interface Props {
   onPushChange: (v: boolean) => void;
   pushSchedule: { daily?: boolean; monthly?: boolean; yearly?: boolean };
   onPushScheduleChange: (s: { daily?: boolean; monthly?: boolean; yearly?: boolean }) => void;
+  drawdownStartDate: string;
+  onDrawdownStartDateChange: (v: string) => void;
   drawdownDate: string;
   onDrawdownDateChange: (v: string) => void;
   growthRate: number;
@@ -207,7 +209,7 @@ interface Props {
   onInflationRateChange: (v: number) => void;
 }
 
-export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange, pushSchedule, onPushScheduleChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange, inflationRate, onInflationRateChange }: Props) {
+export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange, pushSchedule, onPushScheduleChange, drawdownStartDate, onDrawdownStartDateChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange, inflationRate, onInflationRateChange }: Props) {
   const t = useTranslation();
   const [sendState, setSendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [pushTestState, setPushTestState] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -496,11 +498,19 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
 
           <div className="flex flex-col gap-2">
             <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">{t.monthlyBudgetSettings}</label>
+            <label className="text-gray-500 text-xs">{t.drawdownStartDateLabel}</label>
+            <input
+              type="date"
+              value={drawdownStartDate}
+              min={new Date().toISOString().slice(0, 10)}
+              onChange={(e) => onDrawdownStartDateChange(e.target.value)}
+              className="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
             <label className="text-gray-500 text-xs">{t.drawdownDateLabel}</label>
             <input
               type="date"
               value={drawdownDate}
-              min={new Date().toISOString().slice(0, 10)}
+              min={drawdownStartDate || new Date().toISOString().slice(0, 10)}
               onChange={(e) => onDrawdownDateChange(e.target.value)}
               className="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
