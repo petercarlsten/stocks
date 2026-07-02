@@ -238,7 +238,9 @@ function toEODHDSymbol(yahooSymbol: string): string | null {
 }
 
 const EODHD_CACHE = new Map<string, { rows: { date: string; close: number }[]; cachedAt: number }>();
-let eohdRateLimited = false;
+// Store the timestamp when rate-limited (not a boolean) so it auto-resets after 24 h
+let eohdRateLimitedAt = 0;
+const EODHD_RATE_LIMIT_TTL = 24 * 60 * 60 * 1000;
 
 async function fetchFromEODHD(
   eodhSymbol: string,
@@ -246,7 +248,7 @@ async function fetchFromEODHD(
   end: Date
 ): Promise<{ date: string; close: number }[] | null> {
   const apiKey = process.env.EODHD_API_KEY;
-  if (!apiKey || eohdRateLimited) return null;
+  if (!apiKey || (eohdRateLimitedAt > 0 && Date.now() - eohdRateLimitedAt < EODHD_RATE_LIMIT_TTL)) return null;
 
   const cacheKey = `eod:${eodhSymbol}`;
   const cached = EODHD_CACHE.get(cacheKey);
@@ -258,7 +260,7 @@ async function fetchFromEODHD(
 
   try {
     const res = await fetch(url);
-    if (res.status === 402) { eohdRateLimited = true; return null; }
+    if (res.status === 402) { eohdRateLimitedAt = Date.now(); return null; }
     if (!res.ok) return null;
     const rows: Array<{ date: string; close: number }> = await res.json();
     if (!Array.isArray(rows) || rows.length < 2) return null;
@@ -272,10 +274,10 @@ async function fetchFromEODHD(
 
 async function searchEODHD(query: string): Promise<{ name: string | null; isin: string | null }> {
   const apiKey = process.env.EODHD_API_KEY;
-  if (!apiKey || eohdRateLimited) return { name: null, isin: null };
+  if (!apiKey || (eohdRateLimitedAt > 0 && Date.now() - eohdRateLimitedAt < EODHD_RATE_LIMIT_TTL)) return { name: null, isin: null };
   try {
     const res = await fetch(`https://eodhd.com/api/search/${encodeURIComponent(query)}?api_token=${apiKey}`);
-    if (res.status === 402) { eohdRateLimited = true; return { name: null, isin: null }; }
+    if (res.status === 402) { eohdRateLimitedAt = Date.now(); return { name: null, isin: null }; }
     if (!res.ok) return { name: null, isin: null };
     const rows: Array<{ Name?: string; ISIN?: string }> = await res.json();
     if (!Array.isArray(rows) || rows.length === 0) return { name: null, isin: null };
@@ -395,13 +397,7 @@ export async function GET(req: NextRequest) {
       if (!fallback) fallback = await fetchFromTwelveData(upper, start, end);
       debugSteps.push(`TwelveData "${upper}": ${fallback ? fallback.length + " rows" : "null"}`);
 
-      if (!fallback && originalISIN) {
-        // Twelve Data accepts ISINs natively
-        if (!fallback) fallback = await fetchFromTwelveData(originalISIN, start, end);
-        debugSteps.push(`TwelveData ISIN "${originalISIN}": ${fallback ? fallback.length + " rows" : "null"}`);
-      }
-
-      // ── Tier 3: EODHD fallback ───────────────────────────────────────────
+      // ── Tier 5: EODHD (exchange ticker + EUFUND for ISINs) ───────────────
       if (!fallback) {
         const eodhdTicker = toEODHDSymbol(upper);
         if (eodhdTicker) {
@@ -410,9 +406,17 @@ export async function GET(req: NextRequest) {
         }
       }
 
+      // For ISINs, try EODHD EUFUND before falling back to Twelve Data ISIN —
+      // EODHD is the most reliable source for Luxembourg/European UCITS funds.
       if (!fallback && originalISIN) {
         fallback = await fetchFromEODHD(`${originalISIN}.EUFUND`, start, end);
         debugSteps.push(`EODHD "${originalISIN}.EUFUND": ${fallback ? fallback.length + " rows" : "null"}`);
+      }
+
+      if (!fallback && originalISIN) {
+        // Twelve Data accepts ISINs natively
+        fallback = await fetchFromTwelveData(originalISIN, start, end);
+        debugSteps.push(`TwelveData ISIN "${originalISIN}": ${fallback ? fallback.length + " rows" : "null"}`);
       }
 
       // ── Tier 3: OpenFIGI name → search both providers ───────────────────
@@ -492,7 +496,7 @@ export async function GET(req: NextRequest) {
         if (!process.env.TWELVE_DATA_API_KEY) hints.push("Add TWELVE_DATA_API_KEY");
         if (!process.env.ALPHA_VANTAGE_API_KEY) hints.push("Add ALPHA_VANTAGE_API_KEY");
         if (!process.env.EODHD_API_KEY) hints.push("Add EODHD_API_KEY");
-        if (eohdRateLimited) hints.push("EODHD daily limit reached — resets tomorrow");
+        if (eohdRateLimitedAt > 0 && Date.now() - eohdRateLimitedAt < EODHD_RATE_LIMIT_TTL) hints.push("EODHD daily limit reached — resets tomorrow");
         return NextResponse.json(
           { error: `No price data found for "${symbol.toUpperCase()}".${hints.length ? " " + hints.join(". ") + "." : ""}`, debug: detail },
           { status: 404 }
