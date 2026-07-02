@@ -25,14 +25,19 @@ export async function GET(req: NextRequest) {
     if (!data) { results.push({ username: user.username, status: "no stocks" }); continue; }
 
     try {
-      const valueStr = formatCurrency(data.totalValueUSD ?? 0, data.currency, 0);
-      const changeSign = (data.totalChange30dPct ?? 0) >= 0 ? "+" : "";
-      const changePct = data.totalChange30dPct != null ? ` · 30d: ${changeSign}${data.totalChange30dPct.toFixed(2)}%` : "";
-      const topGainer = data.stocks.find((s) => (s.change30d ?? -Infinity) > 0);
-      const bestStr = topGainer ? ` · Best: ${topGainer.symbol} +${topGainer.change30d?.toFixed(1)}%` : "";
+      const valueStr = formatCurrency(data.totalValueUSD, data.currency, 0);
+
+      // Pick the most meaningful gain figure: all-time > 1yr > 30d
+      const gainPct = data.totalChangeCostPct ?? data.totalChange1yrPct ?? data.totalChange30dPct;
+      const gainLabel = data.totalChangeCostPct != null ? "all-time" : data.totalChange1yrPct != null ? "1yr" : "30d";
+      const gainStr = gainPct != null ? ` · ${gainPct >= 0 ? "+" : ""}${gainPct.toFixed(2)}% (${gainLabel})` : "";
+
+      const gainAbs = data.totalEarningsCostUSD ?? data.totalEarnings1yrUSD ?? data.totalEarnings30dUSD;
+      const gainAbsStr = gainAbs != null ? ` ${gainAbs >= 0 ? "+" : ""}${formatCurrency(gainAbs, data.currency, 0)}` : "";
+
       await sendPushNotification(subscription, {
-        title: "Daily Portfolio Summary",
-        body: `${valueStr}${changePct}${bestStr}`,
+        title: "Portfolio update",
+        body: `${valueStr}${gainAbsStr}${gainStr}`,
         url: "/",
       });
       results.push({ username: user.username, status: "sent push" });

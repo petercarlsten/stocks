@@ -9,6 +9,7 @@ export interface StockReport {
   name: string;
   currentPrice: number;
   change30d: number | null;
+  change1yr?: number | null;
   positionValue: number | null;
   currency: string;
 }
@@ -25,9 +26,13 @@ export interface MonthlyBudget {
 export interface ReportData {
   username: string;
   month: string;
-  totalValueUSD: number | null;
+  totalValueUSD: number;
   totalChange30dPct: number | null;
+  totalChange1yrPct: number | null;
+  totalChangeCostPct: number | null;
   totalEarnings30dUSD: number | null;
+  totalEarnings1yrUSD: number | null;
+  totalEarningsCostUSD: number | null;
   currency: string;
   stocks: StockReport[];
   monthlyBudget?: MonthlyBudget;
