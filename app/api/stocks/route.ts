@@ -363,11 +363,12 @@ export async function GET(req: NextRequest) {
   start.setMonth(start.getMonth() - 13);
 
   try {
-    const [chartResult, quote, earningsSummary] = await Promise.all([
+    const [chartResult, initialQuote, earningsSummary] = await Promise.all([
       yf.chart(upper, { period1: start, period2: end, interval: "1d" }, { validateResult: false }).catch(() => null),
       yf.quote(upper, {}, { validateResult: false }).catch(() => null),
       yf.quoteSummary(upper, { modules: ["earningsHistory"] }, { validateResult: false }).catch(() => null),
     ]);
+    let quote = initialQuote;
 
     let data = chartResult
       ? (chartResult.quotes as Array<{ date: Date; close: number }>)
@@ -437,8 +438,12 @@ export async function GET(req: NextRequest) {
               debugSteps.push(`Yahoo search ISIN "${originalISIN}": found ${match.symbol}`);
               fallback = await fetchFromYahooV2(match.symbol, start, end);
               debugSteps.push(`YahooV2 "${match.symbol}": ${fallback ? fallback.length + " rows" : "null"}`);
-              // Also set upper so currency/name resolution uses the real ticker
-              if (fallback) upper = match.symbol.toUpperCase();
+              // Also set upper so currency/name resolution uses the real ticker,
+              // and re-fetch quote so quoteType/currency metadata reflects the real ticker.
+              if (fallback) {
+                upper = match.symbol.toUpperCase();
+                quote = await yf.quote(upper, {}, { validateResult: false }).catch(() => null) ?? quote;
+              }
             } else {
               debugSteps.push(`Yahoo search ISIN "${originalISIN}": no match`);
             }
