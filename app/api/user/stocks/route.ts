@@ -19,6 +19,11 @@ export async function PUT(req: NextRequest) {
   const username = getUsername(session);
   if (!username) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const stocks = await req.json();
-  saveUserStocks(username, stocks);
+  try {
+    saveUserStocks(username, stocks);
+  } catch (err) {
+    console.error("[user/stocks PUT]", err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
   return NextResponse.json({ ok: true });
 }
