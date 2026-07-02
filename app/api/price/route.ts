@@ -32,7 +32,23 @@ export async function GET(req: NextRequest) {
   const to = new Date(target);
   to.setDate(to.getDate() + 1);
 
-  const upper = symbol.toUpperCase();
+  let upper = symbol.toUpperCase();
+
+  // For ISINs, search Yahoo Finance to find the real ticker (e.g. LU... → 0P0000XXXX.SI)
+  if (ISIN_RE.test(upper)) {
+    try {
+      const res = await fetch(
+        `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(upper)}&quotesCount=5&newsCount=0`,
+        { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(5000) }
+      );
+      if (res.ok) {
+        interface YFQuote { symbol?: string; quoteType?: string; }
+        const json = await res.json();
+        const match = (json?.quotes as YFQuote[] ?? []).find((q) => q.symbol && q.quoteType !== "CURRENCY");
+        if (match?.symbol) upper = match.symbol.toUpperCase();
+      }
+    } catch { /* fall through */ }
+  }
 
   // Try Yahoo first
   try {
