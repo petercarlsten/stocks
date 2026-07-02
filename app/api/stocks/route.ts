@@ -419,6 +419,35 @@ export async function GET(req: NextRequest) {
         debugSteps.push(`TwelveData ISIN "${originalISIN}": ${fallback ? fallback.length + " rows" : "null"}`);
       }
 
+      // ── ISIN: search Yahoo Finance by ISIN to find the real ticker ────────
+      // Yahoo's search often knows about ISINs (e.g. LU... → 0P0000XXXX.SI).
+      // This is free and unlimited — try it whenever earlier sources failed.
+      if (!fallback && originalISIN) {
+        try {
+          const searchRes = await fetch(
+            `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(originalISIN)}&quotesCount=5&newsCount=0`,
+            { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(5000) }
+          );
+          if (searchRes.ok) {
+            interface YFQuote { symbol?: string; quoteType?: string; }
+            const searchJson = await searchRes.json();
+            const quotes: YFQuote[] = searchJson?.quotes ?? [];
+            const match = quotes.find((q) => q.symbol && q.quoteType !== "CURRENCY");
+            if (match?.symbol) {
+              debugSteps.push(`Yahoo search ISIN "${originalISIN}": found ${match.symbol}`);
+              fallback = await fetchFromYahooV2(match.symbol, start, end);
+              debugSteps.push(`YahooV2 "${match.symbol}": ${fallback ? fallback.length + " rows" : "null"}`);
+              // Also set upper so currency/name resolution uses the real ticker
+              if (fallback) upper = match.symbol.toUpperCase();
+            } else {
+              debugSteps.push(`Yahoo search ISIN "${originalISIN}": no match`);
+            }
+          }
+        } catch {
+          debugSteps.push(`Yahoo search ISIN "${originalISIN}": threw`);
+        }
+      }
+
       // ── Tier 3: OpenFIGI name → search both providers ───────────────────
       if (!fallback && !originalISIN) {
         const YAHOO_TO_OPENFIGI: Record<string, string> = {
