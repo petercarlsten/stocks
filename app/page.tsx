@@ -229,7 +229,7 @@ export default function Home() {
                 .catch(() => ({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }))
             )
           );
-          // Preserve in-memory purchase prices and any stocks added while loading
+          // Merge server data with any stocks added locally while the load was in flight
           serverLoaded.current = true;
           setStocks((prev) => {
             const refreshedSymbols = new Set(refreshed.map((r) => r.symbol));
@@ -242,9 +242,18 @@ export default function Home() {
               });
               return { ...r, purchases: mergedPurchases };
             });
-            // Keep any stocks added to state while the initial load was in flight
+            // Stocks in local cache that the server doesn't know about yet
             const extras = prev.filter((p) => !refreshedSymbols.has(p.symbol));
-            return [...merged, ...extras];
+            const final = [...merged, ...extras];
+            // Push extras up to the server immediately so all devices stay in sync
+            if (extras.length > 0) {
+              fetch("/api/user/stocks", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(final),
+              }).catch(() => {});
+            }
+            return final;
           });
           setLastRefreshed(new Date());
         } else {
