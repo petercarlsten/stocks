@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import { encryptJSON, decryptJSON } from "./encrypt";
 
 const DIR = path.join(process.cwd(), "data", "stocks");
 
@@ -18,41 +17,35 @@ type StockEntry = Record<string, unknown> & {
   purchases_enc?: string;
 };
 
-function decryptEntry(s: StockEntry): Record<string, unknown> {
-  if (s.purchases_enc) {
-    const { purchases_enc, ...rest } = s;
-    try {
-      return { ...rest, purchases: decryptJSON(purchases_enc) };
-    } catch {
-      // Decryption failed (wrong key or corrupt data) — return without purchases
-      return rest;
-    }
+// Migrate old encrypted purchases to plaintext. Requires ENCRYPTION_KEY if
+// the file still has encrypted blobs; silently drops purchases if key is missing.
+function migrateEntry(s: StockEntry): Record<string, unknown> {
+  if (!s.purchases_enc) return s;
+  const { purchases_enc, ...rest } = s;
+  try {
+    const { decryptJSON } = require("./encrypt");
+    return { ...rest, purchases: decryptJSON(purchases_enc) };
+  } catch {
+    return rest;
   }
-  return s;
-}
-
-function encryptEntry(s: StockEntry): Record<string, unknown> {
-  if (!s.purchases) return s;
-  const { purchases, ...rest } = s;
-  return { ...rest, purchases_enc: encryptJSON(purchases) };
 }
 
 export function getUserStocks(username: string): unknown[] {
   ensureDir();
   try {
     const raw: StockEntry[] = JSON.parse(fs.readFileSync(filePath(username), "utf-8"));
-    const decrypted = raw.map(decryptEntry);
+    const migrated = raw.map(migrateEntry);
 
-    // Auto-migrate: if any entry still has plaintext purchases, re-save encrypted
-    if (raw.some((s) => s.purchases && !s.purchases_enc)) {
+    // Re-save as plain JSON if any entry was still encrypted
+    if (raw.some((s) => s.purchases_enc)) {
       try {
-        fs.writeFileSync(filePath(username), JSON.stringify(raw.map(encryptEntry), null, 2));
+        fs.writeFileSync(filePath(username), JSON.stringify(migrated, null, 2));
       } catch {
-        // Non-fatal — will retry next load
+        // Non-fatal
       }
     }
 
-    return decrypted;
+    return migrated;
   } catch {
     return [];
   }
@@ -60,6 +53,5 @@ export function getUserStocks(username: string): unknown[] {
 
 export function saveUserStocks(username: string, stocks: unknown[]) {
   ensureDir();
-  const encrypted = (stocks as StockEntry[]).map(encryptEntry);
-  fs.writeFileSync(filePath(username), JSON.stringify(encrypted, null, 2));
+  fs.writeFileSync(filePath(username), JSON.stringify(stocks, null, 2));
 }
