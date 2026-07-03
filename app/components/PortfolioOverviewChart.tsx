@@ -150,7 +150,7 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
               return (
                 <div className={`rounded-lg px-2 py-1 text-xs shadow ${theme === "dark" ? "bg-gray-800 text-gray-100" : "bg-white text-gray-800 border border-gray-200"}`}>
                   <div className="font-medium">{fmtAxisDate(d.date)}</div>
-                  <div className={textClass}>{formatCurrency(d.total, currency, 0)}</div>
+                  <div className={theme === "dark" ? "text-white font-semibold" : "text-gray-900 font-semibold"}>{formatCurrency(d.total, currency, 0)}</div>
                   <div className={delta >= 0 ? "text-emerald-500" : "text-red-500"}>
                     {delta >= 0 ? "+" : ""}{formatCurrency(delta, currency, 0)}
                   </div>
