@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "./SettingsContext";
 
 interface Gainer {
@@ -62,9 +62,22 @@ export default function TopGainers() {
   }, []);
 
   const maxGain = gainers.length > 0 ? Math.max(...gainers.map((g) => Math.abs(g.gain))) : 1;
+  const [openTip, setOpenTip] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handler(e: MouseEvent | TouchEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpenTip(null);
+      }
+    }
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("touchstart", handler);
+    return () => { document.removeEventListener("mousedown", handler); document.removeEventListener("touchstart", handler); };
+  }, []);
 
   return (
-    <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm min-w-0 shrink">
+    <div ref={containerRef} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm min-w-0 shrink">
       <div className="flex items-baseline gap-2 mb-3">
         <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider">
           {t.topGainersTitle}
@@ -88,10 +101,15 @@ export default function TopGainers() {
                     {i + 1}
                   </span>
                   <span
-                    className="text-gray-900 text-xs font-bold truncate min-w-0 cursor-default"
-                    title={g.symbol}
+                    className="relative text-gray-900 text-xs font-bold truncate min-w-0 cursor-default"
+                    onClick={() => setOpenTip(openTip === `name-${g.symbol}` ? null : `name-${g.symbol}`)}
                   >
                     {g.name}
+                    {openTip === `name-${g.symbol}` && (
+                      <span className="absolute bottom-full mb-1.5 left-0 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 z-20 pointer-events-none">
+                        {g.symbol}
+                      </span>
+                    )}
                   </span>
                   <span className={`text-xs font-semibold shrink-0 ml-auto tabular-nums ${positive ? "text-green-600" : "text-red-500"}`}>
                     {positive ? "+" : ""}{g.gain.toFixed(1)}%
@@ -106,7 +124,17 @@ export default function TopGainers() {
                     />
                   </div>
                   {(() => { const m = marketInfo(g.symbol); return (
-                    <span className="text-gray-400 text-xs shrink-0 cursor-default" title={m.name}>{m.code}</span>
+                    <span
+                      className="relative text-gray-400 text-xs shrink-0 cursor-default"
+                      onClick={() => setOpenTip(openTip === `mkt-${g.symbol}` ? null : `mkt-${g.symbol}`)}
+                    >
+                      {m.code}
+                      {openTip === `mkt-${g.symbol}` && (
+                        <span className="absolute bottom-full mb-1.5 right-0 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 z-20 pointer-events-none">
+                          {m.name}
+                        </span>
+                      )}
+                    </span>
                   ); })()}
                 </div>
               </div>
