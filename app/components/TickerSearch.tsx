@@ -92,7 +92,8 @@ export default function TickerSearch({ onAdd, disabled }: Props) {
         onKeyDown={handleKeyDown}
         onFocus={() => suggestions.length > 0 && setOpen(true)}
         disabled={disabled}
-        autoComplete="off"
+        type="search"
+        autoComplete="new-password"
       />
       {open && (
         <ul className="absolute z-50 top-full mt-1 left-0 w-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
