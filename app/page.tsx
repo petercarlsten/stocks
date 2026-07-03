@@ -518,7 +518,7 @@ export default function Home() {
       `}</style>
       <div className="max-w-screen-xl mx-auto pb-12">
         <div className="grid grid-cols-[1fr_auto] items-start gap-x-4 sm:gap-x-6 mb-4 sm:mb-6">
-          <div className="flex flex-wrap items-start gap-3 sm:gap-6 min-w-0">
+          <div className="flex flex-wrap lg:flex-nowrap items-start gap-3 sm:gap-6 min-w-0">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-5 mb-2">
               <div className="relative shrink-0">
