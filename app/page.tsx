@@ -805,19 +805,6 @@ const cutoff1yr = new Date();
           {topGainersEnabled && <div className="w-full"><TopGainers /></div>}
         </div>
 
-{stocks.length > 0 && (
-          <div className="flex items-center gap-1 mb-3">
-            {([1, 3, 6, 12] as const).map((m) => (
-              <button
-                key={m}
-                onClick={() => { setChartMonths(m); savePrefs({ chartMonths: m }); }}
-                className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${chartMonths === m ? "bg-indigo-600 text-white" : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50"}`}
-              >
-                {m}M
-              </button>
-            ))}
-          </div>
-        )}
         {stocks.length === 0 ? (
           <p className="text-gray-400 text-center mt-24">
             {t.addTickerPrompt}
