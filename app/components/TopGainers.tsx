@@ -106,13 +106,15 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"] }: Props
                   <span className={`text-xs font-bold w-4 shrink-0 tabular-nums ${RANK_COLORS[i] ?? "text-gray-300"}`}>
                     {i + 1}
                   </span>
-                  <span
-                    className="relative text-gray-900 text-xs font-bold truncate min-w-0 cursor-default"
-                    onPointerEnter={(e) => { if (e.pointerType === "mouse") setOpenTip(`name-${g.symbol}`); }}
-                    onPointerLeave={(e) => { if (e.pointerType === "mouse") setOpenTip(null); }}
-                    onClick={() => setOpenTip(openTip === `name-${g.symbol}` ? null : `name-${g.symbol}`)}
-                  >
-                    {g.name}
+                  <span className="relative flex-1 min-w-0">
+                    <span
+                      className="block text-gray-900 text-xs font-bold truncate cursor-default"
+                      onPointerEnter={(e) => { if (e.pointerType === "mouse") setOpenTip(`name-${g.symbol}`); }}
+                      onPointerLeave={(e) => { if (e.pointerType === "mouse") setOpenTip(null); }}
+                      onClick={() => setOpenTip(openTip === `name-${g.symbol}` ? null : `name-${g.symbol}`)}
+                    >
+                      {g.name}
+                    </span>
                     {openTip === `name-${g.symbol}` && (
                       <span className="absolute bottom-full mb-1.5 left-0 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 z-50 pointer-events-none">
                         <span className="block">{g.name}</span>
