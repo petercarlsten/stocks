@@ -11,7 +11,7 @@ interface Gainer {
 }
 
 interface Props {
-  region?: "all" | "AMER" | "EMEA" | "APAC";
+  regions?: string[];
 }
 
 const RANK_COLORS = [
@@ -54,7 +54,7 @@ function marketInfo(symbol: string): { code: string; name: string } {
   return SUFFIX_MARKET[suffix] ?? { code: suffix.slice(1).toUpperCase(), name: suffix.slice(1).toUpperCase() };
 }
 
-export default function TopGainers({ region = "all" }: Props) {
+export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"] }: Props) {
   const t = useTranslation();
   const [gainers, setGainers] = useState<Gainer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +66,7 @@ export default function TopGainers({ region = "all" }: Props) {
       .catch(() => setLoading(false));
   }, []);
 
-  const filtered = region === "all" ? gainers.slice(0, 9) : gainers.filter(g => g.region === region).slice(0, 9);
+  const filtered = gainers.filter(g => !g.region || regions.includes(g.region)).slice(0, 9);
   const maxGain = filtered.length > 0 ? Math.max(...filtered.map((g) => Math.abs(g.gain))) : 1;
   const [openTip, setOpenTip] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
