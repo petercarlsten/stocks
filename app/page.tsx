@@ -12,7 +12,8 @@ import { translations } from "./lib/translations";
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -419,7 +420,10 @@ export default function Home() {
     setStocks((prev) => prev.map((s) => s.symbol === symbol ? { ...s, currency } : s));
   }, []);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
+  );
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
