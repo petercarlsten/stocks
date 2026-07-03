@@ -79,6 +79,7 @@ export default function TickerSearch({ onAdd, disabled }: Props) {
 
   return (
     <div ref={containerRef} className="relative">
+      <form autoComplete="off" onSubmit={(e) => e.preventDefault()}>
       <input
         className="bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64"
         placeholder={t.tickerPlaceholder}
@@ -93,8 +94,10 @@ export default function TickerSearch({ onAdd, disabled }: Props) {
         onFocus={() => suggestions.length > 0 && setOpen(true)}
         disabled={disabled}
         type="search"
-        autoComplete="new-password"
+        autoComplete="off"
+        name="ticker-search"
       />
+      </form>
       {open && (
         <ul className="absolute z-50 top-full mt-1 left-0 w-full bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
           {suggestions.map((s, i) => (
