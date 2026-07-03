@@ -120,6 +120,7 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
         </span>
       </div>
 
+      <div style={{ touchAction: "pan-y" }}>
       <ResponsiveContainer width="100%" height={110}>
         <AreaChart data={chartData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
           <defs>
@@ -166,6 +167,7 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
           />
         </AreaChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }
