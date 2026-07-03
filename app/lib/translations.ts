@@ -72,6 +72,7 @@ const en = {
   monthlyBudgetGrowth: "With gains",
   monthlyBudgetReal: "Real value",
   addInvestmentLabel: "Add your investments here",
+  chartPeriodLabel: "Chart period",
 };
 
 const sv: typeof en = {
@@ -146,6 +147,7 @@ const sv: typeof en = {
   monthlyBudgetGrowth: "Med vinst",
   monthlyBudgetReal: "Realt värde",
   addInvestmentLabel: "Lägg till dina investeringar här",
+  chartPeriodLabel: "Diagramperiod",
 };
 
 const de: typeof en = {
@@ -220,6 +222,7 @@ const de: typeof en = {
   monthlyBudgetGrowth: "Mit Gewinn",
   monthlyBudgetReal: "Realer Wert",
   addInvestmentLabel: "Fügen Sie Ihre Investitionen hier hinzu",
+  chartPeriodLabel: "Diagrammzeitraum",
 };
 
 const fr: typeof en = {
@@ -294,6 +297,7 @@ const fr: typeof en = {
   monthlyBudgetGrowth: "Avec gains",
   monthlyBudgetReal: "Valeur réelle",
   addInvestmentLabel: "Ajoutez vos investissements ici",
+  chartPeriodLabel: "Période du graphique",
 };
 
 export const translations: Record<Language, typeof en> = { en, sv, de, fr };

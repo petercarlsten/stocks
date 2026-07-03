@@ -787,6 +787,8 @@ const cutoff1yr = new Date();
             onGrowthRateChange={(v) => { setGrowthRate(v); savePrefs({ growthRate: v }); }}
             inflationRate={inflationRate}
             onInflationRateChange={(v) => { setInflationRate(v); savePrefs({ inflationRate: v }); }}
+            chartMonths={chartMonths}
+            onChartMonthsChange={(v) => { setChartMonths(v); savePrefs({ chartMonths: v }); }}
           />
 
         <PortfolioOverviewChart

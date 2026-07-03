@@ -207,9 +207,11 @@ interface Props {
   onGrowthRateChange: (v: number) => void;
   inflationRate: number;
   onInflationRateChange: (v: number) => void;
+  chartMonths: number;
+  onChartMonthsChange: (v: number) => void;
 }
 
-export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange, pushSchedule, onPushScheduleChange, drawdownStartDate, onDrawdownStartDateChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange, inflationRate, onInflationRateChange }: Props) {
+export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange, pushSchedule, onPushScheduleChange, drawdownStartDate, onDrawdownStartDateChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange, inflationRate, onInflationRateChange, chartMonths, onChartMonthsChange }: Props) {
   const t = useTranslation();
   const [sendState, setSendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [pushTestState, setPushTestState] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -323,6 +325,25 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
                   }`}
                 >
                   {th === "light" ? t.light : t.dark}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">{t.chartPeriodLabel}</label>
+            <div className="flex rounded-lg overflow-hidden border border-gray-300">
+              {([1, 3, 6, 12] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => onChartMonthsChange(m)}
+                  className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                    chartMonths === m
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600"
+                  }`}
+                >
+                  {m}M
                 </button>
               ))}
             </div>
