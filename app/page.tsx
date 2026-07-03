@@ -493,11 +493,18 @@ export default function Home() {
         </div>
       )}
       <style>{`
-        .logo-text { color: inherit; }
-        .logo-badge {
-          box-shadow: 0 2px 8px rgba(0,0,0,0.18), 0 1px 2px rgba(0,0,0,0.12);
+        .logo-text {
+          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #10b981 70%, #6366f1 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
-        .logo-underline { background: #6366f1; }
+        .logo-badge {
+          box-shadow: 0 4px 20px rgba(99,102,241,0.35), 0 1px 4px rgba(0,0,0,0.15);
+        }
+        .logo-underline {
+          background: linear-gradient(90deg, #6366f1, #8b5cf6 50%, #10b981);
+        }
         .logo-live-dot { opacity: 1; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 639px) {
@@ -513,8 +520,9 @@ export default function Home() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-5 mb-2">
               <div className="relative shrink-0">
-              <div className="logo-badge relative bg-gray-900 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex items-center justify-center overflow-hidden border border-gray-700">
-                <div className="logo-live-dot absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-emerald-400"/>
+              <div className="logo-badge relative bg-gradient-to-br from-indigo-600 via-violet-600 to-emerald-500 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex items-center justify-center overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent pointer-events-none"/>
+                <div className="logo-live-dot absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-emerald-300"/>
                 {/* Charging bull — Wall Street style */}
                 <svg width="60" height="46" viewBox="0 0 100 66" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M 10,30 C 4,18 4,8 8,2" stroke="white" strokeWidth="5" strokeLinecap="round" fill="none"/>
@@ -533,7 +541,7 @@ export default function Home() {
               </div>
               </div>
               <div>
-                <h1 className="logo-text text-3xl sm:text-5xl font-black tracking-tight leading-none text-gray-900 dark:text-white">
+                <h1 className="logo-text text-3xl sm:text-5xl font-black tracking-tight leading-none">
                   {t.appTitle}
                 </h1>
                 <div className="logo-underline h-0.5 mt-2 rounded-full w-2/3 opacity-60" />
