@@ -782,6 +782,13 @@ const cutoff1yr = new Date();
             onChartMonthsChange={(v) => { setChartMonths(v); savePrefs({ chartMonths: v }); }}
           />
 
+        {/* Leaderboard shown below on mobile/tablet */}
+        <div className="flex flex-wrap gap-3 mb-4 lg:hidden">
+          {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} />}
+        </div>
+        {/* Top Gainers above 1-year chart */}
+        {topGainersEnabled && <div className="mb-4"><TopGainers regions={topGainersRegions} /></div>}
+
         <PortfolioOverviewChart
           stocks={stocks}
           usdRates={usdRates}
@@ -789,13 +796,6 @@ const cutoff1yr = new Date();
           currency={currency}
           theme={theme}
         />
-
-        {/* Leaderboard shown below on mobile/tablet */}
-        <div className="flex flex-wrap gap-3 mb-4 lg:hidden">
-          {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} />}
-        </div>
-        {/* Top Gainers always shown below */}
-        {topGainersEnabled && <div className="mb-4"><TopGainers regions={topGainersRegions} /></div>}
 
         {stocks.length === 0 ? (
           <p className="text-gray-400 text-center mt-24">
