@@ -114,6 +114,7 @@ export default function Home() {
   const [newsEnabled, setNewsEnabled] = useState(true);
   const [leaderboardEnabled, setLeaderboardEnabled] = useState(true);
   const [topGainersEnabled, setTopGainersEnabled] = useState(true);
+  const [topGainersRegion, setTopGainersRegion] = useState<"all" | "AMER" | "EMEA" | "APAC">("all");
   const [language, setLanguage] = useState<Language>("en");
   const [reportEmail, setReportEmail] = useState("");
   const [isAdminUser, setIsAdminUser] = useState(false);
@@ -167,6 +168,7 @@ export default function Home() {
         if (typeof p.newsEnabled === "boolean") { setNewsEnabled(p.newsEnabled); localStorage.setItem("portfolio-news", String(p.newsEnabled)); }
         if (typeof p.leaderboardEnabled === "boolean") { setLeaderboardEnabled(p.leaderboardEnabled); localStorage.setItem("portfolio-leaderboard", String(p.leaderboardEnabled)); }
         if (typeof p.topGainersEnabled === "boolean") { setTopGainersEnabled(p.topGainersEnabled); localStorage.setItem("portfolio-top-gainers", String(p.topGainersEnabled)); }
+        if (p.topGainersRegion) setTopGainersRegion(p.topGainersRegion as "all" | "AMER" | "EMEA" | "APAC");
         if (p.language === "en" || p.language === "sv") { setLanguage(p.language as Language); localStorage.setItem("portfolio-language", p.language); }
         if (typeof p.drawdownStartDate === "string") setDrawdownStartDate(p.drawdownStartDate);
         if (typeof p.drawdownDate === "string") setDrawdownDate(p.drawdownDate);
@@ -688,7 +690,7 @@ const cutoff1yr = new Date();
           </div>
           </div>
           {leaderboardEnabled && <div className="hidden lg:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} /></div>}
-          {topGainersEnabled && <div className="hidden lg:block"><TopGainers /></div>}
+          {topGainersEnabled && <div className="hidden lg:block"><TopGainers region={topGainersRegion} /></div>}
           </div>{/* end left content wrapper */}
           <div className="shrink-0 pt-1 flex flex-col gap-2 self-start">
             <button
@@ -752,6 +754,8 @@ const cutoff1yr = new Date();
             onLeaderboardChange={(v) => { setLeaderboardEnabled(v); localStorage.setItem("portfolio-leaderboard", String(v)); savePrefs({ leaderboardEnabled: v }); }}
             topGainersEnabled={topGainersEnabled}
             onTopGainersChange={(v) => { setTopGainersEnabled(v); localStorage.setItem("portfolio-top-gainers", String(v)); savePrefs({ topGainersEnabled: v }); }}
+            topGainersRegion={topGainersRegion}
+            onTopGainersRegionChange={(v) => { setTopGainersRegion(v); savePrefs({ topGainersRegion: v }); }}
             language={language}
             onLanguageChange={(v) => { setLanguage(v); localStorage.setItem("portfolio-language", v); savePrefs({ language: v }); }}
             reportEmail={reportEmail}
@@ -790,7 +794,7 @@ const cutoff1yr = new Date();
         {/* Leaderboard + Top Gainers shown below search on mobile and tablet */}
         <div className="flex flex-wrap gap-3 mb-4 lg:hidden">
           {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} />}
-          {topGainersEnabled && <div className="w-full"><TopGainers /></div>}
+          {topGainersEnabled && <div className="w-full"><TopGainers region={topGainersRegion} /></div>}
         </div>
 
         {stocks.length === 0 ? (

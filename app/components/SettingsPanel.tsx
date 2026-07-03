@@ -209,9 +209,11 @@ interface Props {
   onInflationRateChange: (v: number) => void;
   chartMonths: number;
   onChartMonthsChange: (v: number) => void;
+  topGainersRegion: "all" | "AMER" | "EMEA" | "APAC";
+  onTopGainersRegionChange: (v: "all" | "AMER" | "EMEA" | "APAC") => void;
 }
 
-export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange, pushSchedule, onPushScheduleChange, drawdownStartDate, onDrawdownStartDateChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange, inflationRate, onInflationRateChange, chartMonths, onChartMonthsChange }: Props) {
+export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange, pushSchedule, onPushScheduleChange, drawdownStartDate, onDrawdownStartDateChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange, inflationRate, onInflationRateChange, chartMonths, onChartMonthsChange, topGainersRegion, onTopGainersRegionChange }: Props) {
   const t = useTranslation();
   const [sendState, setSendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [pushTestState, setPushTestState] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -377,6 +379,23 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
           <Toggle label={t.stockNews} enabled={newsEnabled} onChange={onNewsChange} />
           <Toggle label={t.gainsSincePurchasedToggle} enabled={leaderboardEnabled} onChange={onLeaderboardChange} />
           <Toggle label={t.topGainers} enabled={topGainersEnabled} onChange={onTopGainersChange} />
+          {topGainersEnabled && (
+            <div className="flex rounded-lg overflow-hidden border border-gray-300 ml-6">
+              {(["all", "AMER", "EMEA", "APAC"] as const).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => onTopGainersRegionChange(r)}
+                  className={`flex-1 py-1.5 text-xs font-medium transition-colors ${
+                    topGainersRegion === r
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-600"
+                  }`}
+                >
+                  {r === "all" ? "All" : r}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
             <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">{t.reportEmailLabel}</label>

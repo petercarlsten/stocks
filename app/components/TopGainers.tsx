@@ -7,6 +7,11 @@ interface Gainer {
   symbol: string;
   name: string;
   gain: number;
+  region?: string;
+}
+
+interface Props {
+  region?: "all" | "AMER" | "EMEA" | "APAC";
 }
 
 const RANK_COLORS = [
@@ -49,7 +54,7 @@ function marketInfo(symbol: string): { code: string; name: string } {
   return SUFFIX_MARKET[suffix] ?? { code: suffix.slice(1).toUpperCase(), name: suffix.slice(1).toUpperCase() };
 }
 
-export default function TopGainers() {
+export default function TopGainers({ region = "all" }: Props) {
   const t = useTranslation();
   const [gainers, setGainers] = useState<Gainer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +66,8 @@ export default function TopGainers() {
       .catch(() => setLoading(false));
   }, []);
 
-  const maxGain = gainers.length > 0 ? Math.max(...gainers.map((g) => Math.abs(g.gain))) : 1;
+  const filtered = region === "all" ? gainers.slice(0, 9) : gainers.filter(g => g.region === region).slice(0, 9);
+  const maxGain = filtered.length > 0 ? Math.max(...filtered.map((g) => Math.abs(g.gain))) : 1;
   const [openTip, setOpenTip] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -91,7 +97,7 @@ export default function TopGainers() {
         <p className="text-gray-400 text-xs">{t.noData}</p>
       ) : (
         <div className="grid grid-cols-3 gap-x-4 gap-y-1.5">
-          {gainers.map((g, i) => {
+          {filtered.map((g, i) => {
             const barWidth = Math.round((Math.abs(g.gain) / maxGain) * 100);
             const positive = g.gain >= 0;
             return (
