@@ -685,6 +685,17 @@ const cutoff1yr = new Date();
                 </div>
               ) : null;
             })()}
+          <div className="mt-3">
+            <p className="text-xs text-gray-400 mb-1.5">{t.addInvestmentLabel}</p>
+            <div className="flex gap-2">
+              <TickerSearch
+                onAdd={(symbol) => { setError(""); addStockBySymbol(symbol); }}
+                disabled={loading || stocks.length >= MAX_STOCKS}
+              />
+              {loading && <span className="text-gray-400 text-sm self-center">{t.loading}</span>}
+            </div>
+            {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+          </div>
           </div>
           {leaderboardEnabled && <div className="hidden lg:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} /></div>}
           {topGainersEnabled && <div className="hidden lg:block"><TopGainers /></div>}
@@ -784,21 +795,11 @@ const cutoff1yr = new Date();
           theme={theme}
         />
 
-        <div className="flex gap-2 mb-4">
-          <TickerSearch
-            onAdd={(symbol) => { setError(""); addStockBySymbol(symbol); }}
-            disabled={loading || stocks.length >= MAX_STOCKS}
-          />
-          {loading && <span className="text-gray-400 text-sm self-center">{t.loading}</span>}
-        </div>
-
         {/* Leaderboard + Top Gainers shown below search on mobile and tablet */}
         <div className="flex flex-wrap gap-3 mb-4 lg:hidden">
           {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} />}
           {topGainersEnabled && <div className="w-full"><TopGainers /></div>}
         </div>
-
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
 {stocks.length === 0 ? (
           <p className="text-gray-400 text-center mt-24">

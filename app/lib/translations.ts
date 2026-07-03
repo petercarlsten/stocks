@@ -10,7 +10,7 @@ const en = {
   lastYearLoss: "1-year loss",
   lastUpdated: "Last updated",
   username: "Username",
-  addTickerPrompt: "Add a stock ticker above to get started.",
+  addTickerPrompt: "Search for a ticker, ISIN or company name to get started.",
   settings: "Settings",
   signOut: "Sign out",
   purchasePriceUnavailable: "Purchase price unavailable",
@@ -71,6 +71,7 @@ const en = {
   monthlyBudget: "Zero gains",
   monthlyBudgetGrowth: "With gains",
   monthlyBudgetReal: "Real value",
+  addInvestmentLabel: "Add your investments here",
 };
 
 const sv: typeof en = {
@@ -83,7 +84,7 @@ const sv: typeof en = {
   lastYearLoss: "1-års förlust",
   lastUpdated: "Senast uppdaterad",
   username: "Användarnamn",
-  addTickerPrompt: "Lägg till en aktie ovan för att komma igång.",
+  addTickerPrompt: "Sök efter ticker, ISIN eller företagsnamn för att komma igång.",
   settings: "Inställningar",
   signOut: "Logga ut",
   purchasePriceUnavailable: "Inköpspris saknas",
@@ -144,6 +145,7 @@ const sv: typeof en = {
   monthlyBudget: "Noll vinst",
   monthlyBudgetGrowth: "Med vinst",
   monthlyBudgetReal: "Realt värde",
+  addInvestmentLabel: "Lägg till dina investeringar här",
 };
 
 const de: typeof en = {
@@ -156,7 +158,7 @@ const de: typeof en = {
   lastYearLoss: "1-Jahres-Verlust",
   lastUpdated: "Zuletzt aktualisiert",
   username: "Benutzername",
-  addTickerPrompt: "Fügen Sie oben ein Aktien-Ticker hinzu, um zu beginnen.",
+  addTickerPrompt: "Suchen Sie nach einem Ticker, ISIN oder Firmennamen, um zu beginnen.",
   settings: "Einstellungen",
   signOut: "Abmelden",
   purchasePriceUnavailable: "Kaufpreis nicht verfügbar",
@@ -217,6 +219,7 @@ const de: typeof en = {
   monthlyBudget: "Kein Gewinn",
   monthlyBudgetGrowth: "Mit Gewinn",
   monthlyBudgetReal: "Realer Wert",
+  addInvestmentLabel: "Fügen Sie Ihre Investitionen hier hinzu",
 };
 
 const fr: typeof en = {
@@ -229,7 +232,7 @@ const fr: typeof en = {
   lastYearLoss: "Perte sur 1 an",
   lastUpdated: "Dernière mise à jour",
   username: "Nom d'utilisateur",
-  addTickerPrompt: "Ajoutez un ticker boursier ci-dessus pour commencer.",
+  addTickerPrompt: "Recherchez un ticker, ISIN ou nom d'entreprise pour commencer.",
   settings: "Paramètres",
   signOut: "Se déconnecter",
   purchasePriceUnavailable: "Prix d'achat indisponible",
@@ -290,6 +293,7 @@ const fr: typeof en = {
   monthlyBudget: "Sans gains",
   monthlyBudgetGrowth: "Avec gains",
   monthlyBudgetReal: "Valeur réelle",
+  addInvestmentLabel: "Ajoutez vos investissements ici",
 };
 
 export const translations: Record<Language, typeof en> = { en, sv, de, fr };
