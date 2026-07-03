@@ -8,9 +8,19 @@ const yf = new YahooFinance({ suppressNotices: ["ripHistorical", "yahooSurvey"] 
 export const revalidate = 3600;
 
 const UNIVERSE = [
+  // US
   "AAPL","MSFT","GOOGL","AMZN","NVDA","TSLA","META","JPM","V","WMT",
   "UNH","XOM","HD","AVGO","LLY","MA","ABBV","COST","PG","NFLX",
   "ORCL","CRM","AMD","QCOM","NOW","BAC","JNJ","GS","CAT","UBER",
+  // Europe
+  "ASML.AS","SAP.DE","MC.PA","RMS.PA","NESN.SW","NOVO-B.CO","ROG.SW",
+  "SIE.DE","AIR.PA","TTE.PA","AZN.L","SHEL.L","ULVR.L","BP.L",
+  "OR.PA","ALV.DE","DTE.DE","BAYN.DE","BNP.PA","NOVN.SW",
+  // Asia
+  "7203.T","6758.T","9984.T","6861.T","7974.T",
+  "0700.HK","9988.HK","1211.HK","3690.HK",
+  "TSM","005930.KS","000660.KS",
+  "RELIANCE.NS","INFY","TCS.NS",
 ];
 
 export async function GET() {
