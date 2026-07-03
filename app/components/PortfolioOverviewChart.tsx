@@ -34,13 +34,17 @@ function fmtAxisDate(dateStr: string) {
 }
 
 export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate, currency, theme = "light" }: Props) {
-  const { chartData, startTotal } = useMemo(() => {
-    // Only stocks that have purchases and price data
-    const active = stocks.filter(s =>
-      (s.purchases ?? []).some(p => p.shares > 0) &&
-      (s.data ?? []).length > 0
-    );
-    if (active.length === 0) return { chartData: [], startTotal: 0 };
+  const { chartData, startTotal, currentTotal } = useMemo(() => {
+    // Use all stocks with price data; use total current shares (back-cast)
+    const active = stocks.filter(s => (s.data ?? []).length > 0);
+    if (active.length === 0) return { chartData: [], startTotal: 0, currentTotal: 0 };
+
+    // Pre-compute current total shares per stock (ignoring purchase dates)
+    const shareMap = new Map<string, number>();
+    for (const s of active) {
+      const total = (s.purchases ?? []).reduce((sum, p) => sum + (p.shares > 0 ? p.shares : 0), 0);
+      shareMap.set(s.symbol, total);
+    }
 
     const now = new Date();
     const cutoff = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
@@ -54,20 +58,15 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
       }
     }
     const dates = [...dateSet].sort();
-    if (dates.length < 5) return { chartData: [], startTotal: 0 };
+    if (dates.length < 5) return { chartData: [], startTotal: 0, currentTotal: 0 };
 
-    const rawPoints = dates.map(date => {
+    const chartData = dates.map(date => {
       let total = 0;
       for (const s of active) {
-        // How many shares were held on this date (respects purchase dates)
-        const sharesOnDate = (s.purchases ?? []).reduce((sum, p) => {
-          if (p.shares <= 0) return sum;
-          // Include if no purchase date, or purchase date is on/before this date
-          return (!p.date || p.date <= date) ? sum + p.shares : sum;
-        }, 0);
-        if (sharesOnDate <= 0) continue;
+        const shares = shareMap.get(s.symbol) ?? 0;
+        if (shares === 0) continue;
 
-        // Most recent close on or before this date (forward-fill only)
+        // Most recent close on or before this date
         const data = s.data ?? [];
         let price = 0;
         for (let j = data.length - 1; j >= 0; j--) {
@@ -76,18 +75,18 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
         if (price === 0) continue;
 
         const fx = exchangeRate / (usdRates[s.currency ?? "USD"] ?? 1);
-        total += sharesOnDate * price * fx;
+        total += shares * price * fx;
       }
       return { date, total };
-    });
+    }).filter(p => p.total > 0);
 
-    // Drop leading zeros (before any stock was purchased)
-    const firstNonZero = rawPoints.findIndex(p => p.total > 0);
-    if (firstNonZero < 0) return { chartData: [], startTotal: 0 };
-    const trimmed = rawPoints.slice(firstNonZero);
-    if (trimmed.length < 5) return { chartData: [], startTotal: 0 };
+    if (chartData.length < 5) return { chartData: [], startTotal: 0, currentTotal: 0 };
 
-    return { chartData: trimmed, startTotal: trimmed[0].total };
+    return {
+      chartData,
+      startTotal: chartData[0].total,
+      currentTotal: chartData[chartData.length - 1].total,
+    };
   }, [stocks, usdRates, exchangeRate]);
 
   if (chartData.length < 5) return null;
@@ -106,9 +105,12 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
 
   return (
     <div className={`rounded-xl border ${bgClass} px-4 pt-3 pb-1 mb-4`}>
-      <div className="flex items-baseline gap-3 mb-1">
+      <div className="flex items-baseline gap-3 mb-1 flex-wrap">
         <span className={`text-xs font-semibold uppercase tracking-wider ${textClass}`}>
           1-year portfolio
+        </span>
+        <span className={`text-base font-bold ${theme === "dark" ? "text-gray-100" : "text-gray-900"}`}>
+          {formatCurrency(currentTotal, currency, 0)}
         </span>
         <span className={`text-sm font-semibold ${isPositive ? "text-emerald-500" : "text-red-500"}`}>
           {changeAbs >= 0 ? "+" : ""}{formatCurrency(changeAbs, currency, 0)}
