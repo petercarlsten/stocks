@@ -685,7 +685,7 @@ const cutoff1yr = new Date();
                 </div>
               ) : null;
             })()}
-          <div className="mt-3">
+          <div className="hidden sm:block mt-3">
             <p className="text-base text-gray-400 font-bold mb-1.5">{t.addInvestmentLabel}</p>
             <div className="flex gap-2">
               <TickerSearch
