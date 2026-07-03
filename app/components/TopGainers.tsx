@@ -15,21 +15,38 @@ const RANK_COLORS = [
   "text-orange-400",
 ];
 
-const SUFFIX_MARKET: Record<string, string> = {
-  ".AS": "AMS", ".PA": "PAR", ".DE": "FRA", ".MU": "FRA",
-  ".L": "LON", ".SW": "SWX", ".CO": "CPH", ".HE": "HEL",
-  ".OL": "OSL", ".ST": "STO", ".BR": "BRU", ".VI": "VIE",
-  ".MI": "MIL", ".MC": "MAD",
-  ".T": "TYO", ".HK": "HKG", ".KS": "KRX", ".KQ": "KRX",
-  ".NS": "NSE", ".BO": "BSE", ".SI": "SGX", ".AX": "ASX",
-  ".KL": "KLS", ".TW": "TWS",
+const SUFFIX_MARKET: Record<string, { code: string; name: string }> = {
+  ".AS": { code: "AMS", name: "Euronext Amsterdam" },
+  ".PA": { code: "PAR", name: "Euronext Paris" },
+  ".DE": { code: "FRA", name: "Frankfurt Stock Exchange" },
+  ".MU": { code: "FRA", name: "Frankfurt Stock Exchange" },
+  ".L":  { code: "LON", name: "London Stock Exchange" },
+  ".SW": { code: "SWX", name: "SIX Swiss Exchange" },
+  ".CO": { code: "CPH", name: "Nasdaq Copenhagen" },
+  ".HE": { code: "HEL", name: "Nasdaq Helsinki" },
+  ".OL": { code: "OSL", name: "Oslo Stock Exchange" },
+  ".ST": { code: "STO", name: "Nasdaq Stockholm" },
+  ".BR": { code: "BRU", name: "Euronext Brussels" },
+  ".VI": { code: "VIE", name: "Vienna Stock Exchange" },
+  ".MI": { code: "MIL", name: "Borsa Italiana" },
+  ".MC": { code: "MAD", name: "Bolsa de Madrid" },
+  ".T":  { code: "TYO", name: "Tokyo Stock Exchange" },
+  ".HK": { code: "HKG", name: "Hong Kong Stock Exchange" },
+  ".KS": { code: "KRX", name: "Korea Exchange" },
+  ".KQ": { code: "KRX", name: "Korea Exchange (KOSDAQ)" },
+  ".NS": { code: "NSE", name: "National Stock Exchange of India" },
+  ".BO": { code: "BSE", name: "Bombay Stock Exchange" },
+  ".SI": { code: "SGX", name: "Singapore Exchange" },
+  ".AX": { code: "ASX", name: "Australian Securities Exchange" },
+  ".KL": { code: "KLS", name: "Bursa Malaysia" },
+  ".TW": { code: "TWS", name: "Taiwan Stock Exchange" },
 };
 
-function marketLabel(symbol: string): string {
+function marketInfo(symbol: string): { code: string; name: string } {
   const dot = symbol.lastIndexOf(".");
-  if (dot < 0) return "US";
+  if (dot < 0) return { code: "US", name: "NYSE / Nasdaq" };
   const suffix = symbol.slice(dot);
-  return SUFFIX_MARKET[suffix] ?? suffix.slice(1).toUpperCase();
+  return SUFFIX_MARKET[suffix] ?? { code: suffix.slice(1).toUpperCase(), name: suffix.slice(1).toUpperCase() };
 }
 
 export default function TopGainers() {
@@ -88,7 +105,9 @@ export default function TopGainers() {
                       style={{ width: `${barWidth}%` }}
                     />
                   </div>
-                  <span className="text-gray-400 text-xs shrink-0">{marketLabel(g.symbol)}</span>
+                  {(() => { const m = marketInfo(g.symbol); return (
+                    <span className="text-gray-400 text-xs shrink-0 cursor-default" title={m.name}>{m.code}</span>
+                  ); })()}
                 </div>
               </div>
             );
