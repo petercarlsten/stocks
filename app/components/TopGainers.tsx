@@ -66,7 +66,7 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"] }: Props
       .catch(() => setLoading(false));
   }, []);
 
-  const filtered = gainers.filter(g => !g.region || regions.includes(g.region)).slice(0, 9);
+  const filtered = gainers.filter(g => g.gain >= 0 && (!g.region || regions.includes(g.region))).slice(0, 9);
   const maxGain = filtered.length > 0 ? Math.max(...filtered.map((g) => Math.abs(g.gain))) : 1;
   const [openTip, setOpenTip] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -108,6 +108,8 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"] }: Props
                   </span>
                   <span
                     className="relative text-gray-900 text-xs font-bold truncate min-w-0 cursor-default"
+                    onMouseEnter={() => setOpenTip(`name-${g.symbol}`)}
+                    onMouseLeave={() => setOpenTip(null)}
                     onClick={() => setOpenTip(openTip === `name-${g.symbol}` ? null : `name-${g.symbol}`)}
                   >
                     {g.name}
@@ -121,7 +123,7 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"] }: Props
                     {positive ? "+" : ""}{g.gain.toFixed(1)}%
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
+                <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="w-4 shrink-0" />
                   <div className="flex-1 min-w-0 relative h-1 bg-gray-100 rounded-full overflow-hidden">
                     <div
@@ -129,19 +131,27 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"] }: Props
                       style={{ width: `${barWidth}%` }}
                     />
                   </div>
-                  {(() => { const m = marketInfo(g.symbol); return (
-                    <span
-                      className="relative text-gray-400 text-xs shrink-0 cursor-default"
-                      onClick={() => setOpenTip(openTip === `mkt-${g.symbol}` ? null : `mkt-${g.symbol}`)}
-                    >
-                      {m.code}
-                      {openTip === `mkt-${g.symbol}` && (
-                        <span className="absolute bottom-full mb-1.5 right-0 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 z-20 pointer-events-none">
-                          {m.name}
+                  {(() => {
+                    const m = marketInfo(g.symbol);
+                    const tipId = `mkt-${g.symbol}`;
+                    return (
+                      <div className="relative shrink-0">
+                        <span
+                          className="text-gray-400 text-xs cursor-default"
+                          onMouseEnter={() => setOpenTip(tipId)}
+                          onMouseLeave={() => setOpenTip(null)}
+                          onClick={() => setOpenTip(openTip === tipId ? null : tipId)}
+                        >
+                          {m.code}
                         </span>
-                      )}
-                    </span>
-                  ); })()}
+                        {openTip === tipId && (
+                          <span className="absolute bottom-full mb-1.5 right-0 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 z-50 pointer-events-none">
+                            {m.name}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             );
