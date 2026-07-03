@@ -89,8 +89,6 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
     };
   }, [stocks, usdRates, exchangeRate]);
 
-  if (chartData.length < 5) return null;
-
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -110,6 +108,8 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
       el.removeEventListener("touchmove", onMove, { capture: true });
     };
   }, []);
+
+  if (chartData.length < 5) return null;
 
   const first = chartData[0];
   const last = chartData[chartData.length - 1];
