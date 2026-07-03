@@ -629,18 +629,6 @@ const cutoff1yr = new Date();
                       {formatCurrency(total, currency)}
                     </span>
                   </div>
-                  {change1yr !== null && gain1yr !== null && (
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-gray-600 text-xs w-24 shrink-0">{change1yr >= 0 ? t.lastYearGain : t.lastYearLoss}</span>
-                      <GainHover isPositive={change1yr >= 0}>
-                        <TrumpHover isNegative={change1yr < 0}>
-                          <span className={`text-sm font-medium whitespace-nowrap ${change1yr >= 0 ? "text-green-600" : "text-red-500"}`}>
-                            {change1yr >= 0 ? "+" : ""}{fmt(gain1yr)} ({change1yr >= 0 ? "+" : ""}{change1yr.toFixed(2)}%)
-                          </span>
-                        </TrumpHover>
-                      </GainHover>
-                    </div>
-                  )}
                   {change30d !== null && gain30d !== null && (
                     <div className="flex items-baseline gap-2">
                       <span className="text-gray-600 text-xs w-24 shrink-0">{change30d >= 0 ? t.lastNDaysGain(30) : t.lastNDaysLoss(30)}</span>
