@@ -28,6 +28,7 @@ interface Props {
   navTimestamp?: number | null;
   lastDataDate?: string | null;
   earningsResult?: { epsActual: number | null; epsEstimate: number | null; surprisePercent: number | null; currency: string } | null;
+  chartMonths?: number;
 }
 
 export default function SortableStockChart(props: Props) {

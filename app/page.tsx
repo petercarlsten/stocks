@@ -125,6 +125,7 @@ export default function Home() {
   const [drawdownDate, setDrawdownDate] = useState<string>("");
   const [growthRate, setGrowthRate] = useState<number>(10);
   const [inflationRate, setInflationRate] = useState<number>(2.5);
+  const [chartMonths, setChartMonths] = useState<number>(3);
   const [refreshing, setRefreshing] = useState(false);
 
   // Load saved preferences — localStorage first (instant), then server overrides
@@ -171,6 +172,7 @@ export default function Home() {
         if (typeof p.drawdownDate === "string") setDrawdownDate(p.drawdownDate);
         if (typeof p.growthRate === "number") setGrowthRate(p.growthRate);
         if (typeof p.inflationRate === "number") setInflationRate(p.inflationRate);
+        if (typeof p.chartMonths === "number") setChartMonths(p.chartMonths);
         if (p.pushSchedule && typeof p.pushSchedule === "object") setPushSchedule(p.pushSchedule);
         // Also sync reportCurrency with currency if set
         if (d.reportCurrency && !p.currency) { setCurrency(d.reportCurrency); localStorage.setItem("portfolio-currency", d.reportCurrency); }
@@ -801,7 +803,20 @@ const cutoff1yr = new Date();
           {topGainersEnabled && <div className="w-full"><TopGainers /></div>}
         </div>
 
-{stocks.length === 0 ? (
+{stocks.length > 0 && (
+          <div className="flex items-center gap-1 mb-3">
+            {([1, 3, 6, 12] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => { setChartMonths(m); savePrefs({ chartMonths: m }); }}
+                className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${chartMonths === m ? "bg-indigo-600 text-white" : "bg-white text-gray-500 border border-gray-200 hover:bg-gray-50"}`}
+              >
+                {m}M
+              </button>
+            ))}
+          </div>
+        )}
+        {stocks.length === 0 ? (
           <p className="text-gray-400 text-center mt-24">
             {t.addTickerPrompt}
           </p>
@@ -825,8 +840,8 @@ const cutoff1yr = new Date();
                       const tickerRate = usdRates[s.currency ?? "USD"] ?? 1;
                       const posVal = sh > 0 ? sh * (s.data?.at(-1)?.close ?? 0) * (exchangeRate / tickerRate) : 0;
                       const portfolioPct = totalPortfolioValue > 0 && posVal > 0 ? (posVal / totalPortfolioValue) * 100 : undefined;
-                      const threeMonthsAgo = new Date(); threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-                      const chartCutoff = threeMonthsAgo.toISOString().split("T")[0];
+                      const cutoffDate = new Date(); cutoffDate.setMonth(cutoffDate.getMonth() - chartMonths);
+                      const chartCutoff = cutoffDate.toISOString().split("T")[0];
                       const chartData = (s.data ?? []).filter((d) => d.date >= chartCutoff);
                       return (
                         <SortableStockChart
@@ -849,6 +864,7 @@ const cutoff1yr = new Date();
                           navTimestamp={s.navTimestamp ?? null}
                           lastDataDate={s.lastDataDate ?? null}
                           earningsResult={s.earningsResult ?? null}
+                          chartMonths={chartMonths}
                         />
                       );
                     })}

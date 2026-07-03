@@ -51,6 +51,7 @@ interface Props {
   navTimestamp?: number | null;
   lastDataDate?: string | null;
   earningsResult?: { epsActual: number | null; epsEstimate: number | null; surprisePercent: number | null; currency: string } | null;
+  chartMonths?: number;
 }
 
 function formatEarningsDate(dateStr: string): string {
@@ -132,7 +133,7 @@ const MARKET_STATE_BADGE: Record<string, { dot: string; label: string }> = {
   CLOSED:   { dot: "bg-gray-300",   label: "Market closed"   },
 };
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navTimestamp, lastDataDate, earningsResult }: Props) {
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navTimestamp, lastDataDate, earningsResult, chartMonths = 3 }: Props) {
   // lastDataDate is our own record of the most recent data point we ever received — monotonically increasing,
   // never reset to a stale Yahoo value. Falls back to current chart tail if not yet stored.
   const navDate = quoteType === "MUTUALFUND"
@@ -639,7 +640,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           onMouseEnter={() => setShowGains(true)}
           onMouseLeave={() => setShowGains(false)}
         >
-          <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: dark ? "#6b7280" : "#475569" }}>{t.threeMonthPerformance}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: dark ? "#6b7280" : "#475569" }}>{chartMonths}-{t.threeMonthPerformance}</p>
           <div className="flex flex-col gap-1.5">
             <div className="flex justify-between gap-4 text-xs">
               <span style={{ color: dark ? "#6b7280" : "#475569" }}>{t.period}</span>
