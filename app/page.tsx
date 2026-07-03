@@ -678,7 +678,7 @@ const cutoff1yr = new Date();
               ) : null;
             })()}
           <div className="mt-3">
-            <p className="text-base text-gray-400 font-bold mb-1.5">{t.addInvestmentLabel}</p>
+            <p className="text-base text-white font-bold mb-1.5">{t.addInvestmentLabel}</p>
             <div className="flex gap-2">
               <TickerSearch
                 onAdd={(symbol) => { setError(""); addStockBySymbol(symbol); }}
