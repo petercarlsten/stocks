@@ -518,7 +518,7 @@ export default function Home() {
       `}</style>
       <div className="max-w-screen-xl mx-auto pb-12">
         <div className="grid grid-cols-[1fr_auto] items-start gap-x-4 sm:gap-x-6 mb-4 sm:mb-6">
-          <div className="flex flex-wrap lg:flex-nowrap items-start gap-3 sm:gap-6 min-w-0">
+          <div className="flex flex-wrap items-start gap-3 sm:gap-6 min-w-0">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-5 mb-2">
               <div className="relative shrink-0">
@@ -690,7 +690,6 @@ const cutoff1yr = new Date();
           </div>
           </div>
           {leaderboardEnabled && <div className="hidden lg:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} /></div>}
-          {topGainersEnabled && <div className="hidden lg:block"><TopGainers regions={topGainersRegions} /></div>}
           </div>{/* end left content wrapper */}
           <div className="shrink-0 pt-1 flex flex-col gap-2 self-start">
             <button
@@ -791,11 +790,12 @@ const cutoff1yr = new Date();
           theme={theme}
         />
 
-        {/* Leaderboard + Top Gainers shown below search on mobile and tablet */}
+        {/* Leaderboard shown below on mobile/tablet */}
         <div className="flex flex-wrap gap-3 mb-4 lg:hidden">
           {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} />}
-          {topGainersEnabled && <div className="w-full"><TopGainers regions={topGainersRegions} /></div>}
         </div>
+        {/* Top Gainers always shown below */}
+        {topGainersEnabled && <div className="mb-4"><TopGainers regions={topGainersRegions} /></div>}
 
         {stocks.length === 0 ? (
           <p className="text-gray-400 text-center mt-24">
