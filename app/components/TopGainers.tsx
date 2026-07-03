@@ -96,7 +96,7 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"] }: Props
       ) : gainers.length === 0 ? (
         <p className="text-gray-400 text-xs">{t.noData}</p>
       ) : (
-        <div className="grid grid-cols-3 gap-x-4 gap-y-1.5">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
           {filtered.map((g, i) => {
             const barWidth = Math.round((Math.abs(g.gain) / maxGain) * 100);
             const positive = g.gain >= 0;
@@ -108,8 +108,8 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"] }: Props
                   </span>
                   <span
                     className="relative text-gray-900 text-xs font-bold truncate min-w-0 cursor-default"
-                    onMouseEnter={() => setOpenTip(`name-${g.symbol}`)}
-                    onMouseLeave={() => setOpenTip(null)}
+                    onPointerEnter={(e) => { if (e.pointerType === "mouse") setOpenTip(`name-${g.symbol}`); }}
+                    onPointerLeave={(e) => { if (e.pointerType === "mouse") setOpenTip(null); }}
                     onClick={() => setOpenTip(openTip === `name-${g.symbol}` ? null : `name-${g.symbol}`)}
                   >
                     {g.name}
@@ -138,8 +138,8 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"] }: Props
                       <div className="relative shrink-0">
                         <span
                           className="text-gray-400 text-xs cursor-default"
-                          onMouseEnter={() => setOpenTip(tipId)}
-                          onMouseLeave={() => setOpenTip(null)}
+                          onPointerEnter={(e) => { if (e.pointerType === "mouse") setOpenTip(tipId); }}
+                          onPointerLeave={(e) => { if (e.pointerType === "mouse") setOpenTip(null); }}
                           onClick={() => setOpenTip(openTip === tipId ? null : tipId)}
                         >
                           {m.code}
