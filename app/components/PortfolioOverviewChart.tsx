@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useEffect } from "react";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip,
   ResponsiveContainer, ReferenceLine,
@@ -91,6 +91,26 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
 
   if (chartData.length < 5) return null;
 
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = chartRef.current;
+    if (!el) return;
+    let startX = 0, startY = 0;
+    const onStart = (e: TouchEvent) => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; };
+    const onMove = (e: TouchEvent) => {
+      const dx = Math.abs(e.touches[0].clientX - startX);
+      const dy = Math.abs(e.touches[0].clientY - startY);
+      if (dy > dx) e.stopImmediatePropagation();
+    };
+    el.addEventListener("touchstart", onStart, { capture: true, passive: true });
+    el.addEventListener("touchmove", onMove, { capture: true, passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart, { capture: true });
+      el.removeEventListener("touchmove", onMove, { capture: true });
+    };
+  }, []);
+
   const first = chartData[0];
   const last = chartData[chartData.length - 1];
   const changeAbs = last.total - first.total;
@@ -120,7 +140,7 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
         </span>
       </div>
 
-      <div style={{ touchAction: "pan-y" }}>
+      <div ref={chartRef}>
       <ResponsiveContainer width="100%" height={110}>
         <AreaChart data={chartData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
           <defs>
