@@ -15,6 +15,23 @@ const RANK_COLORS = [
   "text-orange-400",
 ];
 
+const SUFFIX_MARKET: Record<string, string> = {
+  ".AS": "AMS", ".PA": "PAR", ".DE": "FRA", ".MU": "FRA",
+  ".L": "LON", ".SW": "SWX", ".CO": "CPH", ".HE": "HEL",
+  ".OL": "OSL", ".ST": "STO", ".BR": "BRU", ".VI": "VIE",
+  ".MI": "MIL", ".MC": "MAD",
+  ".T": "TYO", ".HK": "HKG", ".KS": "KRX", ".KQ": "KRX",
+  ".NS": "NSE", ".BO": "BSE", ".SI": "SGX", ".AX": "ASX",
+  ".KL": "KLS", ".TW": "TWS",
+};
+
+function marketLabel(symbol: string): string {
+  const dot = symbol.lastIndexOf(".");
+  if (dot < 0) return "US";
+  const suffix = symbol.slice(dot);
+  return SUFFIX_MARKET[suffix] ?? suffix.slice(1).toUpperCase();
+}
+
 export default function TopGainers() {
   const t = useTranslation();
   const [gainers, setGainers] = useState<Gainer[]>([]);
@@ -53,11 +70,11 @@ export default function TopGainers() {
                   <span className={`text-xs font-bold w-4 shrink-0 tabular-nums ${RANK_COLORS[i] ?? "text-gray-300"}`}>
                     {i + 1}
                   </span>
-                  <span className="group relative text-gray-900 text-xs font-bold shrink-0 cursor-default">
-                    {g.symbol}
-                    <span className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                      {g.name}
-                    </span>
+                  <span
+                    className="text-gray-900 text-xs font-bold truncate min-w-0 cursor-default"
+                    title={g.symbol}
+                  >
+                    {g.name}
                   </span>
                   <span className={`text-xs font-semibold shrink-0 ml-auto tabular-nums ${positive ? "text-green-600" : "text-red-500"}`}>
                     {positive ? "+" : ""}{g.gain.toFixed(1)}%
@@ -71,7 +88,7 @@ export default function TopGainers() {
                       style={{ width: `${barWidth}%` }}
                     />
                   </div>
-                  <span className="text-gray-400 text-xs truncate min-w-0 max-w-16" title={g.name}>{g.name.split(" ")[0]}</span>
+                  <span className="text-gray-400 text-xs shrink-0">{marketLabel(g.symbol)}</span>
                 </div>
               </div>
             );
