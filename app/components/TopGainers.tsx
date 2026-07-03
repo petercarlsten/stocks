@@ -66,7 +66,7 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"] }: Props
       .catch(() => setLoading(false));
   }, []);
 
-  const filtered = gainers.filter(g => g.gain >= 0 && (!g.region || regions.includes(g.region))).slice(0, 9);
+  const filtered = gainers.filter(g => g.gain >= 0 && (!g.region || regions.includes(g.region))).slice(0, 6);
   const maxGain = filtered.length > 0 ? Math.max(...filtered.map((g) => Math.abs(g.gain))) : 1;
   const [openTip, setOpenTip] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -83,7 +83,7 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"] }: Props
   }, []);
 
   return (
-    <div ref={containerRef} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm min-w-0 shrink">
+    <div ref={containerRef} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm w-96">
       <div className="flex items-baseline gap-2 mb-3">
         <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider">
           {t.topGainersTitle}

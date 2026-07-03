@@ -689,7 +689,10 @@ const cutoff1yr = new Date();
             {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
           </div>
           </div>
-          {leaderboardEnabled && <div className="hidden lg:block"><DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} /></div>}
+          <div className="hidden lg:flex flex-col gap-3 shrink-0">
+            {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} />}
+            {topGainersEnabled && <TopGainers regions={topGainersRegions} />}
+          </div>
           </div>{/* end left content wrapper */}
           <div className="shrink-0 pt-1 flex flex-col gap-2 self-start">
             <button
@@ -782,12 +785,11 @@ const cutoff1yr = new Date();
             onChartMonthsChange={(v) => { setChartMonths(v); savePrefs({ chartMonths: v }); }}
           />
 
-        {/* Leaderboard shown below on mobile/tablet */}
+        {/* Leaderboard + Top Gainers below on mobile/tablet */}
         <div className="flex flex-wrap gap-3 mb-4 lg:hidden">
           {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} />}
+          {topGainersEnabled && <div className="w-full"><TopGainers regions={topGainersRegions} /></div>}
         </div>
-        {/* Top Gainers above 1-year chart */}
-        {topGainersEnabled && <div className="mb-4"><TopGainers regions={topGainersRegions} /></div>}
 
         <PortfolioOverviewChart
           stocks={stocks}
