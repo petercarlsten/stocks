@@ -114,8 +114,9 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"] }: Props
                   >
                     {g.name}
                     {openTip === `name-${g.symbol}` && (
-                      <span className="absolute bottom-full mb-1.5 left-0 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 z-20 pointer-events-none">
-                        {g.symbol}
+                      <span className="absolute bottom-full mb-1.5 left-0 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 z-50 pointer-events-none">
+                        <span className="block">{g.name}</span>
+                        <span className="block text-gray-400">{g.symbol}</span>
                       </span>
                     )}
                   </span>
