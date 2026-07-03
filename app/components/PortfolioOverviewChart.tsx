@@ -109,7 +109,7 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
         <span className={`text-xs font-semibold uppercase tracking-wider ${theme === "dark" ? "text-white" : "text-gray-700"}`}>
           1-year portfolio
         </span>
-        <span className={`text-base font-bold ${theme === "dark" ? "text-gray-100" : "text-gray-900"}`}>
+        <span className={`text-base font-bold ${theme === "dark" ? "text-white" : "text-gray-900"}`}>
           {formatCurrency(currentTotal, currency, 0)}
         </span>
         <span className={`text-sm font-semibold ${isPositive ? "text-emerald-500" : "text-red-500"}`}>
