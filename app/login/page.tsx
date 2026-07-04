@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const justReset = searchParams.get("reset") === "1";
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -38,6 +40,11 @@ export default function LoginPage() {
         </h1>
         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
           <h2 className="text-gray-900 font-semibold text-lg mb-5">Sign in</h2>
+          {justReset && (
+            <div className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3 mb-4">
+              Password updated — you can sign in now.
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
               <label className="text-gray-500 text-xs uppercase tracking-wider block mb-1">Username</label>
@@ -61,6 +68,9 @@ export default function LoginPage() {
               />
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
+            <div className="text-right -mt-2">
+              <Link href="/forgot-password" className="text-xs text-indigo-500 hover:text-indigo-700">Forgot password?</Link>
+            </div>
             <button
               type="submit"
               disabled={loading}
@@ -90,5 +100,13 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

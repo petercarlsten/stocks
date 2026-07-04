@@ -29,6 +29,8 @@ interface User {
   passwordHash?: string;
   provider?: "google";
   reportEmail?: string;
+  resetToken?: string;
+  resetTokenExpiry?: number;
   reportCurrency?: string;
   preferences?: UserPreferences;
   pushSubscription?: object;
@@ -64,15 +66,44 @@ export function findById(id: string): User | undefined {
   return readUsers().find((u) => u.id === id);
 }
 
-export async function createUser(username: string, password: string): Promise<User> {
+export async function createUser(username: string, password: string, email?: string): Promise<User> {
   const users = readUsers();
   if (users.some((u) => u.username.toLowerCase() === username.toLowerCase())) {
     throw new Error("Username already taken");
   }
   const passwordHash = await bcrypt.hash(password, 12);
-  const user: User = { id: crypto.randomUUID(), username, passwordHash, createdAt: new Date().toISOString() };
+  const user: User = { id: crypto.randomUUID(), username, passwordHash, createdAt: new Date().toISOString(), ...(email ? { reportEmail: email } : {}) };
   writeUsers([...users, user]);
   return user;
+}
+
+export function findByResetToken(token: string): User | undefined {
+  return readUsers().find((u) => u.resetToken === token && u.resetTokenExpiry && Date.now() < u.resetTokenExpiry);
+}
+
+export function setResetToken(username: string, token: string, expiry: number) {
+  const users = readUsers();
+  const idx = users.findIndex((u) => u.username.toLowerCase() === username.toLowerCase());
+  if (idx === -1) return;
+  users[idx] = { ...users[idx], resetToken: token, resetTokenExpiry: expiry };
+  writeUsers(users);
+}
+
+export function clearResetToken(username: string) {
+  const users = readUsers();
+  const idx = users.findIndex((u) => u.username.toLowerCase() === username.toLowerCase());
+  if (idx === -1) return;
+  const { resetToken: _, resetTokenExpiry: __, ...rest } = users[idx];
+  users[idx] = rest as User;
+  writeUsers(users);
+}
+
+export async function updatePassword(username: string, newPassword: string) {
+  const users = readUsers();
+  const idx = users.findIndex((u) => u.username.toLowerCase() === username.toLowerCase());
+  if (idx === -1) return;
+  users[idx] = { ...users[idx], passwordHash: await bcrypt.hash(newPassword, 12) };
+  writeUsers(users);
 }
 
 export async function verifyPassword(plain: string, hash: string): Promise<boolean> {

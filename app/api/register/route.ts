@@ -19,13 +19,16 @@ async function verifyTurnstile(token: string): Promise<boolean> {
 }
 
 export async function POST(req: NextRequest) {
-  const { username, password, turnstileToken } = await req.json();
+  const { username, password, email, turnstileToken } = await req.json();
 
   if (!username || typeof username !== "string" || username.trim().length < 3) {
     return NextResponse.json({ error: "Username must be at least 3 characters" }, { status: 400 });
   }
   if (!password || typeof password !== "string" || password.length < 6) {
     return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
+  }
+  if (!email || typeof email !== "string" || !email.includes("@")) {
+    return NextResponse.json({ error: "A valid email address is required" }, { status: 400 });
   }
   if (!turnstileToken || typeof turnstileToken !== "string") {
     return NextResponse.json({ error: "Human verification required" }, { status: 400 });
@@ -37,7 +40,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await createUser(username.trim(), password);
+    await createUser(username.trim(), password, email.trim().toLowerCase());
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Failed to create account";

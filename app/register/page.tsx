@@ -9,6 +9,7 @@ import { Turnstile } from "@marsidev/react-turnstile";
 export default function RegisterPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
@@ -24,7 +25,7 @@ export default function RegisterPage() {
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password, turnstileToken: turnstileToken.current }),
+      body: JSON.stringify({ username, email, password, turnstileToken: turnstileToken.current }),
     });
     const json = await res.json();
     if (!res.ok) {
@@ -79,6 +80,18 @@ export default function RegisterPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 autoComplete="username"
                 minLength={3}
+                required
+              />
+            </div>
+            <div>
+              <label className="text-gray-500 text-xs uppercase tracking-wider block mb-1">Email</label>
+              <input
+                type="email"
+                className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                placeholder="Used for password recovery"
                 required
               />
             </div>
