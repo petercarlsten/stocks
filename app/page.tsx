@@ -798,7 +798,7 @@ const cutoff1yr = new Date();
         {/* Leaderboard + Top Gainers below on mobile/tablet */}
         <div className="flex flex-wrap gap-3 mb-4 lg:hidden">
           {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} />}
-          {topGainersEnabled && <div className="w-full"><TopGainers regions={topGainersRegions} /></div>}
+          {topGainersEnabled && <div className="w-full"><TopGainers regions={topGainersRegions} onRegionsChange={(v) => { setTopGainersRegions(v); savePrefs({ topGainersRegions: v }); }} /></div>}
         </div>
 
         <PortfolioOverviewChart

@@ -163,6 +163,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [nativeCurrencyOpen, setNativeCurrencyOpen] = useState(false);
   const [nativeCurrencyQuery, setNativeCurrencyQuery] = useState("");
+  const [openTip, setOpenTip] = useState<string | null>(null);
   const usdRatesRef = useRef<Record<string, number>>({ USD: 1 });
   const fetchingRef = useRef(new Set<string>());
   const failedRef = useRef(new Set<string>());
@@ -354,12 +355,22 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
             <span className="text-gray-600 text-xs">{symbol}</span>
             {(() => {
               const m = marketInfo(symbol);
+              const tipId = `exch-${symbol}`;
               return (
-                <span className="group relative text-gray-400 text-xs cursor-default">
-                  {m.code}
-                  <span className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                    {m.name}
+                <span className="relative">
+                  <span
+                    className="text-gray-400 text-xs cursor-default"
+                    onMouseEnter={() => setOpenTip(tipId)}
+                    onMouseLeave={() => setOpenTip(null)}
+                    onClick={() => setOpenTip(openTip === tipId ? null : tipId)}
+                  >
+                    {m.code}
                   </span>
+                  {openTip === tipId && (
+                    <span className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 z-20 pointer-events-none">
+                      {m.name}
+                    </span>
+                  )}
                 </span>
               );
             })()}
