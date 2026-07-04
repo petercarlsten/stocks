@@ -23,6 +23,7 @@ interface Props {
   stocks: StockData[];
   usdRates?: Record<string, number>;
   className?: string;
+  columns?: 1 | 3;
 }
 
 function fmtDate(dateStr: string): string {
@@ -34,7 +35,7 @@ function fmtPrice(value: number, currency: string): string {
   return formatCurrency(value, currency);
 }
 
-export default function DashboardLeaderboard({ stocks, usdRates = {}, className }: Props) {
+export default function DashboardLeaderboard({ stocks, usdRates = {}, className, columns = 1 }: Props) {
   const t = useTranslation();
   if (stocks.length === 0) return null;
 
@@ -69,7 +70,7 @@ export default function DashboardLeaderboard({ stocks, usdRates = {}, className 
       {withPurchase.length === 0 ? (
         <p className="text-gray-600 text-xs">{t.addPurchasePrompt}</p>
       ) : (
-        <ol className="flex flex-col gap-3">
+        <ol className={columns === 3 ? "grid grid-cols-3 gap-3" : "flex flex-col gap-3"}>
           {withPurchase.map((s, i) => {
             const positive = s.pctGain >= 0;
             const gainColor = positive ? "text-green-600" : "text-red-500";
