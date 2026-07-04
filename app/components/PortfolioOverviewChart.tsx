@@ -3,7 +3,7 @@
 import { useMemo, useRef, useEffect } from "react";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, ReferenceLine,
+  ResponsiveContainer, ReferenceLine, ReferenceDot,
 } from "recharts";
 import { formatCurrency } from "../lib/formatCurrency";
 
@@ -129,9 +129,6 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
         <span className={`text-xs font-semibold uppercase tracking-wider ${theme === "dark" ? "text-white" : "text-gray-700"}`}>
           Total portfolio performance YTD
         </span>
-        <span className={`text-base font-bold ${theme === "dark" ? "text-white" : "text-gray-900"}`}>
-          {formatCurrency(currentTotal, currency, 0)}
-        </span>
         <span className={`text-sm font-semibold ${isPositive ? "text-emerald-500" : "text-red-500"}`}>
           {changeAbs >= 0 ? "+" : ""}{formatCurrency(changeAbs, currency, 0)}
           <span className="text-xs font-normal ml-1 opacity-80">
@@ -163,6 +160,14 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
           />
           <YAxis hide domain={["auto", "auto"]} />
           <ReferenceLine y={startTotal} stroke={refColor} strokeWidth={1} strokeDasharray="3 3" />
+          <ReferenceDot
+            x={last.date}
+            y={last.total}
+            r={3}
+            fill={color}
+            stroke="none"
+            label={{ value: formatCurrency(currentTotal, currency, 0), position: "top", fontSize: 10, fill: axisColor, dy: -2 }}
+          />
           <Tooltip
             content={({ active, payload }) => {
               if (!active || !payload?.[0]) return null;
