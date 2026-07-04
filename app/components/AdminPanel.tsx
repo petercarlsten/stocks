@@ -29,6 +29,7 @@ interface UserInfo {
   loginCount: number;
   theme: "light" | "dark" | null;
   funnyMode: string | null;
+  reportEmail: string | null;
 }
 
 interface Props {
@@ -153,6 +154,7 @@ export default function AdminPanel({ open, onClose }: Props) {
                 <th className="px-2 py-1.5 font-semibold border-b border-gray-200">Timezone</th>
                 <th className="px-2 py-1.5 font-semibold border-b border-gray-200">Theme</th>
                 <th className="px-2 py-1.5 font-semibold border-b border-gray-200">Funny</th>
+                <th className="px-2 py-1.5 font-semibold border-b border-gray-200">Email</th>
                 <th className="px-2 py-1.5 font-semibold border-b border-gray-200 text-right">Logins</th>
                 <th className="px-2 py-1.5 border-b border-gray-200"></th>
               </tr>
@@ -168,6 +170,11 @@ export default function AdminPanel({ open, onClose }: Props) {
                   <td className="px-2 py-1.5 text-gray-500 whitespace-nowrap">{u.timezone ?? "—"}</td>
                   <td className="px-2 py-1.5 text-gray-500 whitespace-nowrap">{u.theme ?? "—"}</td>
                   <td className="px-2 py-1.5 text-gray-500 whitespace-nowrap">{u.funnyMode ?? "—"}</td>
+                  <td className="px-2 py-1.5 whitespace-nowrap">
+                    {u.reportEmail
+                      ? <span className="text-emerald-600">{u.reportEmail}</span>
+                      : <span className="text-gray-300">—</span>}
+                  </td>
                   <td className="px-2 py-1.5 text-gray-500 text-right">{u.loginCount}</td>
                   <td className="px-2 py-1.5 whitespace-nowrap">
                     {confirm === u.username ? (

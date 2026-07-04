@@ -24,6 +24,7 @@ export async function GET() {
     loginCount: u.loginCount ?? 0,
     theme: u.preferences?.theme ?? null,
     funnyMode: u.preferences?.funnyMode ?? null,
+    reportEmail: u.reportEmail ?? null,
   }));
   return NextResponse.json({ users });
 }
