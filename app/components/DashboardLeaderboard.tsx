@@ -62,13 +62,8 @@ export default function DashboardLeaderboard({ stocks, usdRates = {}, className,
     })
     .sort((a, b) => b.valueGainUSD - a.valueGainUSD);
 
-  const totalGainUSD = withPurchase.reduce((sum, s) => sum + s.valueGainUSD, 0);
-  const borderClass = withPurchase.length === 0
-    ? "border border-gray-200"
-    : totalGainUSD >= 0 ? "border-2 border-green-500" : "border-2 border-red-500";
-
   return (
-    <div className={className ? `${className} ${borderClass}` : `bg-white rounded-xl p-4 w-96 shrink-0 shadow-sm ${borderClass}`}>
+    <div className={className ? `${className} border border-gray-200` : "bg-white rounded-xl p-4 w-96 shrink-0 shadow-sm border border-gray-200"}>
       <h2 className="text-gray-700 text-xs font-semibold uppercase tracking-wider mb-3">
         {t.gainsSincePurchased}
       </h2>
@@ -81,7 +76,7 @@ export default function DashboardLeaderboard({ stocks, usdRates = {}, className,
             const gainColor = positive ? "text-green-600" : "text-red-500";
             const sign = positive ? "+" : "";
             return (
-              <li key={s.symbol} className="flex items-start gap-2 min-w-0">
+              <li key={s.symbol} className={`flex items-start gap-2 min-w-0 rounded-lg p-2 border-2 ${positive ? "border-green-500" : "border-red-500"}`}>
                 <span className="text-gray-500 text-xs w-3 shrink-0 mt-0.5">{i + 1}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between gap-2">
