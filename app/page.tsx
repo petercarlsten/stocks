@@ -699,7 +699,7 @@ const cutoff1yr = new Date();
           )}
           {topGainersEnabled && (
             <div className="hidden lg:block mt-3">
-              <TopGainers regions={topGainersRegions} columns={3} className="w-full" />
+              <TopGainers regions={topGainersRegions} onRegionsChange={(v) => { setTopGainersRegions(v); savePrefs({ topGainersRegions: v }); }} columns={3} className="w-full" />
             </div>
           )}
           </div>
@@ -768,8 +768,6 @@ const cutoff1yr = new Date();
             onLeaderboardChange={(v) => { setLeaderboardEnabled(v); localStorage.setItem("portfolio-leaderboard", String(v)); savePrefs({ leaderboardEnabled: v }); }}
             topGainersEnabled={topGainersEnabled}
             onTopGainersChange={(v) => { setTopGainersEnabled(v); localStorage.setItem("portfolio-top-gainers", String(v)); savePrefs({ topGainersEnabled: v }); }}
-            topGainersRegions={topGainersRegions}
-            onTopGainersRegionsChange={(v) => { setTopGainersRegions(v); savePrefs({ topGainersRegions: v }); }}
             language={language}
             onLanguageChange={(v) => { setLanguage(v); localStorage.setItem("portfolio-language", v); savePrefs({ language: v }); }}
             reportEmail={reportEmail}

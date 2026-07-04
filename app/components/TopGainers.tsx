@@ -12,6 +12,7 @@ interface Gainer {
 
 interface Props {
   regions?: string[];
+  onRegionsChange?: (regions: string[]) => void;
   columns?: 2 | 3;
   className?: string;
 }
@@ -56,7 +57,7 @@ function marketInfo(symbol: string): { code: string; name: string } {
   return SUFFIX_MARKET[suffix] ?? { code: suffix.slice(1).toUpperCase(), name: suffix.slice(1).toUpperCase() };
 }
 
-export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"], columns = 2, className = "" }: Props) {
+export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"], onRegionsChange, columns = 2, className = "" }: Props) {
   const t = useTranslation();
   const [gainers, setGainers] = useState<Gainer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,11 +93,22 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"], columns
         </h2>
         <span className="text-gray-300 text-xs">{t.last3Months}</span>
         <div className="flex gap-1 ml-auto">
-          {(["AMER", "EMEA", "APAC"] as const).map((r) => (
-            <span key={r} className={`text-xs px-1.5 py-0.5 rounded font-medium ${regions.includes(r) ? "bg-indigo-100 text-indigo-600" : "bg-gray-100 text-gray-300"}`}>
-              {r}
-            </span>
-          ))}
+          {(["AMER", "EMEA", "APAC"] as const).map((r) => {
+            const active = regions.includes(r);
+            return (
+              <button
+                key={r}
+                onClick={() => {
+                  if (!onRegionsChange) return;
+                  const next = active ? regions.filter(x => x !== r) : [...regions, r];
+                  if (next.length > 0) onRegionsChange(next);
+                }}
+                className={`text-xs px-1.5 py-0.5 rounded font-medium transition-colors ${active ? "bg-indigo-100 text-indigo-600" : "bg-gray-100 text-gray-300"} ${onRegionsChange ? "cursor-pointer hover:opacity-75" : "cursor-default"}`}
+              >
+                {r}
+              </button>
+            );
+          })}
         </div>
       </div>
 

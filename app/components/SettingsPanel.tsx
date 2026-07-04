@@ -209,11 +209,9 @@ interface Props {
   onInflationRateChange: (v: number) => void;
   chartMonths: number;
   onChartMonthsChange: (v: number) => void;
-  topGainersRegions: string[];
-  onTopGainersRegionsChange: (v: string[]) => void;
 }
 
-export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange, pushSchedule, onPushScheduleChange, drawdownStartDate, onDrawdownStartDateChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange, inflationRate, onInflationRateChange, chartMonths, onChartMonthsChange, topGainersRegions, onTopGainersRegionsChange }: Props) {
+export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange, pushSchedule, onPushScheduleChange, drawdownStartDate, onDrawdownStartDateChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange, inflationRate, onInflationRateChange, chartMonths, onChartMonthsChange }: Props) {
   const t = useTranslation();
   const [sendState, setSendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [pushTestState, setPushTestState] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -381,34 +379,6 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
             <Toggle label={t.stockNews} enabled={newsEnabled} onChange={onNewsChange} />
             <Toggle label={t.gainsSincePurchasedToggle} enabled={leaderboardEnabled} onChange={onLeaderboardChange} />
             <Toggle label={t.topGainers} enabled={topGainersEnabled} onChange={onTopGainersChange} />
-            {topGainersEnabled && (
-              <div className="ml-4 flex flex-col gap-1.5">
-                <span className="text-gray-500 text-xs">Regions</span>
-                <div className="flex gap-2">
-                  {(["AMER", "EMEA", "APAC"] as const).map((r) => {
-                    const active = topGainersRegions.includes(r);
-                    return (
-                      <button
-                        key={r}
-                        onClick={() => {
-                          const next = active
-                            ? topGainersRegions.filter(x => x !== r)
-                            : [...topGainersRegions, r];
-                          if (next.length > 0) onTopGainersRegionsChange(next);
-                        }}
-                        className={`px-3 py-1 rounded-md text-xs font-semibold border transition-colors ${
-                          active
-                            ? "bg-indigo-600 text-white border-indigo-600"
-                            : "bg-white text-gray-500 border-gray-300 hover:bg-gray-50"
-                        }`}
-                      >
-                        {r}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="flex flex-col gap-2">
