@@ -360,8 +360,8 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                 <span className="relative">
                   <span
                     className="text-gray-400 text-xs cursor-default px-1.5 py-1 -mx-1.5 -my-1"
-                    onMouseEnter={() => setOpenTip(tipId)}
-                    onMouseLeave={() => setOpenTip(null)}
+                    onPointerEnter={(e) => { if (e.pointerType === "mouse") setOpenTip(tipId); }}
+                    onPointerLeave={(e) => { if (e.pointerType === "mouse") setOpenTip(null); }}
                     onClick={() => setOpenTip(openTip === tipId ? null : tipId)}
                   >
                     {m.code}
