@@ -12,6 +12,8 @@ interface Gainer {
 
 interface Props {
   regions?: string[];
+  columns?: 2 | 3;
+  className?: string;
 }
 
 const RANK_COLORS = [
@@ -54,7 +56,7 @@ function marketInfo(symbol: string): { code: string; name: string } {
   return SUFFIX_MARKET[suffix] ?? { code: suffix.slice(1).toUpperCase(), name: suffix.slice(1).toUpperCase() };
 }
 
-export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"] }: Props) {
+export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"], columns = 2, className = "" }: Props) {
   const t = useTranslation();
   const [gainers, setGainers] = useState<Gainer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,7 +85,7 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"] }: Props
   }, []);
 
   return (
-    <div ref={containerRef} className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm w-96">
+    <div ref={containerRef} className={`bg-white rounded-xl p-4 border border-gray-200 shadow-sm w-96 ${className}`}>
       <div className="flex items-baseline gap-2 mb-3">
         <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider">
           {t.topGainersTitle}
@@ -96,7 +98,7 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"] }: Props
       ) : gainers.length === 0 ? (
         <p className="text-gray-400 text-xs">{t.noData}</p>
       ) : (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+        <div className={`grid gap-x-4 gap-y-1.5 ${columns === 3 ? "grid-cols-3" : "grid-cols-2"}`}>
           {filtered.map((g, i) => {
             const barWidth = Math.round((Math.abs(g.gain) / maxGain) * 100);
             const positive = g.gain >= 0;

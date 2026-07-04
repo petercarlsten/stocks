@@ -692,10 +692,14 @@ const cutoff1yr = new Date();
             </div>
             {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
           </div>
+          {topGainersEnabled && (
+            <div className="hidden lg:block mt-3">
+              <TopGainers regions={topGainersRegions} columns={3} className="w-full" />
+            </div>
+          )}
           </div>
           <div className="hidden lg:flex flex-col gap-3 shrink-0">
             {leaderboardEnabled && <DashboardLeaderboard stocks={stocks.map(s => ({ symbol: s.symbol, name: s.name, data: s.data, purchases: s.purchases, currency: s.currency }))} usdRates={usdRates} />}
-            {topGainersEnabled && <TopGainers regions={topGainersRegions} />}
           </div>
           </div>{/* end left content wrapper */}
           <div className="shrink-0 pt-1 flex flex-col gap-2 self-start">
