@@ -164,6 +164,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   const [nativeCurrencyOpen, setNativeCurrencyOpen] = useState(false);
   const [nativeCurrencyQuery, setNativeCurrencyQuery] = useState("");
   const [openTip, setOpenTip] = useState<string | null>(null);
+  const tipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const usdRatesRef = useRef<Record<string, number>>({ USD: 1 });
   const fetchingRef = useRef(new Set<string>());
   const failedRef = useRef(new Set<string>());
@@ -362,7 +363,13 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                     className="text-gray-400 text-xs cursor-default px-1.5 py-1 -mx-1.5 -my-1"
                     onPointerEnter={(e) => { if (e.pointerType === "mouse") setOpenTip(tipId); }}
                     onPointerLeave={(e) => { if (e.pointerType === "mouse") setOpenTip(null); }}
-                    onClick={() => setOpenTip(openTip === tipId ? null : tipId)}
+                    onClick={(e) => {
+                      if ((e.nativeEvent as PointerEvent).pointerType === "mouse") return;
+                      if (tipTimerRef.current) clearTimeout(tipTimerRef.current);
+                      if (openTip === tipId) { setOpenTip(null); return; }
+                      setOpenTip(tipId);
+                      tipTimerRef.current = setTimeout(() => setOpenTip(null), 2000);
+                    }}
                   >
                     {m.code}
                   </span>
