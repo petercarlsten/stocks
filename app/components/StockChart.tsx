@@ -9,6 +9,7 @@ import TrumpHover from "./TrumpHover";
 import GainHover from "./GainHover";
 import { ALL_CURRENCIES } from "./SettingsPanel";
 import { formatCurrency } from "../lib/formatCurrency";
+import { marketInfo } from "../lib/marketInfo";
 import { useTranslation } from "./SettingsContext";
 import {
   LineChart,
@@ -351,6 +352,17 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           </div>
           <div className="flex items-center gap-3">
             <span className="text-gray-600 text-xs">{symbol}</span>
+            {(() => {
+              const m = marketInfo(symbol);
+              return (
+                <span className="group relative text-gray-400 text-xs cursor-default">
+                  {m.code}
+                  <span className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                    {m.name}
+                  </span>
+                </span>
+              );
+            })()}
             {quoteType === "MUTUALFUND" && navDate && (() => {
               const isToday = navDate === TODAY_STR;
               const isYesterday = navDate === YESTERDAY_STR;
