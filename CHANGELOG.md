@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.9.1] – 2026-07-04
+### Added
+- Total portfolio performance YTD chart with Y-axis value labels (compact K/M notation)
+- Exchange badge per stock card (e.g. STO, LON, US) with full exchange name on hover/tap
+- Your Top performers since purchased panel — 3-column desktop layout, individual green/red border per entry
+- Market Top Gainers expanded to 9 entries in 3-column desktop layout
+- Region toggles (AMER/EMEA/APAC) moved from settings into the Market Top Gainers header
+- Password recovery flow: email required on registration, forgot-password and reset-password pages
+- Email column added to admin panel user table
+
+### Changed
+- Renamed portfolio chart label to "Total portfolio performance YTD"
+- Renamed "Your Top Gainers since purchased" to "Your Top performers since purchased"
+- Top performers and Market Top Gainers moved below the ticker search on desktop
+
+### Fixed
+- Page scroll no longer blocked by portfolio chart on mobile
+- Drag-to-reorder works on mobile (switched to TouchSensor with press-delay)
+- Exchange tooltip stays open on mobile tap (pointerType guard prevents immediate dismissal)
+- Password reset email: added plain-text alternative and personalised subject to improve deliverability
+
 ## [0.9.0] – 2026-07-04
 ### Fixed
 - Market exchange tooltips (TYO, KRX, etc.) now show on hover on desktop and tap on mobile
