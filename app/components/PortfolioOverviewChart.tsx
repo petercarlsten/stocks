@@ -163,8 +163,13 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
             tick={{ fontSize: 10, fill: axisColor }}
             tickLine={false}
             axisLine={false}
-            width={55}
-            tickFormatter={(v) => formatCurrency(v, currency, 0)}
+            width={52}
+            tickFormatter={(v: number) => {
+              const abs = Math.abs(v);
+              if (abs >= 1_000_000) return (v / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+              if (abs >= 1_000) return (v / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
+              return formatCurrency(v, currency, 0);
+            }}
             tickCount={3}
           />
           <ReferenceLine y={startTotal} stroke={refColor} strokeWidth={1} strokeDasharray="3 3" />
