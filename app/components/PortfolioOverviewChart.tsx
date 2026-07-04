@@ -3,7 +3,7 @@
 import { useMemo, useRef, useEffect } from "react";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, ReferenceLine, ReferenceDot,
+  ResponsiveContainer, ReferenceLine,
 } from "recharts";
 import { formatCurrency } from "../lib/formatCurrency";
 
@@ -158,16 +158,16 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
             interval="preserveStartEnd"
             minTickGap={60}
           />
-          <YAxis hide domain={["auto", "auto"]} />
-          <ReferenceLine y={startTotal} stroke={refColor} strokeWidth={1} strokeDasharray="3 3" />
-          <ReferenceDot
-            x={last.date}
-            y={last.total}
-            r={3}
-            fill={color}
-            stroke="none"
-            label={{ value: formatCurrency(currentTotal, currency, 0), position: "top", fontSize: 10, fill: axisColor, dy: -2 }}
+          <YAxis
+            domain={["auto", "auto"]}
+            tick={{ fontSize: 10, fill: axisColor }}
+            tickLine={false}
+            axisLine={false}
+            width={55}
+            tickFormatter={(v) => formatCurrency(v, currency, 0)}
+            tickCount={3}
           />
+          <ReferenceLine y={startTotal} stroke={refColor} strokeWidth={1} strokeDasharray="3 3" />
           <Tooltip
             content={({ active, payload }) => {
               if (!active || !payload?.[0]) return null;
