@@ -62,8 +62,13 @@ export default function DashboardLeaderboard({ stocks, usdRates = {}, className,
     })
     .sort((a, b) => b.valueGainUSD - a.valueGainUSD);
 
+  const totalGainUSD = withPurchase.reduce((sum, s) => sum + s.valueGainUSD, 0);
+  const borderClass = withPurchase.length === 0
+    ? "border border-gray-200"
+    : totalGainUSD >= 0 ? "border-2 border-green-500" : "border-2 border-red-500";
+
   return (
-    <div className={className ?? "bg-white rounded-xl p-4 w-96 shrink-0 border border-gray-200 shadow-sm"}>
+    <div className={className ? `${className} ${borderClass}` : `bg-white rounded-xl p-4 w-96 shrink-0 shadow-sm ${borderClass}`}>
       <h2 className="text-gray-700 text-xs font-semibold uppercase tracking-wider mb-3">
         {t.gainsSincePurchased}
       </h2>
