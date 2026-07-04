@@ -321,19 +321,29 @@ export async function sendYearlyReport(to: string, data: YearlyReportData) {
   });
 }
 
-export async function sendPasswordReset(to: string, resetUrl: string) {
+export async function sendPasswordReset(to: string, resetUrl: string, username: string) {
   const from = process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev";
   return getResend().emails.send({
     from: `My Portfolio <${from}>`,
     to,
-    subject: "Reset your password",
-    html: `
-      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
-        <h2 style="margin:0 0 16px">Reset your password</h2>
-        <p style="color:#555;margin:0 0 24px">Click the button below to set a new password. This link expires in 1 hour.</p>
-        <a href="${resetUrl}" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600">Reset password</a>
-        <p style="color:#999;font-size:12px;margin:24px 0 0">If you didn't request this, you can ignore this email.</p>
+    subject: `Password reset request for ${username}`,
+    text: `Hi ${username},\n\nYou requested a password reset for your My Portfolio account.\n\nCopy this link into your browser to set a new password (expires in 1 hour):\n${resetUrl}\n\nIf you didn't request this, you can safely ignore this email — your password has not been changed.\n\nMy Portfolio`,
+    html: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+      <div style="max-width:480px;margin:40px auto;padding:0 16px">
+        <div style="background:#fff;border-radius:16px;border:1px solid #e5e7eb;overflow:hidden">
+          <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:24px 32px">
+            <p style="margin:0;color:#fff;font-size:18px;font-weight:700">My Portfolio</p>
+          </div>
+          <div style="padding:32px">
+            <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#111827">Password reset</h1>
+            <p style="margin:0 0 24px;color:#6b7280;font-size:14px">Hi <strong style="color:#374151">${username}</strong>, we received a request to reset your password.</p>
+            <a href="${resetUrl}" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;font-size:15px">Set new password</a>
+            <p style="margin:24px 0 0;color:#9ca3af;font-size:12px;line-height:1.6">This link expires in <strong>1 hour</strong>. If you didn't request a password reset, you can safely ignore this email — your account remains unchanged.</p>
+            <hr style="border:none;border-top:1px solid #f3f4f6;margin:24px 0">
+            <p style="margin:0;color:#d1d5db;font-size:11px">If the button doesn't work, copy this URL into your browser:<br><span style="color:#6b7280;word-break:break-all">${resetUrl}</span></p>
+          </div>
+        </div>
       </div>
-    `,
+    </body></html>`,
   });
 }
