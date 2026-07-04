@@ -86,11 +86,18 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"], columns
 
   return (
     <div ref={containerRef} className={`bg-white rounded-xl p-4 border border-gray-200 shadow-sm w-96 ${className}`}>
-      <div className="flex items-baseline gap-2 mb-3">
+      <div className="flex items-baseline gap-2 mb-3 flex-wrap">
         <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider">
           {t.topGainersTitle}
         </h2>
         <span className="text-gray-300 text-xs">{t.last3Months}</span>
+        <div className="flex gap-1 ml-auto">
+          {(["AMER", "EMEA", "APAC"] as const).map((r) => (
+            <span key={r} className={`text-xs px-1.5 py-0.5 rounded font-medium ${regions.includes(r) ? "bg-indigo-100 text-indigo-600" : "bg-gray-100 text-gray-300"}`}>
+              {r}
+            </span>
+          ))}
+        </div>
       </div>
 
       {loading ? (
