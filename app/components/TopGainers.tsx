@@ -37,7 +37,7 @@ export default function TopGainers({ regions = ["AMER", "EMEA", "APAC"], onRegio
       .catch(() => setLoading(false));
   }, []);
 
-  const filtered = gainers.filter(g => g.gain >= 0 && (!g.region || regions.includes(g.region))).slice(0, 6);
+  const filtered = gainers.filter(g => g.gain >= 0 && (!g.region || regions.includes(g.region))).slice(0, 9);
   const maxGain = filtered.length > 0 ? Math.max(...filtered.map((g) => Math.abs(g.gain))) : 1;
   const [openTip, setOpenTip] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
