@@ -241,18 +241,19 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
   async function handleNameEnter() {
     if (holdings !== null && holdings.length === 0) return; // known empty — skip
     holdingsTimerRef.current = setTimeout(async () => {
-      setShowHoldings(true);
-      if (fetchedRef.current) return;
+      if (fetchedRef.current) {
+        if (holdings && holdings.length > 0) setShowHoldings(true);
+        return;
+      }
       fetchedRef.current = true;
       try {
         const res = await fetch(`/api/holdings?symbol=${encodeURIComponent(symbol)}&name=${encodeURIComponent(name)}`);
         const json = await res.json();
         const fetched: { name: string; pct: number }[] = json.holdings ?? [];
         setHoldings(fetched);
-        if (fetched.length === 0) setShowHoldings(false);
+        if (fetched.length > 0) setShowHoldings(true);
       } catch {
         setHoldings([]);
-        setShowHoldings(false);
       }
     }, 1000);
   }
