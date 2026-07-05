@@ -153,6 +153,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
     return () => ro.disconnect();
   }, []);
   const [holdings, setHoldings] = useState<{ name: string; pct: number }[] | null>(null);
+  const [holdingsIsSectors, setHoldingsIsSectors] = useState(false);
   const [showHoldings, setShowHoldings] = useState(false);
   const [showGains, setShowGains] = useState(false);
   const fetchedRef = useRef(false);
@@ -251,6 +252,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
         const json = await res.json();
         const fetched: { name: string; pct: number }[] = json.holdings ?? [];
         setHoldings(fetched);
+        setHoldingsIsSectors(json.isSectors === true);
         if (fetched.length > 0) setShowHoldings(true);
       } catch {
         setHoldings([]);
@@ -716,7 +718,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           onMouseEnter={() => setShowHoldings(true)}
           onMouseLeave={() => setShowHoldings(false)}
         >
-          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: dark ? "#6b7280" : "#9ca3af" }}>{t.topHoldings}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: dark ? "#6b7280" : "#9ca3af" }}>{holdingsIsSectors ? t.sectorAllocation : t.topHoldings}</p>
           {holdings === null ? (
             <p className="text-xs" style={{ color: dark ? "#6b7280" : "#9ca3af" }}>{t.loading}</p>
           ) : holdings.length === 0 ? (
