@@ -111,7 +111,7 @@ export default function Home() {
   const [exchangeRate, setExchangeRate] = useState(1);
   const [usdRates, setUsdRates] = useState<Record<string, number>>({ USD: 1 });
   const [theme, setTheme] = useState<"light" | "dark">("dark");
-  const [funnyMode, setFunnyMode] = useState<FunnyMode>("trump");
+  const [funnyMode, setFunnyMode] = useState<FunnyMode>("off");
   const [newsEnabled, setNewsEnabled] = useState(true);
   const [leaderboardEnabled, setLeaderboardEnabled] = useState(true);
   const [topGainersEnabled, setTopGainersEnabled] = useState(true);
