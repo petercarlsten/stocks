@@ -122,7 +122,7 @@ export default function Home() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [confirmRemoveSymbol, setConfirmRemoveSymbol] = useState<string | null>(null);
   const [pushEnabled, setPushEnabled] = useState(false);
-  const [pushSchedule, setPushSchedule] = useState<{ daily?: boolean; monthly?: boolean; yearly?: boolean }>({ monthly: true });
+  const [pushSchedule, setPushSchedule] = useState<{ daily?: boolean; monthly?: boolean; yearly?: boolean; earnings?: boolean }>({ monthly: true });
   const [drawdownStartDate, setDrawdownStartDate] = useState<string>("");
   const [drawdownDate, setDrawdownDate] = useState<string>("");
   const [growthRate, setGrowthRate] = useState<number>(10);

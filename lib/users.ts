@@ -20,7 +20,7 @@ export interface UserPreferences {
   drawdownDate?: string;
   growthRate?: number;
   inflationRate?: number;
-  pushSchedule?: { daily?: boolean; monthly?: boolean; yearly?: boolean };
+  pushSchedule?: { daily?: boolean; monthly?: boolean; yearly?: boolean; earnings?: boolean };
 }
 
 interface User {

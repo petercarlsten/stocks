@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAllUsers, getPushSubscription } from "@/lib/users";
+import { getAllUsers, getPushSubscription, getPreferences } from "@/lib/users";
 import { getUserStocks } from "@/lib/stockStore";
 import { sendPushNotification } from "@/lib/sendPush";
 
@@ -24,6 +24,12 @@ export async function GET(req: NextRequest) {
     const subscription = getPushSubscription(user.username);
     if (!subscription) {
       results.push({ username: user.username, status: "no push subscription" });
+      continue;
+    }
+
+    const prefs = getPreferences(user.username);
+    if (!prefs.pushSchedule?.earnings) {
+      results.push({ username: user.username, status: "skipped (earnings notifications off)" });
       continue;
     }
 

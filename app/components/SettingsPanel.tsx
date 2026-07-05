@@ -197,7 +197,7 @@ interface Props {
   onReportEmailChange: (email: string) => void;
   pushEnabled: boolean;
   onPushChange: (v: boolean) => void;
-  pushSchedule: { daily?: boolean; monthly?: boolean; yearly?: boolean };
+  pushSchedule: { daily?: boolean; monthly?: boolean; yearly?: boolean; earnings?: boolean };
   onPushScheduleChange: (s: { daily?: boolean; monthly?: boolean; yearly?: boolean }) => void;
   drawdownStartDate: string;
   onDrawdownStartDateChange: (v: string) => void;
@@ -415,7 +415,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
           <div className="flex flex-col gap-2">
             <label className="text-gray-700 text-xs font-semibold uppercase tracking-wider">Push notifications</label>
             <div className="flex items-center justify-between">
-              <p className="text-gray-600 text-xs">Monthly portfolio summary on your device and earning calls</p>
+              <p className="text-gray-600 text-xs">Push notifications on your device</p>
               <button
                 onClick={async () => {
                   if (!pushEnabled) {
@@ -445,7 +445,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
               <div className="flex flex-col gap-2">
                 <p className="text-gray-500 text-xs font-medium">Send summary notifications:</p>
                 <div className="flex gap-4">
-                  {(["daily", "monthly", "yearly"] as const).map((freq) => (
+                  {(["daily", "monthly", "yearly", "earnings"] as const).map((freq) => (
                     <label key={freq} className="flex items-center gap-1.5 cursor-pointer">
                       <input
                         type="checkbox"
@@ -453,7 +453,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
                         onChange={(e) => onPushScheduleChange({ ...pushSchedule, [freq]: e.target.checked })}
                         className="w-3.5 h-3.5 accent-indigo-600"
                       />
-                      <span className="text-xs text-gray-700 capitalize">{freq}</span>
+                      <span className="text-xs text-gray-700 capitalize">{freq === "earnings" ? "Earnings calls" : freq}</span>
                     </label>
                   ))}
                 </div>
