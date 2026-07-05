@@ -21,6 +21,7 @@ export interface UserPreferences {
   growthRate?: number;
   inflationRate?: number;
   pushSchedule?: { daily?: boolean; monthly?: boolean; yearly?: boolean; earnings?: boolean };
+  emailReports?: { monthly?: boolean; yearly?: boolean };
 }
 
 interface User {

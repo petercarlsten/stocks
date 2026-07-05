@@ -118,6 +118,7 @@ export default function Home() {
   const [topGainersRegions, setTopGainersRegions] = useState<string[]>(["AMER", "EMEA", "APAC"]);
   const [language, setLanguage] = useState<Language>("en");
   const [reportEmail, setReportEmail] = useState("");
+  const [emailReports, setEmailReports] = useState<{ monthly?: boolean; yearly?: boolean }>({ monthly: false, yearly: false });
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
   const [confirmRemoveSymbol, setConfirmRemoveSymbol] = useState<string | null>(null);
@@ -177,6 +178,7 @@ export default function Home() {
         if (typeof p.inflationRate === "number") setInflationRate(p.inflationRate);
         if (typeof p.chartMonths === "number") setChartMonths(p.chartMonths);
         if (p.pushSchedule && typeof p.pushSchedule === "object") setPushSchedule(p.pushSchedule);
+        if (p.emailReports && typeof p.emailReports === "object") setEmailReports(p.emailReports);
         // Also sync reportCurrency with currency if set
         if (d.reportCurrency && !p.currency) { setCurrency(d.reportCurrency); localStorage.setItem("portfolio-currency", d.reportCurrency); }
       })
@@ -771,6 +773,8 @@ const cutoff1yr = new Date();
             language={language}
             onLanguageChange={(v) => { setLanguage(v); localStorage.setItem("portfolio-language", v); savePrefs({ language: v }); }}
             reportEmail={reportEmail}
+            emailReports={emailReports}
+            onEmailReportsChange={(v) => { setEmailReports(v); savePrefs({ emailReports: v }); }}
             onReportEmailChange={(email) => {
               setReportEmail(email);
               fetch("/api/user/settings", {

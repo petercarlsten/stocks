@@ -195,6 +195,8 @@ interface Props {
   onLanguageChange: (v: Language) => void;
   reportEmail: string;
   onReportEmailChange: (email: string) => void;
+  emailReports: { monthly?: boolean; yearly?: boolean };
+  onEmailReportsChange: (v: { monthly?: boolean; yearly?: boolean }) => void;
   pushEnabled: boolean;
   onPushChange: (v: boolean) => void;
   pushSchedule: { daily?: boolean; monthly?: boolean; yearly?: boolean; earnings?: boolean };
@@ -211,7 +213,7 @@ interface Props {
   onChartMonthsChange: (v: number) => void;
 }
 
-export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, pushEnabled, onPushChange, pushSchedule, onPushScheduleChange, drawdownStartDate, onDrawdownStartDateChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange, inflationRate, onInflationRateChange, chartMonths, onChartMonthsChange }: Props) {
+export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, language, onLanguageChange, reportEmail, onReportEmailChange, emailReports, onEmailReportsChange, pushEnabled, onPushChange, pushSchedule, onPushScheduleChange, drawdownStartDate, onDrawdownStartDateChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange, inflationRate, onInflationRateChange, chartMonths, onChartMonthsChange }: Props) {
   const t = useTranslation();
   const [sendState, setSendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [pushTestState, setPushTestState] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -390,6 +392,21 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
               onChange={(e) => onReportEmailChange(e.target.value)}
               className="w-full bg-gray-50 text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-300 placeholder-gray-400"
             />
+            {reportEmail && (
+              <div className="flex gap-4">
+                {(["monthly", "yearly"] as const).map((freq) => (
+                  <label key={freq} className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={emailReports[freq] ?? true}
+                      onChange={(e) => onEmailReportsChange({ ...emailReports, [freq]: e.target.checked })}
+                      className="w-3.5 h-3.5 accent-indigo-600"
+                    />
+                    <span className="text-xs text-gray-700 capitalize">{freq} report</span>
+                  </label>
+                ))}
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <p className="text-gray-600 text-xs">{t.reportEmailNote}</p>
               <button

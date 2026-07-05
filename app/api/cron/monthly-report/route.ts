@@ -23,13 +23,13 @@ export async function GET(req: NextRequest) {
 
     // Email
     const email = getReportEmail(user.username);
-    if (email) {
+    const prefs = getPreferences(user.username);
+    if (email && (prefs.emailReports?.monthly ?? true)) {
       try { await sendMonthlyReport(email, data); sent.push("email"); }
       catch (err) { results.push({ username: user.username, status: `email error: ${err}` }); }
     }
 
     // Push notification — only if user opted in to monthly
-    const prefs = getPreferences(user.username);
     const subscription = getPushSubscription(user.username);
     if (subscription && (prefs.pushSchedule?.monthly ?? true)) {
       try {

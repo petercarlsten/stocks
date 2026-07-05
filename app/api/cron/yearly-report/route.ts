@@ -23,13 +23,13 @@ export async function GET(req: NextRequest) {
 
     // Email
     const email = getReportEmail(user.username);
-    if (email) {
+    const prefs = getPreferences(user.username);
+    if (email && (prefs.emailReports?.yearly ?? true)) {
       try { await sendYearlyReport(email, data); sent.push("email"); }
       catch (err) { results.push({ username: user.username, status: `email error: ${err}` }); }
     }
 
     // Push — only if opted in to yearly
-    const prefs = getPreferences(user.username);
     const subscription = getPushSubscription(user.username);
     if (subscription && prefs.pushSchedule?.yearly) {
       try {
