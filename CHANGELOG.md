@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.9.2] – 2026-07-05
+### Fixed
+- Fund holdings tooltip now shows sector allocation (Technology, Consumer Cyclical, etc.) for funds where Yahoo Finance doesn't provide individual stock holdings (e.g. Singapore-listed 0P0000 funds)
+
 ## [0.9.1] – 2026-07-04
 ### Added
 - Total portfolio performance YTD chart with Y-axis value labels (compact K/M notation)
