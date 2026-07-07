@@ -118,7 +118,7 @@ export default function PortfolioOverviewChart({ stocks, usdRates, exchangeRate,
   const isPositive = changeAbs >= 0;
 
   const color = isPositive ? "#10B981" : "#EF4444";
-  const axisColor = theme === "dark" ? "#6B7280" : "#9CA3AF";
+  const axisColor = theme === "dark" ? "#6B7280" : "#6B7280";
   const refColor = theme === "dark" ? "#374151" : "#E5E7EB";
   const bgClass = theme === "dark" ? "bg-gray-900 border-gray-700" : "bg-white border-gray-100";
   const textClass = theme === "dark" ? "text-gray-300" : "text-gray-500";
