@@ -262,7 +262,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
 
   const dark = theme === "dark";
   const chartGrid   = dark ? "#374151" : "#e5e7eb";
-  const chartTick   = dark ? "#9ca3af" : "#6b7280";
+  const chartTick   = dark ? "#9ca3af" : "#374151";
   const tooltipBg   = dark ? "#1f2937" : "#ffffff";
   const tooltipBdr  = dark ? "none"    : "1px solid #e5e7eb";
   const tooltipTxt  = dark ? "#d1d5db" : "#374151";

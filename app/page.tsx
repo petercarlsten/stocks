@@ -653,7 +653,7 @@ const cutoff1yr = new Date();
                     <div className="flex flex-col gap-0.5 mt-1 pt-1 border-t border-gray-100">
                       <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-0.5">{t.monthlyBudgetHeader}</span>
                       {monthlyBudget.monthsAccum > 0 && (
-                        <span className="text-gray-500 text-xs mb-0.5">
+                        <span className="text-gray-700 text-xs mb-0.5">
                           {monthlyBudget.startDate.toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })} → {monthlyBudget.endDate.toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })} · {Math.round(monthlyBudget.monthsDraw / 12)} yrs
                         </span>
                       )}
@@ -661,21 +661,21 @@ const cutoff1yr = new Date();
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudget}</span>
                         <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.simple, currency, 0)}
-                          {monthlyBudget.monthsAccum === 0 && <span className="text-gray-500 font-normal ml-1.5 text-xs">→ {monthlyBudget.endDate.toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })}</span>}
+                          {monthlyBudget.monthsAccum === 0 && <span className="text-gray-700 font-normal ml-1.5 text-xs">→ {monthlyBudget.endDate.toLocaleDateString(language === "sv" ? "sv-SE" : "en-GB", { month: "short", year: "numeric" })}</span>}
                         </span>
                       </div>
                       <div className="flex items-baseline gap-2">
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetGrowth}</span>
                         <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.withGrowth, currency, 0)}
-                          <span className="text-gray-500 font-normal ml-1.5 text-xs">+{growthRate}%/yr</span>
+                          <span className="text-gray-700 font-normal ml-1.5 text-xs">+{growthRate}%/yr</span>
                         </span>
                       </div>
                       <div className="flex items-baseline gap-2">
                         <span className="text-gray-600 text-xs w-24 shrink-0">{t.monthlyBudgetReal}</span>
                         <span className="text-indigo-600 text-sm font-semibold whitespace-nowrap">
                           {formatCurrency(monthlyBudget.withGrowthReal, currency, 0)}
-                          <span className="text-gray-500 font-normal ml-1.5 text-xs">+{growthRate}% −{inflationRate}% infl.</span>
+                          <span className="text-gray-700 font-normal ml-1.5 text-xs">+{growthRate}% −{inflationRate}% infl.</span>
                         </span>
                       </div>
                     </div>
