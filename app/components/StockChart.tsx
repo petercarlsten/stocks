@@ -60,6 +60,29 @@ interface Props {
   dividends?: { date: string; amount: number }[];
 }
 
+function projectNextDividend(dividends: { date: string; amount: number }[]): { date: string; freq: string } | null {
+  if (dividends.length < 2) return null;
+  const intervals: number[] = [];
+  for (let i = 1; i < dividends.length; i++) {
+    const a = new Date(dividends[i - 1].date).getTime();
+    const b = new Date(dividends[i].date).getTime();
+    intervals.push((b - a) / 86_400_000);
+  }
+  const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+  let intervalDays: number;
+  let freq: string;
+  if (avg < 45)       { intervalDays = 30;  freq = "monthly"; }
+  else if (avg < 100) { intervalDays = 91;  freq = "quarterly"; }
+  else if (avg < 270) { intervalDays = 182; freq = "semi-annual"; }
+  else                { intervalDays = 365; freq = "annual"; }
+
+  const last = new Date(dividends[dividends.length - 1].date + "T00:00:00");
+  const today = new Date();
+  let next = new Date(last);
+  do { next = new Date(next.getTime() + intervalDays * 86_400_000); } while (next <= today);
+  return { date: next.toISOString().split("T")[0], freq };
+}
+
 function formatEarningsDate(dateStr: string): string {
   const d = new Date(dateStr + "T00:00:00");
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -427,12 +450,17 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
             {(dividendRate ?? 0) > 0 && (
               <span className="group relative text-xs text-emerald-600 cursor-default">
                 ~{fmt(dividendRate! * (totalPurchasedShares > 0 ? totalPurchasedShares : 1))}{totalPurchasedShares > 0 ? "/yr" : "/share/yr"} · {((dividendYield ?? 0) * 100).toFixed(2)}% div.
-                {(exDividendDate || dividendDate) && (
-                  <span className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 flex flex-col gap-0.5 items-start">
-                    {exDividendDate && <span>Ex-div: {fmtDate(exDividendDate)}</span>}
-                    {dividendDate && <span>Pays: {fmtDate(dividendDate)}</span>}
-                  </span>
-                )}
+                {(() => {
+                  const projected = projectNextDividend(dividends ?? []);
+                  if (!exDividendDate && !dividendDate && !projected) return null;
+                  return (
+                    <span className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 flex flex-col gap-0.5 items-start">
+                      {exDividendDate && <span>Ex-div: {fmtDate(exDividendDate)}</span>}
+                      {dividendDate && <span>Pays: {fmtDate(dividendDate)}</span>}
+                      {projected && <span className="text-gray-400">Est. next: ~{fmtDate(projected.date)} ({projected.freq})</span>}
+                    </span>
+                  );
+                })()}
               </span>
             )}
             {earningsDate && (
