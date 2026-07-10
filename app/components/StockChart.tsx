@@ -734,10 +734,10 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-500">Est. next payout</span>
                       <span className="text-emerald-600 font-medium">
-                        ~{fmt(projected.estimatedAmount * totalPurchasedShares)}
+                        {fmt(projected.estimatedAmount * totalPurchasedShares)}
                         {projected.trend === "up" && <span className="text-emerald-500 ml-0.5">↑</span>}
                         {projected.trend === "down" && <span className="text-red-400 ml-0.5">↓</span>}
-                        <span className="text-gray-400 font-normal ml-1">· ~{fmtDate(projected.date)}</span>
+                        <span className="text-gray-400 font-normal ml-1">· {fmtDate(projected.date)}</span>
                       </span>
                     </div>
                   )}
