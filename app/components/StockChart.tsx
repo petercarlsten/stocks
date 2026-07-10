@@ -720,7 +720,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                   {projected && (
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-500">Est. next payout</span>
-                      <span className="text-emerald-600 font-medium">{fmt((lastDiv?.amount ?? 0) * totalPurchasedShares)} <span className="text-gray-400 font-normal">· ~{fmtDate(projected.date)}</span></span>
+                      <span className="text-gray-400">~{fmtDate(projected.date)} <span className="text-gray-400 font-normal">({projected.freq})</span></span>
                     </div>
                   )}
                 </div>
