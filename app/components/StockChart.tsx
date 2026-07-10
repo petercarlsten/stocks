@@ -60,28 +60,41 @@ interface Props {
   dividends?: { date: string; amount: number }[];
 }
 
-function projectNextDividend(dividends: { date: string; amount: number }[]): { date: string; freq: string } | null {
+function projectNextDividend(dividends: { date: string; amount: number }[]): { date: string; freq: string; estimatedAmount: number; trend: "up" | "down" | "flat" } | null {
   if (dividends.length < 2) return null;
+
+  // Date projection — use actual average interval between payouts
   const intervals: number[] = [];
   for (let i = 1; i < dividends.length; i++) {
     const a = new Date(dividends[i - 1].date).getTime();
     const b = new Date(dividends[i].date).getTime();
     intervals.push((b - a) / 86_400_000);
   }
-  const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+  const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
   let freq: string;
-  if (avg < 45)       freq = "monthly";
-  else if (avg < 100) freq = "quarterly";
-  else if (avg < 270) freq = "semi-annual";
-  else                freq = "annual";
+  if (avgInterval < 45)       freq = "monthly";
+  else if (avgInterval < 100) freq = "quarterly";
+  else if (avgInterval < 270) freq = "semi-annual";
+  else                        freq = "annual";
 
-  // Use the actual average interval, not a fixed bucket, so the projection
-  // follows the real payout cadence of this specific stock.
   const last = new Date(dividends[dividends.length - 1].date + "T00:00:00");
   const today = new Date();
   let next = new Date(last);
-  do { next = new Date(next.getTime() + avg * 86_400_000); } while (next <= today);
-  return { date: next.toISOString().split("T")[0], freq };
+  do { next = new Date(next.getTime() + avgInterval * 86_400_000); } while (next <= today);
+
+  // Amount estimation — apply average % change per period to the last known amount
+  const changes: number[] = [];
+  for (let i = 1; i < dividends.length; i++) {
+    if (dividends[i - 1].amount > 0)
+      changes.push((dividends[i].amount - dividends[i - 1].amount) / dividends[i - 1].amount);
+  }
+  const avgGrowth = changes.length > 0 ? changes.reduce((a, b) => a + b, 0) / changes.length : 0;
+  const estimatedAmount = dividends[dividends.length - 1].amount * (1 + avgGrowth);
+  const trend: "up" | "down" | "flat" = dividends.length >= 3
+    ? (avgGrowth > 0.01 ? "up" : avgGrowth < -0.01 ? "down" : "flat")
+    : "flat";
+
+  return { date: next.toISOString().split("T")[0], freq, estimatedAmount, trend };
 }
 
 function formatEarningsDate(dateStr: string): string {
@@ -720,7 +733,12 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                   {projected && (
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-500">Est. next payout</span>
-                      <span className="text-gray-400">~{fmtDate(projected.date)} <span className="text-gray-400 font-normal">({projected.freq})</span></span>
+                      <span className="text-emerald-600 font-medium">
+                        ~{fmt(projected.estimatedAmount * totalPurchasedShares)}
+                        {projected.trend === "up" && <span className="text-emerald-500 ml-0.5">↑</span>}
+                        {projected.trend === "down" && <span className="text-red-400 ml-0.5">↓</span>}
+                        <span className="text-gray-400 font-normal ml-1">· ~{fmtDate(projected.date)}</span>
+                      </span>
                     </div>
                   )}
                 </div>
