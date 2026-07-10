@@ -69,17 +69,18 @@ function projectNextDividend(dividends: { date: string; amount: number }[]): { d
     intervals.push((b - a) / 86_400_000);
   }
   const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-  let intervalDays: number;
   let freq: string;
-  if (avg < 45)       { intervalDays = 30;  freq = "monthly"; }
-  else if (avg < 100) { intervalDays = 91;  freq = "quarterly"; }
-  else if (avg < 270) { intervalDays = 182; freq = "semi-annual"; }
-  else                { intervalDays = 365; freq = "annual"; }
+  if (avg < 45)       freq = "monthly";
+  else if (avg < 100) freq = "quarterly";
+  else if (avg < 270) freq = "semi-annual";
+  else                freq = "annual";
 
+  // Use the actual average interval, not a fixed bucket, so the projection
+  // follows the real payout cadence of this specific stock.
   const last = new Date(dividends[dividends.length - 1].date + "T00:00:00");
   const today = new Date();
   let next = new Date(last);
-  do { next = new Date(next.getTime() + intervalDays * 86_400_000); } while (next <= today);
+  do { next = new Date(next.getTime() + avg * 86_400_000); } while (next <= today);
   return { date: next.toISOString().split("T")[0], freq };
 }
 
