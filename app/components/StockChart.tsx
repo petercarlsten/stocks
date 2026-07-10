@@ -53,6 +53,10 @@ interface Props {
   lastDataDate?: string | null;
   earningsResult?: { epsActual: number | null; epsEstimate: number | null; surprisePercent: number | null; currency: string } | null;
   chartMonths?: number;
+  dividendRate?: number | null;
+  dividendYield?: number | null;
+  exDividendDate?: string | null;
+  dividends?: { date: string; amount: number }[];
 }
 
 function formatEarningsDate(dateStr: string): string {
@@ -134,7 +138,7 @@ const MARKET_STATE_BADGE: Record<string, { dot: string; label: string }> = {
   CLOSED:   { dot: "bg-gray-300",   label: "Market closed"   },
 };
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navTimestamp, lastDataDate, earningsResult, chartMonths = 3 }: Props) {
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navTimestamp, lastDataDate, earningsResult, chartMonths = 3, dividendRate, dividendYield, exDividendDate, dividends }: Props) {
   // lastDataDate is our own record of the most recent data point we ever received — monotonically increasing,
   // never reset to a stale Yahoo value. Falls back to current chart tail if not yet stored.
   const navDate = quoteType === "MUTUALFUND"
@@ -419,6 +423,16 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                 </span>
               );
             })()}
+            {(dividendRate ?? 0) > 0 && (
+              <span className="group relative text-xs text-emerald-600 cursor-default">
+                ~{fmt(dividendRate! * (totalPurchasedShares > 0 ? totalPurchasedShares : 1))}{totalPurchasedShares > 0 ? "/yr" : "/share/yr"} · {((dividendYield ?? 0) * 100).toFixed(2)}% div.
+                {exDividendDate && (
+                  <span className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                    Ex-dividend: {fmtDate(exDividendDate)}
+                  </span>
+                )}
+              </span>
+            )}
             {earningsDate && (
               <span className="group relative text-xs text-amber-600 cursor-default">
                 {earningsIsFuture ? t.nextEarningsCall : t.reported}
@@ -665,6 +679,19 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           onClick={() => onPurchasesChange([...(purchases ?? []), { date: today, shares: 0 }])}
           className="text-indigo-500 hover:text-indigo-700 text-xs mt-0.5"
         >{t.addPurchase}</button>
+        {totalPurchasedShares > 0 && (dividends ?? []).length > 0 && (() => {
+          const firstPurchaseDate = (purchases ?? []).map((p) => p.date).filter(Boolean).sort()[0];
+          const received = (dividends ?? [])
+            .filter((d) => !firstPurchaseDate || d.date >= firstPurchaseDate)
+            .reduce((sum, d) => sum + d.amount * totalPurchasedShares, 0);
+          if (received <= 0) return null;
+          return (
+            <div className="mt-1 flex items-center gap-1 text-xs text-emerald-600">
+              <span>Est. dividends received: {fmt(received)}</span>
+              <span className="text-gray-400" title="Based on current shares × historical payouts since first purchase (up to 13 months)">ⓘ</span>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Gains tooltip — appears over chart when hovering the % badge */}

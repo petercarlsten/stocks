@@ -29,6 +29,10 @@ interface Props {
   lastDataDate?: string | null;
   earningsResult?: { epsActual: number | null; epsEstimate: number | null; surprisePercent: number | null; currency: string } | null;
   chartMonths?: number;
+  dividendRate?: number | null;
+  dividendYield?: number | null;
+  exDividendDate?: string | null;
+  dividends?: { date: string; amount: number }[];
 }
 
 export default function SortableStockChart(props: Props) {
