@@ -180,6 +180,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
     setChartWidth(el.getBoundingClientRect().width);
     return () => ro.disconnect();
   }, []);
+  const [showDividends, setShowDividends] = useState(true);
   const [holdings, setHoldings] = useState<{ name: string; pct: number }[] | null>(null);
   const [holdingsIsSectors, setHoldingsIsSectors] = useState(false);
   const [showHoldings, setShowHoldings] = useState(false);
@@ -447,22 +448,6 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                 </span>
               );
             })()}
-            {(dividendRate ?? 0) > 0 && (
-              <span className="group relative text-xs text-emerald-600 cursor-default">
-                ~{fmt(dividendRate! * (totalPurchasedShares > 0 ? totalPurchasedShares : 1))}{totalPurchasedShares > 0 ? "/yr" : "/share/yr"} · {((dividendYield ?? 0) * 100).toFixed(2)}% div.
-                {(() => {
-                  const projected = projectNextDividend(dividends ?? []);
-                  if (!exDividendDate && !dividendDate && !projected) return null;
-                  return (
-                    <span className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 flex flex-col gap-0.5 items-start">
-                      {exDividendDate && <span>Ex-div: {fmtDate(exDividendDate)}</span>}
-                      {dividendDate && <span>Pays: {fmtDate(dividendDate)}</span>}
-                      {projected && <span className="text-gray-400">Est. next: ~{fmtDate(projected.date)} ({projected.freq})</span>}
-                    </span>
-                  );
-                })()}
-              </span>
-            )}
             {earningsDate && (
               <span className="group relative text-xs text-amber-600 cursor-default">
                 {earningsIsFuture ? t.nextEarningsCall : t.reported}
@@ -710,15 +695,35 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           className="text-indigo-500 hover:text-indigo-700 text-xs mt-0.5"
         >{t.addPurchase}</button>
         {totalPurchasedShares > 0 && (dividends ?? []).length > 0 && (() => {
-          const firstPurchaseDate = (purchases ?? []).map((p) => p.date).filter(Boolean).sort()[0];
-          const received = (dividends ?? [])
-            .filter((d) => !firstPurchaseDate || d.date >= firstPurchaseDate)
-            .reduce((sum, d) => sum + d.amount * totalPurchasedShares, 0);
-          if (received <= 0) return null;
+          const divList = dividends ?? [];
+          const lastDiv = divList[divList.length - 1];
+          const projected = projectNextDividend(divList);
+          if (!lastDiv && !projected) return null;
           return (
-            <div className="mt-1 flex items-center gap-1 text-xs text-emerald-600">
-              <span>Est. dividends received: {fmt(received)}</span>
-              <span className="text-gray-400" title="Based on current shares × historical payouts since first purchase (up to 13 months)">ⓘ</span>
+            <div className="mt-2 pt-2 border-t border-gray-100">
+              <button
+                onClick={() => setShowDividends((v) => !v)}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 mb-1"
+              >
+                <span>Dividends</span>
+                <span className="text-gray-400">{showDividends ? "▲" : "▼"}</span>
+              </button>
+              {showDividends && (
+                <div className="flex flex-col gap-0.5">
+                  {lastDiv && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500">Last payout</span>
+                      <span className="text-emerald-600 font-medium">{fmt(lastDiv.amount * totalPurchasedShares)} <span className="text-gray-400 font-normal">· {fmtDate(lastDiv.date)}</span></span>
+                    </div>
+                  )}
+                  {projected && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500">Est. next payout</span>
+                      <span className="text-emerald-600 font-medium">{fmt((lastDiv?.amount ?? 0) * totalPurchasedShares)} <span className="text-gray-400 font-normal">· ~{fmtDate(projected.date)}</span></span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           );
         })()}
