@@ -56,6 +56,7 @@ interface Props {
   dividendRate?: number | null;
   dividendYield?: number | null;
   exDividendDate?: string | null;
+  dividendDate?: string | null;
   dividends?: { date: string; amount: number }[];
 }
 
@@ -138,7 +139,7 @@ const MARKET_STATE_BADGE: Record<string, { dot: string; label: string }> = {
   CLOSED:   { dot: "bg-gray-300",   label: "Market closed"   },
 };
 
-export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navTimestamp, lastDataDate, earningsResult, chartMonths = 3, dividendRate, dividendYield, exDividendDate, dividends }: Props) {
+export default function StockChart({ symbol, name, earningsDate, data, onRemove, color, purchases, onPurchasesChange, onCurrencyChange, dragHandleProps, theme = "dark", portfolioPct, tickerCurrency = "USD", marketState, exchangeTimezoneName, quoteType, navTimestamp, lastDataDate, earningsResult, chartMonths = 3, dividendRate, dividendYield, exDividendDate, dividendDate, dividends }: Props) {
   // lastDataDate is our own record of the most recent data point we ever received — monotonically increasing,
   // never reset to a stale Yahoo value. Falls back to current chart tail if not yet stored.
   const navDate = quoteType === "MUTUALFUND"
@@ -426,9 +427,10 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
             {(dividendRate ?? 0) > 0 && (
               <span className="group relative text-xs text-emerald-600 cursor-default">
                 ~{fmt(dividendRate! * (totalPurchasedShares > 0 ? totalPurchasedShares : 1))}{totalPurchasedShares > 0 ? "/yr" : "/share/yr"} · {((dividendYield ?? 0) * 100).toFixed(2)}% div.
-                {exDividendDate && (
-                  <span className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                    Ex-dividend: {fmtDate(exDividendDate)}
+                {(exDividendDate || dividendDate) && (
+                  <span className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 flex flex-col gap-0.5 items-start">
+                    {exDividendDate && <span>Ex-div: {fmtDate(exDividendDate)}</span>}
+                    {dividendDate && <span>Pays: {fmtDate(dividendDate)}</span>}
                   </span>
                 )}
               </span>

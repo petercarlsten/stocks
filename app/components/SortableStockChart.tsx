@@ -32,6 +32,7 @@ interface Props {
   dividendRate?: number | null;
   dividendYield?: number | null;
   exDividendDate?: string | null;
+  dividendDate?: string | null;
   dividends?: { date: string; amount: number }[];
 }
 

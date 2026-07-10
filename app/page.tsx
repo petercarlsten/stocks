@@ -48,6 +48,7 @@ interface StockData {
   dividendRate?: number | null;
   dividendYield?: number | null;
   exDividendDate?: string | null;
+  dividendDate?: string | null;
   dividends?: { date: string; amount: number }[];
 }
 
@@ -87,7 +88,7 @@ async function fetchStock(symbol: string): Promise<StockData> {
   const res = await fetch(`/api/stocks?symbol=${encodeURIComponent(symbol)}`);
   const json = await res.json();
   if (!res.ok) throw new Error(json.error ?? "Failed to fetch");
-  return { symbol: json.symbol, name: json.name, earningsDate: json.earningsDate ?? null, data: json.data, currency: json.currency ?? inferCurrency(json.symbol), marketState: json.marketState ?? null, exchangeTimezoneName: json.exchangeTimezoneName ?? null, quoteType: json.quoteType ?? null, navTimestamp: json.navTimestamp ?? null, earningsResult: json.earningsResult ?? null, dividendRate: json.dividendRate ?? null, dividendYield: json.dividendYield ?? null, exDividendDate: json.exDividendDate ?? null, dividends: json.dividends ?? [] };
+  return { symbol: json.symbol, name: json.name, earningsDate: json.earningsDate ?? null, data: json.data, currency: json.currency ?? inferCurrency(json.symbol), marketState: json.marketState ?? null, exchangeTimezoneName: json.exchangeTimezoneName ?? null, quoteType: json.quoteType ?? null, navTimestamp: json.navTimestamp ?? null, earningsResult: json.earningsResult ?? null, dividendRate: json.dividendRate ?? null, dividendYield: json.dividendYield ?? null, exDividendDate: json.exDividendDate ?? null, dividendDate: json.dividendDate ?? null, dividends: json.dividends ?? [] };
 }
 
 async function refreshStockData(symbol: string, name?: string) {
@@ -96,7 +97,7 @@ async function refreshStockData(symbol: string, name?: string) {
   const res = await fetch(`/api/stocks?${params}`);
   const json = await res.json();
   if (!res.ok) throw new Error(json.error ?? "Failed to fetch");
-  return { data: json.data as StockData["data"], earningsDate: (json.earningsDate as string | null) ?? null, currency: (json.currency as string | undefined), symbol: (json.symbol as string | undefined), marketState: (json.marketState as string | null) ?? null, exchangeTimezoneName: (json.exchangeTimezoneName as string | null) ?? null, quoteType: (json.quoteType as string | null) ?? null, navTimestamp: (json.navTimestamp as number | null) ?? null, earningsResult: (json.earningsResult as StockData["earningsResult"]) ?? null, dividendRate: (json.dividendRate as number | null) ?? null, dividendYield: (json.dividendYield as number | null) ?? null, exDividendDate: (json.exDividendDate as string | null) ?? null, dividends: (json.dividends as StockData["dividends"]) ?? [] };
+  return { data: json.data as StockData["data"], earningsDate: (json.earningsDate as string | null) ?? null, currency: (json.currency as string | undefined), symbol: (json.symbol as string | undefined), marketState: (json.marketState as string | null) ?? null, exchangeTimezoneName: (json.exchangeTimezoneName as string | null) ?? null, quoteType: (json.quoteType as string | null) ?? null, navTimestamp: (json.navTimestamp as number | null) ?? null, earningsResult: (json.earningsResult as StockData["earningsResult"]) ?? null, dividendRate: (json.dividendRate as number | null) ?? null, dividendYield: (json.dividendYield as number | null) ?? null, exDividendDate: (json.exDividendDate as string | null) ?? null, dividendDate: (json.dividendDate as string | null) ?? null, dividends: (json.dividends as StockData["dividends"]) ?? [] };
 }
 
 export default function Home() {
@@ -230,12 +231,12 @@ export default function Home() {
           const refreshed = await Promise.all(
             migrated.map((s) =>
               refreshStockData(s.symbol, s.name)
-                .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult, dividendRate, dividendYield, exDividendDate, dividends }) => {
+                .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult, dividendRate, dividendYield, exDividendDate, dividendDate, dividends }) => {
                   const newData = (data && data.length > 0) ? data : s.data;
                   const lastDataDate = (quoteType ?? s.quoteType) === "MUTUALFUND" && newData?.length
                     ? new Date().toLocaleDateString("sv")
                     : (s.lastDataDate ?? null);
-                  return { ...s, data: newData, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol, marketState: marketState ?? s.marketState, exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName, quoteType: quoteType ?? s.quoteType, navTimestamp: navTimestamp ?? s.navTimestamp, lastDataDate, earningsResult: earningsResult ?? s.earningsResult, dividendRate: dividendRate ?? s.dividendRate, dividendYield: dividendYield ?? s.dividendYield, exDividendDate: exDividendDate ?? s.exDividendDate, dividends: dividends ?? s.dividends };
+                  return { ...s, data: newData, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol, marketState: marketState ?? s.marketState, exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName, quoteType: quoteType ?? s.quoteType, navTimestamp: navTimestamp ?? s.navTimestamp, lastDataDate, earningsResult: earningsResult ?? s.earningsResult, dividendRate: dividendRate ?? s.dividendRate, dividendYield: dividendYield ?? s.dividendYield, exDividendDate: exDividendDate ?? s.exDividendDate, dividendDate: dividendDate ?? s.dividendDate, dividends: dividends ?? s.dividends };
                 })
                 .catch(() => ({ ...s, currency: s.currency ?? inferCurrency(s.symbol) }))
             )
@@ -310,12 +311,12 @@ export default function Home() {
         Promise.all(
           current.map((s) =>
             refreshStockData(s.symbol, s.name)
-              .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult, dividendRate, dividendYield, exDividendDate, dividends }) => {
+              .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult, dividendRate, dividendYield, exDividendDate, dividendDate, dividends }) => {
                 const newData = (data && data.length > 0) ? data : s.data;
                 const lastDataDate = (quoteType ?? s.quoteType) === "MUTUALFUND" && newData?.length
                   ? new Date().toLocaleDateString("sv")
                   : (s.lastDataDate ?? null);
-                return { ...s, data: newData, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol, marketState: marketState ?? s.marketState, exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName, quoteType: quoteType ?? s.quoteType, navTimestamp: navTimestamp ?? s.navTimestamp, lastDataDate, earningsResult: earningsResult ?? s.earningsResult, dividendRate: dividendRate ?? s.dividendRate, dividendYield: dividendYield ?? s.dividendYield, exDividendDate: exDividendDate ?? s.exDividendDate, dividends: dividends ?? s.dividends };
+                return { ...s, data: newData, earningsDate, currency: s.currency ?? currency ?? inferCurrency(s.symbol), symbol: corrected ?? s.symbol, marketState: marketState ?? s.marketState, exchangeTimezoneName: exchangeTimezoneName ?? s.exchangeTimezoneName, quoteType: quoteType ?? s.quoteType, navTimestamp: navTimestamp ?? s.navTimestamp, lastDataDate, earningsResult: earningsResult ?? s.earningsResult, dividendRate: dividendRate ?? s.dividendRate, dividendYield: dividendYield ?? s.dividendYield, exDividendDate: exDividendDate ?? s.exDividendDate, dividendDate: dividendDate ?? s.dividendDate, dividends: dividends ?? s.dividends };
               })
               .catch(() => s)
           )
@@ -344,7 +345,7 @@ export default function Home() {
       const results = await Promise.all(
         current.map((s) =>
           refreshStockData(s.symbol, s.name)
-            .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult, dividendRate, dividendYield, exDividendDate, dividends }) => {
+            .then(({ data, earningsDate, currency, symbol: corrected, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult, dividendRate, dividendYield, exDividendDate, dividendDate, dividends }) => {
               const newData = (data && data.length > 0) ? data : s.data;
               const lastDataDate = (quoteType ?? s.quoteType) === "MUTUALFUND" && newData?.length
                 ? new Date().toLocaleDateString("sv")
@@ -873,6 +874,7 @@ const cutoff1yr = new Date();
                           dividendRate={s.dividendRate ?? null}
                           dividendYield={s.dividendYield ?? null}
                           exDividendDate={s.exDividendDate ?? null}
+                          dividendDate={s.dividendDate ?? null}
                           dividends={s.dividends ?? []}
                         />
                       );

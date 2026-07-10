@@ -367,7 +367,7 @@ export async function GET(req: NextRequest) {
       yf.chart(upper, { period1: start, period2: end, interval: "1d", events: "dividends" }, { validateResult: false }).catch(() => null),
       yf.quote(upper, {}, { validateResult: false }).catch(() => null),
       yf.quoteSummary(upper, { modules: ["earningsHistory"] }, { validateResult: false }).catch(() => null),
-      yf.quoteSummary(upper, { modules: ["summaryDetail"] }, { validateResult: false }).catch(() => null),
+      yf.quoteSummary(upper, { modules: ["summaryDetail", "calendarEvents"] }, { validateResult: false }).catch(() => null),
     ]);
     let quote = initialQuote;
 
@@ -602,12 +602,13 @@ export async function GET(req: NextRequest) {
     const sd = dividendSummary?.summaryDetail;
     const dividendRate: number | null = sd?.dividendRate ?? null;
     const dividendYield: number | null = sd?.dividendYield ?? null;
-    const exDividendDate: string | null = (() => {
-      const d = sd?.exDividendDate;
+    const toDateStr = (d: unknown): string | null => {
       if (!d) return null;
       const dt = d instanceof Date ? d : new Date((d as number) * 1000);
       return isNaN(dt.getTime()) ? null : dt.toISOString().split("T")[0];
-    })();
+    };
+    const exDividendDate: string | null = toDateStr(sd?.exDividendDate);
+    const dividendDate: string | null = toDateStr(dividendSummary?.calendarEvents?.dividendDate);
     // Historical dividends from chart events (up to 13 months of history)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rawDivs: any = chartResult?.events?.dividends ?? {};
@@ -621,7 +622,7 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => a.date.localeCompare(b.date));
 
     const responseSymbol = originalISIN ?? upper;
-    return NextResponse.json({ symbol: responseSymbol, name, earningsDate, data, currency, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult, dividendRate, dividendYield, exDividendDate, dividends });
+    return NextResponse.json({ symbol: responseSymbol, name, earningsDate, data, currency, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult, dividendRate, dividendYield, exDividendDate, dividendDate, dividends });
   } catch {
     return NextResponse.json(
       { error: `Could not fetch data for "${upper}"` },
