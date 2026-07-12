@@ -358,6 +358,16 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
     }));
   }, [purchases, data]);
 
+  const dividendDatesOnChart = useMemo(() => {
+    if (!dividends || data.length === 0) return [];
+    return dividends
+      .filter((d) => d.date >= data[0].date && d.date <= data[data.length - 1].date)
+      .map((d) => ({
+        chartDate: (data.find((p) => p.date >= d.date) ?? data[0])?.date,
+        amount: d.amount,
+      }));
+  }, [dividends, data]);
+
 
   const positionValue = totalShares > 0 ? totalShares * last : null;
   const absChange = last - first;
@@ -562,6 +572,16 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
               label={{ value: p.label, position: "top", fill: "#6366f1", fontSize: 10 }}
             />
           ))}
+          {dividendDatesOnChart.map((d, i) => (
+            <ReferenceLine
+              key={`div${i}`}
+              x={d.chartDate}
+              stroke="#10b981"
+              strokeDasharray="4 3"
+              strokeWidth={1.5}
+              label={{ value: "D", position: "top", fill: "#10b981", fontSize: 10 }}
+            />
+          ))}
           <Line
             type="monotone"
             dataKey="close"
@@ -583,6 +603,12 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
           <span className="flex items-center gap-1.5 text-xs text-gray-600">
             <span className="inline-block w-4 border-t-2 border-dashed border-amber-400"></span>
             {t.earningsCallDate}
+          </span>
+        )}
+        {dividendDatesOnChart.length > 0 && (
+          <span className="flex items-center gap-1.5 text-xs text-gray-600">
+            <span className="inline-block w-4 border-t-2 border-dashed border-emerald-500"></span>
+            Dividend
           </span>
         )}
       </div>

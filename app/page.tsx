@@ -121,6 +121,7 @@ export default function Home() {
   const [leaderboardEnabled, setLeaderboardEnabled] = useState(true);
   const [topGainersEnabled, setTopGainersEnabled] = useState(true);
   const [ytdEnabled, setYtdEnabled] = useState(true);
+  const [dividendsEnabled, setDividendsEnabled] = useState(true);
   const [topGainersRegions, setTopGainersRegions] = useState<string[]>(["AMER", "EMEA", "APAC"]);
   const [language, setLanguage] = useState<Language>("en");
   const [reportEmail, setReportEmail] = useState("");
@@ -177,6 +178,7 @@ export default function Home() {
         if (typeof p.leaderboardEnabled === "boolean") { setLeaderboardEnabled(p.leaderboardEnabled); localStorage.setItem("portfolio-leaderboard", String(p.leaderboardEnabled)); }
         if (typeof p.topGainersEnabled === "boolean") { setTopGainersEnabled(p.topGainersEnabled); localStorage.setItem("portfolio-top-gainers", String(p.topGainersEnabled)); }
         if (typeof p.ytdEnabled === "boolean") { setYtdEnabled(p.ytdEnabled); localStorage.setItem("portfolio-ytd", String(p.ytdEnabled)); }
+        if (typeof p.dividendsEnabled === "boolean") { setDividendsEnabled(p.dividendsEnabled); localStorage.setItem("portfolio-dividends", String(p.dividendsEnabled)); }
         if (Array.isArray(p.topGainersRegions)) setTopGainersRegions(p.topGainersRegions);
         if (p.language === "en" || p.language === "sv") { setLanguage(p.language as Language); localStorage.setItem("portfolio-language", p.language); }
         if (typeof p.drawdownStartDate === "string") setDrawdownStartDate(p.drawdownStartDate);
@@ -802,6 +804,8 @@ const cutoff1yr = new Date();
             onTopGainersChange={(v) => { setTopGainersEnabled(v); localStorage.setItem("portfolio-top-gainers", String(v)); savePrefs({ topGainersEnabled: v }); }}
             ytdEnabled={ytdEnabled}
             onYtdChange={(v) => { setYtdEnabled(v); localStorage.setItem("portfolio-ytd", String(v)); savePrefs({ ytdEnabled: v }); }}
+            dividendsEnabled={dividendsEnabled}
+            onDividendsChange={(v) => { setDividendsEnabled(v); localStorage.setItem("portfolio-dividends", String(v)); savePrefs({ dividendsEnabled: v }); }}
             language={language}
             onLanguageChange={(v) => { setLanguage(v); localStorage.setItem("portfolio-language", v); savePrefs({ language: v }); }}
             reportEmail={reportEmail}
@@ -896,11 +900,11 @@ const cutoff1yr = new Date();
                           lastDataDate={s.lastDataDate ?? null}
                           earningsResult={s.earningsResult ?? null}
                           chartMonths={chartMonths}
-                          dividendRate={s.dividendRate ?? null}
-                          dividendYield={s.dividendYield ?? null}
-                          exDividendDate={s.exDividendDate ?? null}
-                          dividendDate={s.dividendDate ?? null}
-                          dividends={s.dividends ?? []}
+                          dividendRate={dividendsEnabled ? (s.dividendRate ?? null) : null}
+                          dividendYield={dividendsEnabled ? (s.dividendYield ?? null) : null}
+                          exDividendDate={dividendsEnabled ? (s.exDividendDate ?? null) : null}
+                          dividendDate={dividendsEnabled ? (s.dividendDate ?? null) : null}
+                          dividends={dividendsEnabled ? (s.dividends ?? []) : []}
                         />
                       );
                     })}

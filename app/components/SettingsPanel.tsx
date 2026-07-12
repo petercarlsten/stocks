@@ -193,6 +193,8 @@ interface Props {
   onTopGainersChange: (v: boolean) => void;
   ytdEnabled: boolean;
   onYtdChange: (v: boolean) => void;
+  dividendsEnabled: boolean;
+  onDividendsChange: (v: boolean) => void;
   language: Language;
   onLanguageChange: (v: Language) => void;
   reportEmail: string;
@@ -215,7 +217,7 @@ interface Props {
   onChartMonthsChange: (v: number) => void;
 }
 
-export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, ytdEnabled, onYtdChange, language, onLanguageChange, reportEmail, onReportEmailChange, emailReports, onEmailReportsChange, pushEnabled, onPushChange, pushSchedule, onPushScheduleChange, drawdownStartDate, onDrawdownStartDateChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange, inflationRate, onInflationRateChange, chartMonths, onChartMonthsChange }: Props) {
+export default function SettingsPanel({ open, onClose, currency, onCurrencyChange, theme, onThemeChange, funnyMode, onFunnyModeChange, newsEnabled, onNewsChange, leaderboardEnabled, onLeaderboardChange, topGainersEnabled, onTopGainersChange, ytdEnabled, onYtdChange, dividendsEnabled, onDividendsChange, language, onLanguageChange, reportEmail, onReportEmailChange, emailReports, onEmailReportsChange, pushEnabled, onPushChange, pushSchedule, onPushScheduleChange, drawdownStartDate, onDrawdownStartDateChange, drawdownDate, onDrawdownDateChange, growthRate, onGrowthRateChange, inflationRate, onInflationRateChange, chartMonths, onChartMonthsChange }: Props) {
   const t = useTranslation();
   const [sendState, setSendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [pushTestState, setPushTestState] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -384,6 +386,7 @@ export default function SettingsPanel({ open, onClose, currency, onCurrencyChang
             <Toggle label={t.gainsSincePurchasedToggle} enabled={leaderboardEnabled} onChange={onLeaderboardChange} />
             <Toggle label={t.topGainers} enabled={topGainersEnabled} onChange={onTopGainersChange} />
             <Toggle label={t.ytdPerformance} enabled={ytdEnabled} onChange={onYtdChange} />
+            <Toggle label={t.dividendsToggle} enabled={dividendsEnabled} onChange={onDividendsChange} />
           </div>
 
           <div className="flex flex-col gap-2">
