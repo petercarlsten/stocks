@@ -108,6 +108,12 @@ function fmtDate(dateStr?: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function fmtDateYear(dateStr?: string): string {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
 const EXCHANGE_OPEN: Record<string, [number, number]> = {
   "America/New_York":   [9,  30],
   "America/Chicago":    [8,  30],
@@ -727,7 +733,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                   {lastDiv && (
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-500">Last payout</span>
-                      <span className="text-emerald-600 font-medium">{fmt(lastDiv.amount * totalPurchasedShares)} <span className="text-gray-400 font-normal">· {fmtDate(lastDiv.date)}</span></span>
+                      <span className="text-emerald-600 font-medium">{fmt(lastDiv.amount * totalPurchasedShares)} <span className="text-gray-400 font-normal">· {fmtDateYear(lastDiv.date)}</span></span>
                     </div>
                   )}
                   {projected && (
@@ -737,7 +743,7 @@ export default function StockChart({ symbol, name, earningsDate, data, onRemove,
                         {fmt(projected.estimatedAmount * totalPurchasedShares)}
                         {projected.trend === "up" && <span className="text-emerald-500 ml-0.5">↑</span>}
                         {projected.trend === "down" && <span className="text-red-400 ml-0.5">↓</span>}
-                        <span className="text-gray-400 font-normal ml-1">· {fmtDate(projected.date)}</span>
+                        <span className="text-gray-400 font-normal ml-1">· {fmtDateYear(projected.date)}</span>
                       </span>
                     </div>
                   )}
