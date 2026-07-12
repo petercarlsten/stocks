@@ -540,20 +540,39 @@ export default function Home() {
               <div className="logo-badge relative bg-gradient-to-br from-indigo-600 via-violet-600 to-emerald-500 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex items-center justify-center overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent pointer-events-none"/>
                 <div className="logo-live-dot absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-emerald-300"/>
-                {/* Charging bull — Wall Street style */}
-                <svg width="60" height="46" viewBox="0 0 100 66" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M 10,30 C 4,18 4,8 8,2" stroke="white" strokeWidth="5" strokeLinecap="round" fill="none"/>
-                  <circle cx="8" cy="1" r="4.5" fill="white"/>
-                  <ellipse cx="44" cy="44" rx="34" ry="20" fill="white"/>
-                  <ellipse cx="66" cy="26" rx="18" ry="13" fill="white"/>
-                  <ellipse cx="82" cy="48" rx="14" ry="10" transform="rotate(-18 82 48)" fill="white"/>
-                  <ellipse cx="90" cy="54" rx="8" ry="6" fill="white"/>
-                  <path d="M 84,38 C 90,28 96,20 94,12" stroke="white" strokeWidth="5.5" strokeLinecap="round" fill="none"/>
-                  <path d="M 76,34 C 80,24 86,16 84,8" stroke="white" strokeWidth="4.5" strokeLinecap="round" fill="none"/>
-                  <path d="M 72,60 C 76,63 80,66 84,66" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
-                  <path d="M 80,62 C 83,64 86,66 88,64" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
-                  <path d="M 26,60 C 22,63 18,66 14,66" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
-                  <path d="M 36,62 C 32,64 28,66 25,65" stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
+                {/* Charging bull */}
+                <svg width="64" height="52" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {/* Glow layer */}
+                  <ellipse cx="72" cy="52" rx="42" ry="24" fill="white" opacity="0.08"/>
+                  {/* Body */}
+                  <ellipse cx="62" cy="50" rx="38" ry="22" fill="white"/>
+                  {/* Neck + head mass */}
+                  <ellipse cx="94" cy="34" rx="20" ry="15" fill="white"/>
+                  {/* Snout */}
+                  <ellipse cx="110" cy="42" rx="12" ry="9" fill="white"/>
+                  {/* Nostril */}
+                  <ellipse cx="113" cy="44" rx="3" ry="2.2" fill="rgba(99,102,241,0.5)"/>
+                  {/* Eye */}
+                  <circle cx="103" cy="28" r="4" fill="rgba(79,70,229,0.7)"/>
+                  <circle cx="104.5" cy="26.5" r="1.4" fill="white" opacity="0.9"/>
+                  {/* Horn 1 — main, sweeping up */}
+                  <path d="M96,22 C98,14 104,6 108,2" stroke="white" strokeWidth="6" strokeLinecap="round"/>
+                  {/* Horn 2 — secondary */}
+                  <path d="M88,20 C90,12 96,5 100,2" stroke="white" strokeWidth="4.5" strokeLinecap="round" opacity="0.7"/>
+                  {/* Tail — flicking up energetically */}
+                  <path d="M26,42 C16,36 8,30 4,20 C6,18 9,20 10,24 C12,30 18,36 24,40" stroke="white" strokeWidth="5" strokeLinecap="round" fill="none"/>
+                  {/* Front legs — mid-stride */}
+                  <path d="M82,68 C84,72 84,78 82,80" stroke="white" strokeWidth="8" strokeLinecap="round"/>
+                  <path d="M70,70 C70,74 68,78 66,80" stroke="white" strokeWidth="8" strokeLinecap="round"/>
+                  {/* Back legs */}
+                  <path d="M38,68 C36,72 34,77 32,80" stroke="white" strokeWidth="8" strokeLinecap="round"/>
+                  <path d="M50,70 C48,74 46,78 44,80" stroke="white" strokeWidth="8" strokeLinecap="round"/>
+                  {/* Hoof details */}
+                  <ellipse cx="82" cy="80" rx="5" ry="2.5" fill="white" opacity="0.5"/>
+                  <ellipse cx="67" cy="80" rx="5" ry="2.5" fill="white" opacity="0.5"/>
+                  {/* Upward arrow — charging forward */}
+                  <path d="M6,12 L10,4 L14,12" stroke="#A5F3FC" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.8"/>
+                  <path d="M10,4 L10,18" stroke="#A5F3FC" strokeWidth="2.5" strokeLinecap="round" opacity="0.8"/>
                 </svg>
               </div>
               </div>
