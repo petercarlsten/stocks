@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.3] – 2026-07-12
+### Added
+- Setting to hide/show Portfolio performance YTD chart (Settings → Widgets)
+
+### Removed
+- Decorative green dot from header badge
+
 ## [0.9.2] – 2026-07-05
 ### Fixed
 - Fund holdings tooltip now shows sector allocation (Technology, Consumer Cyclical, etc.) for funds where Yahoo Finance doesn't provide individual stock holdings (e.g. Singapore-listed 0P0000 funds)

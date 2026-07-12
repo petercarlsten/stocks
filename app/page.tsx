@@ -120,6 +120,7 @@ export default function Home() {
   const [newsEnabled, setNewsEnabled] = useState(true);
   const [leaderboardEnabled, setLeaderboardEnabled] = useState(true);
   const [topGainersEnabled, setTopGainersEnabled] = useState(true);
+  const [ytdEnabled, setYtdEnabled] = useState(true);
   const [topGainersRegions, setTopGainersRegions] = useState<string[]>(["AMER", "EMEA", "APAC"]);
   const [language, setLanguage] = useState<Language>("en");
   const [reportEmail, setReportEmail] = useState("");
@@ -175,6 +176,7 @@ export default function Home() {
         if (typeof p.newsEnabled === "boolean") { setNewsEnabled(p.newsEnabled); localStorage.setItem("portfolio-news", String(p.newsEnabled)); }
         if (typeof p.leaderboardEnabled === "boolean") { setLeaderboardEnabled(p.leaderboardEnabled); localStorage.setItem("portfolio-leaderboard", String(p.leaderboardEnabled)); }
         if (typeof p.topGainersEnabled === "boolean") { setTopGainersEnabled(p.topGainersEnabled); localStorage.setItem("portfolio-top-gainers", String(p.topGainersEnabled)); }
+        if (typeof p.ytdEnabled === "boolean") { setYtdEnabled(p.ytdEnabled); localStorage.setItem("portfolio-ytd", String(p.ytdEnabled)); }
         if (Array.isArray(p.topGainersRegions)) setTopGainersRegions(p.topGainersRegions);
         if (p.language === "en" || p.language === "sv") { setLanguage(p.language as Language); localStorage.setItem("portfolio-language", p.language); }
         if (typeof p.drawdownStartDate === "string") setDrawdownStartDate(p.drawdownStartDate);
@@ -522,7 +524,7 @@ export default function Home() {
         .logo-underline {
           background: linear-gradient(90deg, #6366f1, #8b5cf6 50%, #10b981);
         }
-        .logo-live-dot { opacity: 1; }
+
         @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 639px) {
           .stocks-grid { grid-template-columns: minmax(0, 1fr) !important; }
@@ -539,7 +541,7 @@ export default function Home() {
               <div className="relative shrink-0">
               <div className="logo-badge relative bg-gradient-to-br from-indigo-600 via-violet-600 to-emerald-500 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex items-center justify-center overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-white/15 to-transparent pointer-events-none"/>
-                <div className="logo-live-dot absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-emerald-300"/>
+
                 {/* Charging bull */}
                 <svg width="64" height="52" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
                   {/* Glow layer */}
@@ -798,6 +800,8 @@ const cutoff1yr = new Date();
             onLeaderboardChange={(v) => { setLeaderboardEnabled(v); localStorage.setItem("portfolio-leaderboard", String(v)); savePrefs({ leaderboardEnabled: v }); }}
             topGainersEnabled={topGainersEnabled}
             onTopGainersChange={(v) => { setTopGainersEnabled(v); localStorage.setItem("portfolio-top-gainers", String(v)); savePrefs({ topGainersEnabled: v }); }}
+            ytdEnabled={ytdEnabled}
+            onYtdChange={(v) => { setYtdEnabled(v); localStorage.setItem("portfolio-ytd", String(v)); savePrefs({ ytdEnabled: v }); }}
             language={language}
             onLanguageChange={(v) => { setLanguage(v); localStorage.setItem("portfolio-language", v); savePrefs({ language: v }); }}
             reportEmail={reportEmail}
@@ -833,13 +837,15 @@ const cutoff1yr = new Date();
           {topGainersEnabled && <div className="w-full"><TopGainers regions={topGainersRegions} onRegionsChange={(v) => { setTopGainersRegions(v); savePrefs({ topGainersRegions: v }); }} /></div>}
         </div>
 
-        <PortfolioOverviewChart
-          stocks={stocks}
-          usdRates={usdRates}
-          exchangeRate={exchangeRate}
-          currency={currency}
-          theme={theme}
-        />
+        {ytdEnabled && (
+          <PortfolioOverviewChart
+            stocks={stocks}
+            usdRates={usdRates}
+            exchangeRate={exchangeRate}
+            currency={currency}
+            theme={theme}
+          />
+        )}
 
         {stocks.length === 0 ? (
           <p className="text-gray-400 text-center mt-24">
