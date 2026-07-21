@@ -76,7 +76,7 @@ export default function DashboardLeaderboard({ stocks, usdRates = {}, className,
             const gainColor = positive ? "text-green-600" : "text-red-500";
             const sign = positive ? "+" : "";
             return (
-              <li key={s.symbol} className={`flex items-start gap-2 min-w-0 rounded-lg p-2 border-2 ${positive ? "border-green-500" : "border-red-500"}`}>
+              <li key={s.symbol} className="flex items-start gap-2 min-w-0 rounded-lg p-2 border border-gray-200">
                 <span className="text-gray-500 text-xs w-3 shrink-0 mt-0.5">{i + 1}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between gap-2">
