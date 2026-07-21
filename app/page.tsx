@@ -60,6 +60,7 @@ function migrateStock(s: StockData & { shares?: number; purchaseDate?: string; p
   return { ...rest, purchases: [{ date: purchaseDate, shares: shares ?? 0, price: purchasePrice }] };
 }
 
+const CHART_COLOR = "#6366F1";
 const COLORS = ["#6366F1","#10B981","#F59E0B","#EF4444","#3B82F6","#EC4899","#14B8A6","#F97316","#A855F7","#EAB308","#06B6D4","#84CC16","#E11D48","#0EA5E9","#D97706","#7C3AED","#059669","#DC2626","#2563EB","#C026D3","#16A34A","#EA580C","#4F46E5","#0D9488","#B45309","#9333EA","#15803D","#BE123C","#0284C7","#A16207"];
 
 const MAX_STOCKS = 30;
@@ -590,11 +591,20 @@ export default function Home() {
             {username && (
               <span className="text-gray-600 text-xs">{t.username}: <span className="font-bold text-gray-800">{username}</span></span>
             )}
-            {lastRefreshed && (
-              <p className="text-gray-600 text-xs mt-0.5">
-                {t.lastUpdated} {lastRefreshed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </p>
-            )}
+            {lastRefreshed && (() => {
+              const latestDataDate = stocks.reduce((max, s) => {
+                const d = s.data[s.data.length - 1]?.date;
+                return d && d > max ? d : max;
+              }, "");
+              const dataDateStr = latestDataDate
+                ? new Date(latestDataDate + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })
+                : null;
+              return (
+                <p className="text-gray-600 text-xs mt-0.5">
+                  {dataDateStr ? `Data through ${dataDateStr}` : `${t.lastUpdated} ${lastRefreshed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
+                </p>
+              );
+            })()}
             {(() => {
               const cutoff = new Date();
               cutoff.setDate(cutoff.getDate() - 30);
@@ -885,7 +895,7 @@ const cutoff1yr = new Date();
                           name={s.name}
                           earningsDate={s.earningsDate}
                           data={chartData}
-                          color={COLORS[i % COLORS.length]}
+                          color={CHART_COLOR}
                           purchases={s.purchases}
                           onRemove={() => setConfirmRemoveSymbol(s.symbol)}
                           onPurchasesChange={(p) => updatePurchases(s.symbol, p)}

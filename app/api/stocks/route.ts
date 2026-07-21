@@ -621,6 +621,24 @@ export async function GET(req: NextRequest) {
       .filter((d) => d.amount > 0)
       .sort((a, b) => a.date.localeCompare(b.date));
 
+    // Inject the live regularMarketPrice as the most recent data point if it's
+    // newer than the last chart close — fixes stale price display on weekends/holidays.
+    const livePrice = (quote as { regularMarketPrice?: number } | null)?.regularMarketPrice;
+    const liveTime = (quote as { regularMarketTime?: Date | number } | null)?.regularMarketTime;
+    if (livePrice && liveTime) {
+      const liveDate = (liveTime instanceof Date ? liveTime : new Date((liveTime as number) * 1000))
+        .toISOString().split("T")[0];
+      const lastDate = data[data.length - 1]?.date ?? "";
+      if (liveDate >= lastDate) {
+        // Replace or append today's entry with the live price
+        if (data.length > 0 && data[data.length - 1].date === liveDate) {
+          data[data.length - 1] = { date: liveDate, close: livePrice };
+        } else if (liveDate > lastDate) {
+          data.push({ date: liveDate, close: livePrice });
+        }
+      }
+    }
+
     const responseSymbol = originalISIN ?? upper;
     return NextResponse.json({ symbol: responseSymbol, name, earningsDate, data, currency, marketState, exchangeTimezoneName, quoteType, navTimestamp, earningsResult, dividendRate, dividendYield, exDividendDate, dividendDate, dividends });
   } catch {
